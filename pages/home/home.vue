@@ -63,6 +63,7 @@
 		{ key: 'patrol', labelKey: 'home.featurePatrol', icon: '巡', url: '/pages/patrol/patrol' },
 		{ key: 'records', labelKey: 'home.featureRecords', icon: '记', url: '/pages/records/records' },
 		{ key: 'heritages', labelKey: 'home.featureHeritages', icon: '文', url: '/pages/admin/admin' },
+		{ key: 'collectManage', labelKey: 'home.featureCollectManage', icon: '采', url: '/pages/collect/my_records' },
 		{ key: 'projects', labelKey: 'home.featureProjects', icon: '项', url: '/pages/admin/admin?tab=projects' },
 		{ key: 'kml', labelKey: 'home.featureKml', icon: '图', url: '/pages/kml/kml' },
 		{ key: 'my', labelKey: 'home.featureMy', icon: '我', url: '/pages/my/my' },

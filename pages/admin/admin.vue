@@ -96,6 +96,14 @@
 					<text class="card-text">{{ t('admin.kmlDesc') }}</text>
 					<button class="primary-btn" @click="openKmlTool">{{ t('admin.openKml') }}</button>
 				</view>
+				<view class="card" style="margin-top:20rpx;">
+					<text class="card-title">四普现场数据采集</text>
+					<text class="card-text">在现场对不可移动文物点进行登记采集，支持 GPS 定位、照片上传并自动加水印。</text>
+					<view style="display:flex;gap:16rpx;margin-top:16rpx;">
+						<button class="primary-btn" style="flex:2;" @click="goCollect">开始采集</button>
+						<button class="ghost-lite-btn" style="flex:1;" @click="goMyRecords">我的采集</button>
+					</view>
+				</view>
 			</view>
 		</scroll-view>
 
@@ -363,6 +371,12 @@
 				} catch (error) {
 					uni.showToast({ title: this.t('admin.openFailed'), icon: 'none' });
 				}
+			},
+			goCollect() {
+				uni.navigateTo({ url: '/pages/collect/collect' });
+			},
+			goMyRecords() {
+				uni.navigateTo({ url: '/pages/collect/my_records' });
 			},
 		},
 	};

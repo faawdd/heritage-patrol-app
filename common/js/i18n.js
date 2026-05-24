@@ -88,6 +88,7 @@ const messages = {
 		featurePatrol: '巡查上报',
 		featureRecords: '巡查记录',
 		featureHeritages: '文物管理',
+			featureCollectManage: '采集数据管理',
 		featureProjects: '项目管理',
 		featureKml: 'KML检查',
 		featureMy: '我的账户',

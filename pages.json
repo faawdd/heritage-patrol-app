@@ -47,6 +47,24 @@
 			"style": {
 				"navigationBarTitleText": "KML叠加检查"
 			}
+		},
+		{
+			"path": "pages/collect/collect",
+			"style": {
+				"navigationBarTitleText": "文物现场采集",
+				"navigationBarBackgroundColor": "#163F77",
+				"navigationBarTextStyle": "white",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/collect/my_records",
+			"style": {
+				"navigationBarTitleText": "我的采集记录",
+				"navigationBarBackgroundColor": "#163F77",
+				"navigationBarTextStyle": "white",
+				"enablePullDownRefresh": true
+			}
 		}
 	],
 	"globalStyle": {
