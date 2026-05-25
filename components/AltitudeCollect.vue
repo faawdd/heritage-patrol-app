@@ -69,9 +69,6 @@
 
 import { ref, watch } from 'vue';
 import config from '../common/js/config.js';
-
-// DEM 接口默认地址；如后端路径变化，可通过 props.demApiUrl 透传覆盖。
-const DEFAULT_DEM_API_URL = `${config.API_BASE_URL}/api/dem-elevation-lookup/`;
 const DEM_TIMEOUT_MS = 8000;
 const GPS_TIMEOUT_MS = 12000;
 
@@ -82,7 +79,8 @@ const props = defineProps({
 	},
 	demApiUrl: {
 		type: String,
-		default: DEFAULT_DEM_API_URL,
+		// script setup 中 defineProps 会被提升，默认值不能引用本地声明变量。
+		default: `${config.API_BASE_URL}/api/dem-elevation-lookup/`,
 	},
 });
 

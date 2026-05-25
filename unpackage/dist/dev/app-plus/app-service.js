@@ -3038,39 +3038,24 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
     ]);
   }
   const PagesKmlKml = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__file", "C:/Users/14434/uniapp/pages/kml/kml.vue"]]);
-  const STD_PRESSURE_HPA = 1013.25;
-  const BARO_TIMEOUT_MS = 3e3;
-  const GPS_TIMEOUT_MS = 1e4;
+  const DEM_TIMEOUT_MS = 8e3;
+  const GPS_TIMEOUT_MS = 12e3;
   const _sfc_main$3 = {
     __name: "AltitudeCollect",
     props: {
-      /**
-       * v-model 绑定的高程值（父组件传入）。
-       * 类型允许 String 或 Number，内部统一以字符串处理。
-       */
       modelValue: {
         type: [String, Number],
         default: ""
+      },
+      demApiUrl: {
+        type: String,
+        // script setup 中 defineProps 会被提升，默认值不能引用本地声明变量。
+        default: `${config.API_BASE_URL}/api/dem-elevation-lookup/`
       }
     },
-    emits: [
-      "update:modelValue",
-      // v-model 更新事件
-      "collect-done"
-      // 采集完成，携带完整采集信息 Object
-    ],
+    emits: ["update:modelValue", "collect-done"],
     setup(__props, { expose: __expose, emit: __emit }) {
       __expose();
-      function pressureToAltitude(pressureHpa, refPressureHpa = STD_PRESSURE_HPA) {
-        return 44330 * (1 - Math.pow(pressureHpa / refPressureHpa, 1 / 5.255));
-      }
-      function fuseAltitude(gpsAlt, baroAlt, accuracy = 999) {
-        const gpsW = accuracy <= 5 ? 0.55 : accuracy <= 15 ? 0.45 : accuracy <= 50 ? 0.35 : 0.25;
-        return gpsAlt * gpsW + baroAlt * (1 - gpsW);
-      }
-      function isZeroAltitude(v) {
-        return Number.isFinite(v) && Math.abs(v) < 1e-6;
-      }
       const props = __props;
       const emit = __emit;
       const altitude = vue.ref(props.modelValue != null ? String(props.modelValue) : "");
@@ -3080,403 +3065,190 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       const detailText = vue.ref("");
       const sourceLabel = vue.ref("");
       const sourceBadgeClass = vue.ref("");
-      vue.watch(() => props.modelValue, (v) => {
-        if (v != null && v !== "")
-          altitude.value = String(v);
-      });
+      vue.watch(
+        () => props.modelValue,
+        (v) => {
+          if (v !== null && v !== void 0) {
+            altitude.value = String(v);
+          }
+        }
+      );
       function onManualInput(e) {
         altitude.value = e.detail.value;
         sourceLabel.value = "手动录入";
         sourceBadgeClass.value = "badge--manual";
-        statusMsg.value = "";
+        statusMsg.value = "已切换为手动输入，可录入 RTK 手簿高程";
+        statusClass.value = "alt-status--info";
         detailText.value = "";
         emit("update:modelValue", altitude.value);
+      }
+      function _toValidHardwareAltitude(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n))
+          return null;
+        if (Math.abs(n) < 1e-6)
+          return null;
+        return n;
+      }
+      function _toFixed2(value) {
+        return Number(value).toFixed(2);
+      }
+      function _mapGpsError(err) {
+        const raw = String(err && (err.message || err.errMsg) || err || "");
+        const msg = raw.toLowerCase();
+        if (msg.includes("permission") || msg.includes("denied") || msg.includes("auth")) {
+          return "定位权限被拒绝，请在系统设置中开启定位权限";
+        }
+        if (msg.includes("timeout")) {
+          return "GPS 搜星超时，请移至开阔区域后重试";
+        }
+        if (msg.includes("provider") || msg.includes("gps")) {
+          return "GPS 可能未开启，请先打开系统定位并重试";
+        }
+        return "获取原生 GPS 失败，请重试";
+      }
+      function getNativeGpsPosition() {
+        return new Promise((resolve, reject) => {
+          try {
+            plus.geolocation.getCurrentPosition(
+              (position) => {
+                const coords = position && position.coords ? position.coords : {};
+                resolve({
+                  longitude: Number(coords.longitude),
+                  latitude: Number(coords.latitude),
+                  altitude: coords.altitude != null ? Number(coords.altitude) : null,
+                  accuracy: coords.accuracy != null ? Number(coords.accuracy) : null
+                });
+              },
+              (err) => {
+                reject(new Error(_mapGpsError(err)));
+              },
+              {
+                provider: "gps",
+                enableHighAccuracy: true,
+                coordsType: "wgs84",
+                timeout: GPS_TIMEOUT_MS,
+                maximumAge: 0,
+                geocode: false
+              }
+            );
+          } catch (e) {
+            reject(new Error(_mapGpsError(e)));
+          }
+        });
+      }
+      function requestDemAltitude(longitude, latitude) {
+        return new Promise((resolve, reject) => {
+          uni.request({
+            url: props.demApiUrl,
+            method: "POST",
+            timeout: DEM_TIMEOUT_MS,
+            header: {
+              "Content-Type": "application/json"
+            },
+            data: {
+              longitude,
+              latitude
+            },
+            success: (res) => {
+              const data = res && res.data ? res.data : {};
+              if (res.statusCode !== 200) {
+                reject(new Error(`DEM HTTP ${res.statusCode || "ERR"}`));
+                return;
+              }
+              const demOk = data.code === 200 || data.success === true;
+              const demAltitude = data.altitude ?? data.elevation;
+              if (!demOk || demAltitude === null || demAltitude === void 0 || Number.isNaN(Number(demAltitude))) {
+                reject(new Error("DEM 返回无有效高程"));
+                return;
+              }
+              resolve(Number(demAltitude));
+            },
+            fail: (err) => {
+              reject(new Error(`DEM 请求失败: ${err && err.errMsg || "network fail"}`));
+            }
+          });
+        });
       }
       async function startCollect() {
         if (collecting.value)
           return;
         collecting.value = true;
-        statusMsg.value = "正在高精度定位，请稍候…";
+        statusMsg.value = "正在调用原生 GPS 并请求 DEM 校准，请稍候…";
         statusClass.value = "alt-status--info";
-        detailText.value = "";
         sourceLabel.value = "";
         sourceBadgeClass.value = "";
+        detailText.value = "";
         try {
-          const r = await _doCollect();
-          altitude.value = r.altitude.toFixed(2);
-          sourceLabel.value = r.source;
-          sourceBadgeClass.value = r.source.includes("气压") ? "badge--fused" : "badge--gps";
-          detailText.value = r.detail;
-          statusMsg.value = r.accuracy != null ? `采集成功，精度 ±${Math.round(r.accuracy)} m` : "采集成功";
-          statusClass.value = "alt-status--success";
+          const gps = await getNativeGpsPosition();
+          const longitude = Number(gps.longitude);
+          const latitude = Number(gps.latitude);
+          const hardwareAltitude = _toValidHardwareAltitude(gps.altitude);
+          const accuracy = Number.isFinite(Number(gps.accuracy)) ? Number(gps.accuracy) : null;
+          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
+            throw new Error("GPS 返回经纬度无效");
+          }
+          let chosenAltitude = null;
+          let chosenLabel = "";
+          let chosenBadgeClass = "";
+          let chosenStatus = "";
+          let chosenStatusClass = "";
+          try {
+            const demAltitude = await requestDemAltitude(longitude, latitude);
+            chosenAltitude = demAltitude;
+            chosenLabel = "🟢 DEM国家高程校准";
+            chosenBadgeClass = "badge--dem";
+            chosenStatus = "后端 DEM 反查成功，已使用国家高程校准值";
+            chosenStatusClass = "alt-status--success";
+          } catch (_demErr) {
+            if (hardwareAltitude != null) {
+              chosenAltitude = hardwareAltitude;
+              chosenLabel = "🟡 手机硬件高程(无网保底)";
+              chosenBadgeClass = "badge--hardware";
+              chosenStatus = "DEM 不可用，已降级为手机硬件海拔保底";
+              chosenStatusClass = "alt-status--success";
+            } else {
+              chosenAltitude = 0;
+              chosenLabel = "🔴 信号断绝，请手动输入RTK手簿数据";
+              chosenBadgeClass = "badge--critical";
+              chosenStatus = "网络中断且硬件海拔无效，已填充 0.00，请立即手动录入 RTK 数据";
+              chosenStatusClass = "alt-status--error";
+            }
+          }
+          altitude.value = _toFixed2(chosenAltitude);
+          sourceLabel.value = chosenLabel;
+          sourceBadgeClass.value = chosenBadgeClass;
+          statusMsg.value = chosenStatus;
+          statusClass.value = chosenStatusClass;
+          detailText.value = `经度 ${longitude.toFixed(8)} ｜ 纬度 ${latitude.toFixed(8)} ｜ 硬件海拔 ${gps.altitude != null ? Number(gps.altitude).toFixed(2) : "null"} ｜ 精度 ${accuracy != null ? `±${Math.round(accuracy)}m` : "未知"}`;
           emit("update:modelValue", altitude.value);
-          emit("collect-done", r);
-          uni.showToast({ title: `海拔 ${altitude.value} m`, icon: "success", duration: 2e3 });
+          emit("collect-done", {
+            longitude,
+            latitude,
+            accuracy,
+            altitude: Number(altitude.value),
+            hardwareAltitude,
+            source: chosenLabel
+          });
+          uni.showToast({
+            title: `海拔 ${altitude.value}m`,
+            icon: "none",
+            duration: 1800
+          });
         } catch (err) {
-          statusMsg.value = err.userMsg || "定位失败，请手动输入";
+          statusMsg.value = err && err.message || "采集失败，请检查定位权限后重试";
           statusClass.value = "alt-status--error";
-          sourceLabel.value = "";
-          uni.showToast({ title: statusMsg.value, icon: "none", duration: 3e3 });
+          sourceLabel.value = "定位失败";
+          sourceBadgeClass.value = "badge--critical";
+          detailText.value = "";
+          uni.showToast({ title: statusMsg.value, icon: "none", duration: 2600 });
         } finally {
           collecting.value = false;
         }
       }
-      async function _doCollect() {
-        const [gpsResult, baroResult] = await Promise.allSettled([
-          _getGpsAltitude(),
-          _getBaroPressure()
-          // 始终 resolve(hPa | null)，不 reject
-        ]);
-        if (gpsResult.status === "rejected") {
-          throw gpsResult.reason;
-        }
-        const gps = gpsResult.value;
-        const baro = baroResult.status === "fulfilled" ? baroResult.value : null;
-        if (gps.altitude != null && baro != null) {
-          const refPressure = STD_PRESSURE_HPA * Math.pow(1 - gps.altitude / 44330, 5.255);
-          const baroAlt = pressureToAltitude(baro, refPressure);
-          const gpsIsZero = isZeroAltitude(gps.altitude);
-          const baroIsZero = isZeroAltitude(baroAlt);
-          if (gpsIsZero && !baroIsZero) {
-            return {
-              altitude: baroAlt,
-              source: "仅气压计",
-              accuracy: gps.accuracy,
-              longitude: gps.longitude,
-              latitude: gps.latitude,
-              rawGps: gps.altitude,
-              rawBaro: baroAlt,
-              pressure: baro,
-              detail: `GPS ${gps.altitude.toFixed(1)}m（已忽略：值为0） ｜ 气压 ${baro.toFixed(1)} hPa → ${baroAlt.toFixed(1)}m`
-            };
-          }
-          if (!gpsIsZero && baroIsZero) {
-            return {
-              altitude: gps.altitude,
-              source: "仅 GPS",
-              accuracy: gps.accuracy,
-              longitude: gps.longitude,
-              latitude: gps.latitude,
-              rawGps: gps.altitude,
-              rawBaro: baroAlt,
-              pressure: baro,
-              detail: `GPS ${gps.altitude.toFixed(1)}m ｜ 气压推算 ${baroAlt.toFixed(1)}m（已忽略：值为0）`
-            };
-          }
-          if (gpsIsZero && baroIsZero) {
-            const e2 = new Error("GPS and barometer altitude are both zero");
-            e2.userMsg = "高程采集异常（GPS与气压计均为0），请移至开阔区域重试或手动录入";
-            throw e2;
-          }
-          const fused = fuseAltitude(gps.altitude, baroAlt, gps.accuracy);
-          return {
-            altitude: fused,
-            source: "GPS + 气压计",
-            accuracy: gps.accuracy,
-            longitude: gps.longitude,
-            latitude: gps.latitude,
-            rawGps: gps.altitude,
-            rawBaro: baroAlt,
-            pressure: baro,
-            detail: `GPS ${gps.altitude.toFixed(1)}m ｜ 气压 ${baro.toFixed(1)} hPa → ${baroAlt.toFixed(1)}m ｜ 融合 ${fused.toFixed(2)}m`
-          };
-        }
-        if (gps.altitude != null) {
-          if (isZeroAltitude(gps.altitude)) {
-            const e2 = new Error("GPS altitude is zero");
-            e2.userMsg = "GPS 海拔为0，建议点击自动采集使用气压计融合或手动录入";
-            throw e2;
-          }
-          const noBaroNote = baro === null ? "（设备无气压计或读取超时）" : "";
-          return {
-            altitude: gps.altitude,
-            source: "仅 GPS",
-            accuracy: gps.accuracy,
-            longitude: gps.longitude,
-            latitude: gps.latitude,
-            rawGps: gps.altitude,
-            detail: `GPS 高程 ${gps.altitude.toFixed(2)}m，精度 ±${gps.accuracy != null ? Math.round(gps.accuracy) : "?"}m ${noBaroNote}`
-          };
-        }
-        const e = new Error("GPS altitude is null");
-        e.userMsg = "卫星信号弱，无法获取高程数据，请移至开阔区域或手动录入";
-        throw e;
-      }
-      function _getGpsAltitude() {
-        return new Promise((resolve, reject) => {
-          const mapGpsError = (err) => {
-            const msg = String(err && err.errMsg || err || "").toLowerCase();
-            const e = new Error(err && err.errMsg || "gps error");
-            e.userMsg = msg.includes("auth") || msg.includes("denied") || msg.includes("security") || msg.includes("permission") ? "定位权限被拒绝，请在手机【设置 → 应用 → 权限 → 定位】中开启" : msg.includes("provider disabled") || msg.includes("provider off") ? "GPS 开关未开启，请先开启系统定位并切换到高精度模式" : msg.includes("timeout") ? "GPS 超时，请前往遮蔽物少的开阔区域后重试" : "获取 GPS 定位失败，请重试";
-            return e;
-          };
-          const requestGps = (expireMs) => {
-            return new Promise((resolveOnce, rejectOnce) => {
-              uni.getLocation({
-                type: "wgs84",
-                // WGS-84 坐标系，符合文物普查规范
-                altitude: true,
-                // iOS 必须加此参数才返回 altitude 字段
-                isHighAccuracy: true,
-                // 强制调用 GPS 芯片（耗电高，精度高）
-                highAccuracyExpireTime: expireMs,
-                success(res) {
-                  resolveOnce({
-                    altitude: res.altitude != null ? Number(res.altitude) : null,
-                    accuracy: res.accuracy != null ? res.accuracy : null,
-                    longitude: res.longitude,
-                    latitude: res.latitude
-                  });
-                },
-                fail(err) {
-                  rejectOnce(err);
-                }
-              });
-            });
-          };
-          const requestAndroidNativeGpsProvider = () => {
-            return new Promise((resolveNative, rejectNative) => {
-              try {
-                if (typeof plus === "undefined" || !plus.android || !plus.os || String(plus.os.name || "").toLowerCase() !== "android") {
-                  resolveNative(null);
-                  return;
-                }
-                plus.android.importClass("android.location.LocationManager");
-                const activity = plus.android.runtimeMainActivity();
-                const locationManager = plus.android.invoke(activity, "getSystemService", "location");
-                const provider = "gps";
-                if (!locationManager) {
-                  rejectNative({ errMsg: "location manager unavailable" });
-                  return;
-                }
-                const isProviderEnabled = plus.android.invoke(locationManager, "isProviderEnabled", provider);
-                if (!isProviderEnabled) {
-                  rejectNative({ errMsg: "provider disabled" });
-                  return;
-                }
-                let done = false;
-                let timer = null;
-                let listener = null;
-                const parseLocation = (loc) => {
-                  if (!loc)
-                    return null;
-                  const longitude = Number(plus.android.invoke(loc, "getLongitude"));
-                  const latitude = Number(plus.android.invoke(loc, "getLatitude"));
-                  if (!Number.isFinite(longitude) || !Number.isFinite(latitude))
-                    return null;
-                  const hasAltitude = !!plus.android.invoke(loc, "hasAltitude");
-                  const hasAccuracy = !!plus.android.invoke(loc, "hasAccuracy");
-                  const altitudeRaw = hasAltitude ? Number(plus.android.invoke(loc, "getAltitude")) : null;
-                  const accuracyRaw = hasAccuracy ? Number(plus.android.invoke(loc, "getAccuracy")) : null;
-                  return {
-                    altitude: Number.isFinite(altitudeRaw) ? altitudeRaw : null,
-                    accuracy: Number.isFinite(accuracyRaw) ? accuracyRaw : null,
-                    longitude,
-                    latitude
-                  };
-                };
-                const finish = (payload, err) => {
-                  if (done)
-                    return;
-                  done = true;
-                  if (timer)
-                    clearTimeout(timer);
-                  try {
-                    if (listener)
-                      plus.android.invoke(locationManager, "removeUpdates", listener);
-                  } catch (_) {
-                  }
-                  if (err)
-                    rejectNative(err);
-                  else
-                    resolveNative(payload);
-                };
-                listener = plus.android.implements("android.location.LocationListener", {
-                  onLocationChanged: (location) => {
-                    const parsed = parseLocation(location);
-                    if (!parsed)
-                      return;
-                    finish(parsed, null);
-                  },
-                  onStatusChanged: () => {
-                  },
-                  onProviderEnabled: () => {
-                  },
-                  onProviderDisabled: () => {
-                  }
-                });
-                const lastKnown = plus.android.invoke(locationManager, "getLastKnownLocation", provider);
-                const lastParsed = parseLocation(lastKnown);
-                if (lastParsed && lastParsed.altitude != null && !isZeroAltitude(lastParsed.altitude)) {
-                  finish(lastParsed, null);
-                  return;
-                }
-                plus.android.invoke(locationManager, "requestLocationUpdates", provider, 0, 0, listener);
-                timer = setTimeout(() => finish(null, { errMsg: "timeout" }), GPS_TIMEOUT_MS + 8e3);
-              } catch (e) {
-                rejectNative({ errMsg: String(e && e.message || e || "native gps error") });
-              }
-            });
-          };
-          (async () => {
-            try {
-              const nativeGps = await requestAndroidNativeGpsProvider();
-              if (nativeGps && nativeGps.altitude != null && !isZeroAltitude(nativeGps.altitude)) {
-                resolve(nativeGps);
-                return;
-              }
-              const first = await requestGps(GPS_TIMEOUT_MS);
-              if (first.altitude != null && !isZeroAltitude(first.altitude)) {
-                resolve(first);
-                return;
-              }
-              const second = await requestGps(GPS_TIMEOUT_MS + 8e3);
-              resolve(second);
-            } catch (err) {
-              reject(mapGpsError(err));
-            }
-          })();
-        });
-      }
-      function _getBaroPressure() {
-        return new Promise((resolve) => {
-          let _resolved = false;
-          const safeResolve = (v) => {
-            if (_resolved)
-              return;
-            _resolved = true;
-            resolve(v);
-          };
-          const timer = setTimeout(() => safeResolve(null), BARO_TIMEOUT_MS);
-          const finish = (hpa) => {
-            clearTimeout(timer);
-            safeResolve(hpa);
-          };
-          try {
-            if (plus.sensors && typeof plus.sensors.startBarometer === "function") {
-              let _got = false;
-              plus.sensors.startBarometer(
-                { frequency: "fastest" },
-                // 尽可能快地获取一次读数
-                /* 成功回调：收到气压数据 */
-                (event) => {
-                  if (_got)
-                    return;
-                  _got = true;
-                  try {
-                    plus.sensors.stopBarometer();
-                  } catch (_) {
-                  }
-                  const raw = event.pressure != null ? event.pressure : event.value && event.value[0] != null ? event.value[0] : null;
-                  if (raw == null) {
-                    finish(null);
-                    return;
-                  }
-                  finish(raw > 5e4 ? raw / 100 : raw);
-                },
-                /* 失败回调：传感器不支持或硬件错误 */
-                () => {
-                  if (!_got)
-                    finish(null);
-                }
-              );
-              return;
-            }
-          } catch (_e1) {
-          }
-          try {
-            if (typeof plus !== "undefined" && plus.android) {
-              plus.android.importClass("android.hardware.SensorManager");
-              plus.android.importClass("android.hardware.Sensor");
-              const activity = plus.android.runtimeMainActivity();
-              const sensorManager = plus.android.invoke(activity, "getSystemService", "sensor");
-              const pressSensor = plus.android.invoke(sensorManager, "getDefaultSensor", 6);
-              if (!pressSensor) {
-                finish(null);
-                return;
-              }
-              const listener = plus.android.implements(
-                "android.hardware.SensorEventListener",
-                {
-                  /**
-                   * 传感器数据变化时回调（只取第一次数据后立即注销监听）
-                   * @param {android.hardware.SensorEvent} sensorEvent
-                   */
-                  onSensorChanged(sensorEvent) {
-                    try {
-                      const values = plus.android.getAttribute(sensorEvent, "values");
-                      const hpa = values ? parseFloat(values[0]) : null;
-                      try {
-                        plus.android.invoke(sensorManager, "unregisterListener", listener);
-                      } catch (_) {
-                      }
-                      if (hpa == null || !isFinite(hpa)) {
-                        finish(null);
-                        return;
-                      }
-                      finish(hpa > 5e4 ? hpa / 100 : hpa);
-                    } catch (_inner) {
-                      finish(null);
-                    }
-                  },
-                  // 精度变化回调，无需处理
-                  onAccuracyChanged() {
-                  }
-                }
-              );
-              plus.android.invoke(sensorManager, "registerListener", listener, pressSensor, 0);
-              return;
-            }
-          } catch (_e2) {
-          }
-          try {
-            if (typeof plus !== "undefined" && plus.ios) {
-              const CMAltimeter = plus.ios.importClass("CMAltimeter");
-              const NSOperationQueue = plus.ios.importClass("NSOperationQueue");
-              const isAvail = plus.ios.invoke(CMAltimeter, "isRelativeAltitudeAvailable");
-              if (!isAvail) {
-                finish(null);
-                return;
-              }
-              const altimeter = plus.ios.newObject("CMAltimeter");
-              const queue = plus.ios.invoke(NSOperationQueue, "mainQueue");
-              const blockHandler = plus.ios.implements("AltimeterHandlerBlock", {
-                /**
-                 * Block 签名：^(CMAltitudeData *data, NSError *error)
-                 * HTML5+ 桥接时方法名为 'invoke:withError:'
-                 */
-                "invoke:withError:": (data, error) => {
-                  if (error || !data) {
-                    finish(null);
-                    return;
-                  }
-                  try {
-                    const kpa = plus.ios.invoke(
-                      plus.ios.getAttribute(data, "pressure"),
-                      "floatValue"
-                    );
-                    const hpa = kpa * 10;
-                    plus.ios.invoke(altimeter, "stopRelativeAltitudeUpdates");
-                    finish(isFinite(hpa) ? hpa : null);
-                  } catch (_) {
-                    finish(null);
-                  }
-                }
-              });
-              plus.ios.invoke(
-                altimeter,
-                "startRelativeAltitudeUpdatesToQueue:withHandler:",
-                queue,
-                blockHandler
-              );
-              return;
-            }
-          } catch (_e3) {
-          }
-          finish(null);
-        });
-      }
-      const __returned__ = { STD_PRESSURE_HPA, BARO_TIMEOUT_MS, GPS_TIMEOUT_MS, pressureToAltitude, fuseAltitude, isZeroAltitude, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, startCollect, _doCollect, _getGpsAltitude, _getBaroPressure, ref: vue.ref, watch: vue.watch };
+      const __returned__ = { DEM_TIMEOUT_MS, GPS_TIMEOUT_MS, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, _toValidHardwareAltitude, _toFixed2, _mapGpsError, getNativeGpsPosition, requestDemAltitude, startCollect, ref: vue.ref, watch: vue.watch, get config() {
+        return config;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -3518,7 +3290,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           "hover-class": "alt-btn--press",
           onClick: $setup.startCollect
         }, [
-          !$setup.collecting ? (vue.openBlock(), vue.createElementBlock("text", { key: 0 }, "📡 自动采集")) : (vue.openBlock(), vue.createElementBlock("text", {
+          !$setup.collecting ? (vue.openBlock(), vue.createElementBlock("text", { key: 0 }, "📡 一键采集")) : (vue.openBlock(), vue.createElementBlock("text", {
             key: 1,
             class: "alt-pulse"
           }, "采集中…"))

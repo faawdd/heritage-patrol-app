@@ -48,6 +48,30 @@
 	color: #1d4ed8;
 }
 
+/* DEM 国家高程校准 */
+.badge--dem[data-v-76fd7a0e] {
+	background: #dcfce7;
+}
+.badge--dem .alt-badge-text[data-v-76fd7a0e] {
+	color: #166534;
+}
+
+/* 手机硬件海拔保底 */
+.badge--hardware[data-v-76fd7a0e] {
+	background: #fef3c7;
+}
+.badge--hardware .alt-badge-text[data-v-76fd7a0e] {
+	color: #92400e;
+}
+
+/* 极端降级：提示手动录入 RTK */
+.badge--critical[data-v-76fd7a0e] {
+	background: #fee2e2;
+}
+.badge--critical .alt-badge-text[data-v-76fd7a0e] {
+	color: #b91c1c;
+}
+
 /* GPS + 气压计融合（绿色，精度更高） */
 .badge--fused[data-v-76fd7a0e] {
 	background: #d1fae5;
