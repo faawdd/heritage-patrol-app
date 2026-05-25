@@ -163,7 +163,14 @@
 </script>
 
 <style scoped>
-.page { background: #f0f4f8; min-height: 100vh; position: relative; }
+.page {
+	background: #f0f4f8;
+	min-height: 100vh;
+	position: relative;
+	padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+	padding-bottom: calc(20rpx + constant(safe-area-inset-bottom));
+	box-sizing: border-box;
+}
 
 .header {
 	background: #163F77; padding: 32rpx 32rpx 24rpx;
@@ -172,7 +179,13 @@
 .header-title { font-size: 34rpx; font-weight: 700; color: #fff; }
 .header-count  { font-size: 24rpx; color: rgba(255,255,255,.7); }
 
-.list-scroll { height: calc(100vh - 140rpx); padding: 16rpx; }
+.list-scroll {
+	height: calc(100vh - 140rpx);
+	padding: 16rpx;
+	padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
+	padding-bottom: calc(140rpx + constant(safe-area-inset-bottom));
+	box-sizing: border-box;
+}
 
 /* 卡片 */
 .card {
@@ -208,6 +221,7 @@
 	color: #fff;
 	border: none;
 	border-radius: 10rpx;
+	min-height: 72rpx;
 }
 
 /* 空态 */
@@ -232,4 +246,81 @@
 	display: flex; align-items: center; justify-content: center;
 }
 .fab-icon { font-size: 56rpx; color: #fff; line-height: 1; margin-top: -4rpx; }
+
+@media screen and (max-width: 430px) {
+	.header {
+		padding: 24rpx 20rpx 20rpx;
+		flex-wrap: wrap;
+		gap: 8rpx 12rpx;
+	}
+	.header-title {
+		font-size: 30rpx;
+	}
+	.header-count {
+		font-size: 22rpx;
+	}
+	.list-scroll {
+		height: calc(100vh - 128rpx);
+		padding: 12rpx;
+		padding-bottom: calc(148rpx + env(safe-area-inset-bottom));
+		padding-bottom: calc(148rpx + constant(safe-area-inset-bottom));
+	}
+	.card {
+		border-radius: 16rpx;
+	}
+	.card-left,
+	.thumb,
+	.thumb-placeholder {
+		width: 132rpx;
+		height: 132rpx;
+	}
+	.thumb-icon {
+		font-size: 48rpx;
+	}
+	.card-body {
+		padding: 14rpx 16rpx;
+	}
+	.card-name {
+		font-size: 28rpx;
+	}
+	.card-meta,
+	.card-code,
+	.card-addr,
+	.card-time,
+	.card-photos {
+		font-size: 21rpx;
+	}
+	.level-badge {
+		font-size: 16rpx;
+	}
+	.fab {
+		right: 24rpx;
+		bottom: calc(32rpx + env(safe-area-inset-bottom));
+		bottom: calc(32rpx + constant(safe-area-inset-bottom));
+		width: 92rpx;
+		height: 92rpx;
+	}
+	.fab-icon {
+		font-size: 50rpx;
+	}
+}
+
+@media screen and (max-width: 360px) {
+	.card {
+		flex-direction: column;
+	}
+	.card-left,
+	.thumb,
+	.thumb-placeholder {
+		width: 100%;
+		height: 170rpx;
+	}
+	.card-footer {
+		flex-direction: column;
+		gap: 4rpx;
+	}
+	.btn-export {
+		width: 100%;
+	}
+}
 </style>

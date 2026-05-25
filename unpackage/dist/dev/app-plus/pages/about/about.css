@@ -1,0 +1,66 @@
+
+.page {
+		min-height: 100vh;
+		padding: 0.75rem;
+		box-sizing: border-box;
+		background: var(--bg-primary);
+}
+.hero {
+		min-height: var(--topbar-min-height);
+		padding: var(--card-padding);
+		border-radius: var(--radius-card);
+		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+		color: #fff;
+		box-shadow: var(--shadow-strong);
+		margin-bottom: 0.625rem;
+}
+.hero-kicker {
+		display: block;
+		font-size: 0.625rem;
+		letter-spacing: 0.09375rem;
+		text-transform: uppercase;
+		opacity: 0.72;
+		margin-bottom: 0.3125rem;
+}
+.hero-title {
+		display: block;
+		font-size: 20px;
+		font-weight: 700;
+		margin-bottom: 0.3125rem;
+}
+.hero-subtitle {
+		display: block;
+		font-size: 14px;
+		line-height: 1.6;
+		opacity: 0.88;
+}
+.card {
+		background: #fff;
+		border-radius: 0.5625rem;
+		border: 0.03125rem solid var(--line-soft);
+		padding: var(--card-padding);
+		box-shadow: var(--shadow-soft);
+}
+.label {
+		display: block;
+		font-size: 14px;
+		color: var(--text-secondary);
+		margin-top: 0.3125rem;
+}
+.value {
+		display: block;
+		font-size: 18px;
+		font-weight: 700;
+		color: var(--text-primary);
+		margin: 0.1875rem 0 0.4375rem;
+		line-height: 1.6;
+}
+.value.note {
+		font-size: 16px;
+		font-weight: 600;
+}
+.value.contact {
+		font-size: 15px;
+		font-weight: 600;
+		white-space: pre-line;
+}

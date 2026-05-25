@@ -119,7 +119,7 @@
     "statusbar": {
       "immersed": "supportedDevice",
       "style": "light",
-      "background": "#163F77"
+      "background": "#5C9FE6"
     },
     "uniStatistics": {
       "enable": false

@@ -1,11 +1,5 @@
 <template>
 	<view class="page">
-		<view class="bg-glow bg-glow-tl"></view>
-		<view class="bg-glow bg-glow-br"></view>
-		<view class="bg-glow bg-glow-mid"></view>
-		<view class="bg-circle bg-circle-lg"></view>
-		<view class="bg-circle bg-circle-sm"></view>
-
 		<view class="login-wrap">
 			<view class="brand">
 				<view class="brand-halo">
@@ -56,6 +50,10 @@
 				<view class="forgot-row">
 					<text class="forgot-link" @click="handleForgotPassword">忘记密码？</text>
 				</view>
+
+				<view class="version-row">
+					<text class="version-text">App {{ appVersion }}</text>
+				</view>
 			</view>
 		</view>
 	</view>
@@ -71,6 +69,7 @@ export default {
 	data() {
 		return {
 			loading: false,
+			appVersion: 'v1.0.0',
 			form: {
 				username: '',
 				password: '',
@@ -78,6 +77,11 @@ export default {
 		};
 	},
 	onLoad() {
+		// #ifdef APP-PLUS
+		if (typeof plus !== 'undefined' && plus.runtime && plus.runtime.version) {
+			this.appVersion = `v${plus.runtime.version}`;
+		}
+		// #endif
 		if (getToken()) {
 			uni.reLaunch({ url: '/pages/home/home' });
 		}
@@ -130,72 +134,14 @@ export default {
 <style>
 .page {
 	min-height: 100vh;
-	background: linear-gradient(165deg, #eef5ff 0%, #dfeeff 45%, #cfe5ff 78%, #eaf4ff 100%);
+	background: linear-gradient(180deg, #eef4ff 0%, #d9e9ff 100%);
 	position: relative;
-	overflow: hidden;
+	overflow: auto;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: 60rpx 36rpx;
 	box-sizing: border-box;
-}
-
-.bg-glow {
-	position: absolute;
-	border-radius: 50%;
-	pointer-events: none;
-}
-
-.bg-glow-tl {
-	width: 700rpx;
-	height: 700rpx;
-	background: rgba(99, 144, 230, 0.42);
-	filter: blur(80rpx);
-	top: -260rpx;
-	left: -240rpx;
-}
-
-.bg-glow-br {
-	width: 620rpx;
-	height: 620rpx;
-	background: rgba(72, 116, 205, 0.30);
-	filter: blur(100rpx);
-	bottom: -240rpx;
-	right: -200rpx;
-}
-
-.bg-glow-mid {
-	width: 440rpx;
-	height: 440rpx;
-	background: rgba(80, 150, 220, 0.24);
-	filter: blur(70rpx);
-	top: 30%;
-	left: 50%;
-	transform: translateX(-50%);
-}
-
-.bg-circle {
-	position: absolute;
-	border-radius: 50%;
-	pointer-events: none;
-	border: 1rpx solid rgba(22, 63, 119, 0.14);
-}
-
-.bg-circle-lg {
-	width: 780rpx;
-	height: 780rpx;
-	top: -200rpx;
-	right: -300rpx;
-	background: transparent;
-	box-shadow: inset 0 0 60rpx rgba(22, 63, 119, 0.05);
-}
-
-.bg-circle-sm {
-	width: 360rpx;
-	height: 360rpx;
-	bottom: 5%;
-	left: -120rpx;
-	background: rgba(22, 63, 119, 0.04);
 }
 
 .login-wrap {
@@ -216,15 +162,15 @@ export default {
 	width: 128rpx;
 	height: 128rpx;
 	border-radius: 30rpx;
-	background: rgba(255, 255, 255, 0.35);
-	border: 1.5rpx solid rgba(255, 255, 255, 0.65);
+	background: #ffffff;
+	border: 1.5rpx solid #c7daf8;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	padding: 14rpx;
 	box-sizing: border-box;
 	margin-bottom: 26rpx;
-	box-shadow: 0 0 44rpx rgba(80, 140, 230, 0.25), 0 10rpx 28rpx rgba(22, 63, 119, 0.20);
+	box-shadow: 0 10rpx 26rpx rgba(22, 63, 119, 0.14);
 }
 
 .brand-icon {
@@ -236,7 +182,7 @@ export default {
 .brand-title {
 	font-size: 46rpx;
 	font-weight: 700;
-	color: #163f77;
+	color: #4b8fd7;
 	letter-spacing: 4rpx;
 	text-shadow: 0 2rpx 10rpx rgba(255, 255, 255, 0.6);
 	margin-bottom: 12rpx;
@@ -244,18 +190,16 @@ export default {
 
 .brand-sub {
 	font-size: 24rpx;
-	color: rgba(22, 63, 119, 0.72);
+	color: #3f5f90;
 	letter-spacing: 2rpx;
 }
 
 .form-card {
-	background: rgba(255, 255, 255, 0.25);
+	background: #ffffff;
 	border-radius: 40rpx;
 	padding: 56rpx 44rpx 48rpx;
-	border: 1rpx solid rgba(255, 255, 255, 0.30);
-	backdrop-filter: blur(15px);
-	-webkit-backdrop-filter: blur(15px);
-	box-shadow: 0 40rpx 100rpx rgba(5, 16, 52, 0.25), 0 10rpx 30rpx rgba(5, 16, 52, 0.12), inset 0 1rpx 0 rgba(255, 255, 255, 0.50);
+	border: 1rpx solid #cfdef8;
+	box-shadow: 0 24rpx 56rpx rgba(13, 44, 97, 0.16);
 	position: relative;
 	overflow: hidden;
 }
@@ -265,20 +209,20 @@ export default {
 	top: 0;
 	left: 8%;
 	right: 8%;
-	height: 1rpx;
-	background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+	height: 2rpx;
+	background: #d7e5fb;
 }
 
 .input-field {
 	display: flex;
 	align-items: center;
-	background: rgba(255, 255, 255, 0.52);
-	border: 1rpx solid rgba(22, 63, 119, 0.28);
+	background: #ffffff;
+	border: 1rpx solid #c5d7f4;
 	border-radius: 20rpx;
 	padding: 0 24rpx 0 22rpx;
 	height: 100rpx;
 	margin-bottom: 26rpx;
-	box-shadow: inset 0 2rpx 10rpx rgba(22, 63, 119, 0.08);
+	box-shadow: none;
 }
 
 .field-icon {
@@ -291,7 +235,7 @@ export default {
 .field-sep {
 	width: 1rpx;
 	height: 46rpx;
-	background: rgba(22, 63, 119, 0.20);
+	background: #d1def4;
 	margin: 0 20rpx 0 18rpx;
 	flex-shrink: 0;
 }
@@ -307,7 +251,7 @@ export default {
 }
 
 .field-ph {
-	color: rgba(22, 63, 119, 0.46);
+	color: #8aa1c4;
 	font-size: 28rpx;
 }
 
@@ -320,13 +264,17 @@ export default {
 	height: 96rpx;
 	line-height: 96rpx;
 	border-radius: 20rpx;
-	background: linear-gradient(135deg, #0b2351 0%, #163f77 38%, #1878b8 72%, #14acd4 100%);
+	background: #5c9fe6;
 	color: #fff;
 	font-size: 32rpx;
 	font-weight: 700;
 	letter-spacing: 4rpx;
 	border: none;
-	box-shadow: 0 0 36rpx rgba(20, 172, 212, 0.35), 0 10rpx 36rpx rgba(8, 20, 60, 0.30), inset 0 1rpx 0 rgba(255, 255, 255, 0.22);
+	box-shadow: 0 10rpx 24rpx rgba(92, 159, 230, 0.28);
+}
+
+.login-btn:active {
+	background: #4b8fd7;
 }
 
 .forgot-row {
@@ -337,6 +285,18 @@ export default {
 
 .forgot-link {
 	font-size: 26rpx;
-	color: rgba(22, 63, 119, 0.82);
+	color: #4b8fd7;
+}
+
+.version-row {
+	display: flex;
+	justify-content: center;
+	margin-top: 18rpx;
+}
+
+.version-text {
+	font-size: 22rpx;
+	color: #8aa1c4;
+	letter-spacing: 1rpx;
 }
 </style>
