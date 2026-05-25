@@ -3047,618 +3047,6 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
     ]);
   }
   const PagesKmlKml = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__file", "C:/Users/14434/uniapp/pages/kml/kml.vue"]]);
-  const DEM_TIMEOUT_MS = 15e3;
-  const GPS_TIMEOUT_MS = 12e3;
-  const BARO_TIMEOUT_MS = 3e3;
-  const STD_PRESSURE_HPA = 1013.25;
-  const BARO_PRESSURE_MIN_HPA = 300;
-  const BARO_PRESSURE_MAX_HPA = 1100;
-  const ALTITUDE_MIN_M = -500;
-  const ALTITUDE_MAX_M = 9e3;
-  const _sfc_main$4 = {
-    __name: "AltitudeCollect",
-    props: {
-      modelValue: {
-        type: [String, Number],
-        default: ""
-      },
-      demApiUrl: {
-        type: String,
-        // script setup 中 defineProps 会被提升，默认值不能引用本地声明变量。
-        default: `${config.API_BASE_URL}/api/dem-elevation-lookup/`
-      }
-    },
-    emits: ["update:modelValue", "collect-done"],
-    setup(__props, { expose: __expose, emit: __emit }) {
-      const props = __props;
-      const emit = __emit;
-      const altitude = vue.ref(props.modelValue != null ? String(props.modelValue) : "");
-      const collecting = vue.ref(false);
-      const statusMsg = vue.ref("");
-      const statusClass = vue.ref("");
-      const detailText = vue.ref("");
-      const sourceLabel = vue.ref("");
-      const sourceBadgeClass = vue.ref("");
-      vue.watch(
-        () => props.modelValue,
-        (v) => {
-          if (v !== null && v !== void 0) {
-            altitude.value = String(v);
-          }
-        }
-      );
-      function onManualInput(e) {
-        altitude.value = e.detail.value;
-        sourceLabel.value = "手动录入";
-        sourceBadgeClass.value = "badge--manual";
-        statusMsg.value = "已切换为手动输入，可录入 RTK 手簿高程";
-        statusClass.value = "alt-status--info";
-        detailText.value = "";
-        emit("update:modelValue", altitude.value);
-      }
-      function _toValidHardwareAltitude(value) {
-        const n = Number(value);
-        if (!Number.isFinite(n))
-          return null;
-        if (Math.abs(n) < 1e-6)
-          return null;
-        if (n < ALTITUDE_MIN_M || n > ALTITUDE_MAX_M)
-          return null;
-        return n;
-      }
-      function _toValidPressureHpa(value) {
-        const p = Number(value);
-        if (!Number.isFinite(p))
-          return null;
-        if (p < BARO_PRESSURE_MIN_HPA || p > BARO_PRESSURE_MAX_HPA)
-          return null;
-        return p;
-      }
-      function _toFixed2(value) {
-        return Number(value).toFixed(2);
-      }
-      function pressureToAltitude(pressureHpa, refPressureHpa = STD_PRESSURE_HPA) {
-        return 44330 * (1 - Math.pow(pressureHpa / refPressureHpa, 1 / 5.255));
-      }
-      function fuseHardwareAltitude(gpsAlt, baroAlt, accuracy) {
-        const acc = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 999;
-        const gpsW = acc <= 5 ? 0.6 : acc <= 15 ? 0.5 : acc <= 50 ? 0.4 : 0.3;
-        return gpsAlt * gpsW + baroAlt * (1 - gpsW);
-      }
-      function _mapGpsError(err) {
-        const raw = String(err && (err.message || err.errMsg) || err || "");
-        const msg = raw.toLowerCase();
-        if (msg.includes("permission") || msg.includes("denied") || msg.includes("auth")) {
-          return "定位权限被拒绝，请在系统设置中开启定位权限";
-        }
-        if (msg.includes("timeout")) {
-          return "GPS 搜星超时，请移至开阔区域后重试";
-        }
-        if (msg.includes("provider") || msg.includes("gps")) {
-          return "GPS 可能未开启，请先打开系统定位并重试";
-        }
-        return "获取原生 GPS 失败，请重试";
-      }
-      function getAndroidNativeGpsPosition() {
-        return new Promise((resolve, reject) => {
-          try {
-            if (typeof plus === "undefined" || !plus.android || !plus.os || String(plus.os.name || "").toLowerCase() !== "android") {
-              resolve(null);
-              return;
-            }
-            plus.android.importClass("android.location.LocationManager");
-            const activity = plus.android.runtimeMainActivity();
-            const locationManager = plus.android.invoke(activity, "getSystemService", "location");
-            const provider = "gps";
-            if (!locationManager) {
-              reject(new Error("location manager unavailable"));
-              return;
-            }
-            const enabled = plus.android.invoke(locationManager, "isProviderEnabled", provider);
-            if (!enabled) {
-              reject(new Error("provider disabled"));
-              return;
-            }
-            let done = false;
-            let timer = null;
-            let listener = null;
-            const parseLocation = (loc) => {
-              if (!loc)
-                return null;
-              const longitude = Number(plus.android.invoke(loc, "getLongitude"));
-              const latitude = Number(plus.android.invoke(loc, "getLatitude"));
-              if (!Number.isFinite(longitude) || !Number.isFinite(latitude))
-                return null;
-              const hasAltitude = !!plus.android.invoke(loc, "hasAltitude");
-              const hasAccuracy = !!plus.android.invoke(loc, "hasAccuracy");
-              const altitude2 = hasAltitude ? Number(plus.android.invoke(loc, "getAltitude")) : null;
-              const accuracy = hasAccuracy ? Number(plus.android.invoke(loc, "getAccuracy")) : null;
-              return {
-                longitude,
-                latitude,
-                altitude: Number.isFinite(altitude2) ? altitude2 : null,
-                accuracy: Number.isFinite(accuracy) ? accuracy : null
-              };
-            };
-            const finish = (payload, err) => {
-              if (done)
-                return;
-              done = true;
-              if (timer)
-                clearTimeout(timer);
-              try {
-                if (listener)
-                  plus.android.invoke(locationManager, "removeUpdates", listener);
-              } catch (_) {
-              }
-              if (err)
-                reject(err);
-              else
-                resolve(payload);
-            };
-            listener = plus.android.implements("android.location.LocationListener", {
-              onLocationChanged: (location) => {
-                const parsed = parseLocation(location);
-                if (!parsed)
-                  return;
-                finish(parsed, null);
-              },
-              onStatusChanged: () => {
-              },
-              onProviderEnabled: () => {
-              },
-              onProviderDisabled: () => {
-              }
-            });
-            const lastKnown = plus.android.invoke(locationManager, "getLastKnownLocation", provider);
-            const lastParsed = parseLocation(lastKnown);
-            if (lastParsed && (lastParsed.altitude != null || lastParsed.longitude != null && lastParsed.latitude != null)) {
-              finish(lastParsed, null);
-              return;
-            }
-            plus.android.invoke(locationManager, "requestLocationUpdates", provider, 0, 0, listener);
-            timer = setTimeout(() => finish(null, new Error("timeout")), GPS_TIMEOUT_MS + 6e3);
-          } catch (e) {
-            reject(new Error(String(e && e.message || e || "android native gps error")));
-          }
-        });
-      }
-      function getNativeGpsPosition() {
-        return new Promise((resolve, reject) => {
-          (async () => {
-            try {
-              let nativeGps = null;
-              try {
-                nativeGps = await getAndroidNativeGpsPosition();
-              } catch (_) {
-                nativeGps = null;
-              }
-              if (nativeGps && Number.isFinite(nativeGps.longitude) && Number.isFinite(nativeGps.latitude)) {
-                resolve(nativeGps);
-                return;
-              }
-              plus.geolocation.getCurrentPosition(
-                (position) => {
-                  const coords = position && position.coords ? position.coords : {};
-                  resolve({
-                    longitude: Number(coords.longitude),
-                    latitude: Number(coords.latitude),
-                    altitude: coords.altitude != null ? Number(coords.altitude) : null,
-                    accuracy: coords.accuracy != null ? Number(coords.accuracy) : null
-                  });
-                },
-                (err) => {
-                  reject(new Error(_mapGpsError(err)));
-                },
-                {
-                  provider: "gps",
-                  enableHighAccuracy: true,
-                  coordsType: "wgs84",
-                  timeout: GPS_TIMEOUT_MS,
-                  maximumAge: 0,
-                  geocode: false
-                }
-              );
-            } catch (e) {
-              reject(new Error(_mapGpsError(e)));
-            }
-          })();
-        });
-      }
-      function getAndroidBarometerPressureBySensorManager() {
-        return new Promise((resolve) => {
-          try {
-            if (typeof plus === "undefined" || !plus.android || !plus.os || String(plus.os.name || "").toLowerCase() !== "android") {
-              resolve(null);
-              return;
-            }
-            plus.android.importClass("android.hardware.SensorManager");
-            plus.android.importClass("android.hardware.Sensor");
-            const activity = plus.android.runtimeMainActivity();
-            const sensorManager = plus.android.invoke(activity, "getSystemService", "sensor");
-            const pressureSensor = plus.android.invoke(sensorManager, "getDefaultSensor", 6);
-            if (!pressureSensor) {
-              resolve(null);
-              return;
-            }
-            let done = false;
-            let timer = null;
-            let listener = null;
-            const finish = (v) => {
-              if (done)
-                return;
-              done = true;
-              if (timer)
-                clearTimeout(timer);
-              try {
-                if (listener)
-                  plus.android.invoke(sensorManager, "unregisterListener", listener);
-              } catch (_) {
-              }
-              resolve(v);
-            };
-            listener = plus.android.implements("android.hardware.SensorEventListener", {
-              onSensorChanged: (sensorEvent) => {
-                try {
-                  const values = plus.android.getAttribute(sensorEvent, "values");
-                  const raw = values ? Number(values[0]) : null;
-                  if (!Number.isFinite(raw)) {
-                    finish(null);
-                    return;
-                  }
-                  finish(raw > 5e4 ? raw / 100 : raw);
-                } catch (_) {
-                  finish(null);
-                }
-              },
-              onAccuracyChanged: () => {
-              }
-            });
-            plus.android.invoke(sensorManager, "registerListener", listener, pressureSensor, 0);
-            timer = setTimeout(() => finish(null), BARO_TIMEOUT_MS);
-          } catch (_) {
-            resolve(null);
-          }
-        });
-      }
-      function getBarometerPressureByPlus() {
-        return new Promise((resolve) => {
-          let done = false;
-          const finish = (val) => {
-            if (done)
-              return;
-            done = true;
-            resolve(val);
-          };
-          const timer = setTimeout(() => finish(null), BARO_TIMEOUT_MS);
-          (async () => {
-            try {
-              if (typeof plus !== "undefined" && plus.sensors && typeof plus.sensors.startBarometer === "function") {
-                plus.sensors.startBarometer(
-                  { frequency: "fastest" },
-                  async (event) => {
-                    try {
-                      plus.sensors.stopBarometer();
-                    } catch (_) {
-                    }
-                    clearTimeout(timer);
-                    const raw = event && (event.pressure ?? (event.value && event.value[0]));
-                    if (raw == null) {
-                      const androidHpa2 = await getAndroidBarometerPressureBySensorManager();
-                      finish(androidHpa2);
-                      return;
-                    }
-                    const num = Number(raw);
-                    if (!Number.isFinite(num)) {
-                      const androidHpa2 = await getAndroidBarometerPressureBySensorManager();
-                      finish(androidHpa2);
-                      return;
-                    }
-                    finish(num > 5e4 ? num / 100 : num);
-                  },
-                  async () => {
-                    clearTimeout(timer);
-                    const androidHpa2 = await getAndroidBarometerPressureBySensorManager();
-                    finish(androidHpa2);
-                  }
-                );
-                return;
-              }
-              clearTimeout(timer);
-              const androidHpa = await getAndroidBarometerPressureBySensorManager();
-              finish(androidHpa);
-            } catch (_) {
-              clearTimeout(timer);
-              const androidHpa = await getAndroidBarometerPressureBySensorManager();
-              finish(androidHpa);
-            }
-          })();
-        });
-      }
-      async function buildHardwareAltitude(gps) {
-        const gpsAlt = _toValidHardwareAltitude(gps && gps.altitude);
-        const pressure = await getBarometerPressureByPlus();
-        let baroAlt = null;
-        if (Number.isFinite(Number(pressure))) {
-          const validPressure = _toValidPressureHpa(pressure);
-          if (validPressure == null) {
-            return {
-              altitude: gpsAlt,
-              source: gpsAlt != null ? "gps-only" : "none",
-              detail: gpsAlt != null ? `硬件来源: GPS ${gpsAlt.toFixed(2)}m（气压值异常已忽略）` : "硬件来源: 气压值异常且GPS海拔无效"
-            };
-          }
-          if (gpsAlt != null) {
-            const refPressure = STD_PRESSURE_HPA * Math.pow(1 - gpsAlt / 44330, 5.255);
-            baroAlt = _toValidHardwareAltitude(pressureToAltitude(validPressure, refPressure));
-          } else {
-            baroAlt = _toValidHardwareAltitude(pressureToAltitude(validPressure, STD_PRESSURE_HPA));
-          }
-        }
-        if (gpsAlt != null && baroAlt != null) {
-          const fused = _toValidHardwareAltitude(fuseHardwareAltitude(gpsAlt, baroAlt, gps && gps.accuracy));
-          if (fused != null) {
-            return {
-              altitude: fused,
-              source: "gps+barometer",
-              detail: `硬件融合: GPS ${gpsAlt.toFixed(2)}m + 气压推算 ${baroAlt.toFixed(2)}m`
-            };
-          }
-        }
-        if (gpsAlt != null) {
-          return {
-            altitude: gpsAlt,
-            source: "gps-only",
-            detail: `硬件来源: GPS ${gpsAlt.toFixed(2)}m（设备无气压计或读数不可用）`
-          };
-        }
-        if (baroAlt != null) {
-          return {
-            altitude: baroAlt,
-            source: "barometer-only",
-            detail: `硬件来源: 气压计 ${baroAlt.toFixed(2)}m（GPS海拔无效，已通过范围校验）`
-          };
-        }
-        return {
-          altitude: null,
-          source: "none",
-          detail: "硬件来源: GPS海拔无效且设备未返回可用气压值"
-        };
-      }
-      function requestDemAltitude(longitude, latitude) {
-        return new Promise((resolve, reject) => {
-          const fallbackDirectUrl = `${config.WEB_BASE_URL}/api/dem-elevation-lookup/`;
-          const fallbackAppApiUrl = `${config.WEB_BASE_URL}/app-api/api/dem-elevation-lookup/`;
-          const fallbackByReplace = `${String(config.API_BASE_URL || "").replace(/\/app-api\/?$/, "")}/api/dem-elevation-lookup/`;
-          const urlCandidates = Array.from(
-            new Set([props.demApiUrl, fallbackDirectUrl, fallbackAppApiUrl, fallbackByReplace].filter(Boolean))
-          );
-          let attemptIndex = 0;
-          const tryNext = (lastError) => {
-            if (attemptIndex >= urlCandidates.length) {
-              reject(lastError || new Error("DEM 请求失败"));
-              return;
-            }
-            const targetUrl = urlCandidates[attemptIndex++];
-            uni.request({
-              url: targetUrl,
-              method: "POST",
-              timeout: DEM_TIMEOUT_MS,
-              sslVerify: false,
-              header: {
-                "Content-Type": "application/json"
-              },
-              data: {
-                longitude,
-                latitude
-              },
-              success: (res) => {
-                const data = res && res.data ? res.data : {};
-                if (res.statusCode !== 200) {
-                  tryNext(new Error(`DEM HTTP ${res.statusCode || "ERR"} @ ${targetUrl}`));
-                  return;
-                }
-                const demOk = data.code === 200 || data.success === true || data.status === "success";
-                const demAltitude = data.altitude ?? data.elevation ?? (data.data && (data.data.altitude ?? data.data.elevation));
-                if (!demOk || demAltitude === null || demAltitude === void 0 || Number.isNaN(Number(demAltitude))) {
-                  tryNext(new Error(`DEM 返回无有效高程 @ ${targetUrl}`));
-                  return;
-                }
-                resolve(Number(demAltitude));
-              },
-              fail: (err) => {
-                tryNext(new Error(`DEM 请求失败: ${err && err.errMsg || "network fail"} @ ${targetUrl}`));
-              }
-            });
-          };
-          tryNext();
-        });
-      }
-      function requestHardwareAltitudeFallback() {
-        return new Promise((resolve) => {
-          uni.getLocation({
-            type: "wgs84",
-            isHighAccuracy: true,
-            altitude: true,
-            highAccuracyExpireTime: 6e3,
-            success: (res) => {
-              resolve(_toValidHardwareAltitude(res && res.altitude));
-            },
-            fail: () => {
-              resolve(null);
-            }
-          });
-        });
-      }
-      async function startCollect() {
-        if (collecting.value)
-          return;
-        collecting.value = true;
-        statusMsg.value = "正在调用原生 GPS 并请求 DEM 校准，请稍候…";
-        statusClass.value = "alt-status--info";
-        sourceLabel.value = "";
-        sourceBadgeClass.value = "";
-        detailText.value = "";
-        try {
-          const gps = await getNativeGpsPosition();
-          const longitude = Number(gps.longitude);
-          const latitude = Number(gps.latitude);
-          const hardware = await buildHardwareAltitude(gps);
-          let hardwareAltitude = hardware.altitude;
-          const accuracy = Number.isFinite(Number(gps.accuracy)) ? Number(gps.accuracy) : null;
-          if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
-            throw new Error("GPS 返回经纬度无效");
-          }
-          if (hardwareAltitude == null) {
-            hardwareAltitude = await requestHardwareAltitudeFallback();
-          }
-          let chosenAltitude = null;
-          let chosenLabel = "";
-          let chosenBadgeClass = "";
-          let chosenStatus = "";
-          let chosenStatusClass = "";
-          let demFailureReason = "";
-          try {
-            const demAltitude = await requestDemAltitude(longitude, latitude);
-            chosenAltitude = demAltitude;
-            chosenLabel = "🟢 DEM国家高程校准";
-            chosenBadgeClass = "badge--dem";
-            chosenStatus = "后端 DEM 反查成功，已使用国家高程校准值";
-            chosenStatusClass = "alt-status--success";
-          } catch (demErr) {
-            demFailureReason = demErr && demErr.message || "DEM 请求失败";
-            if (hardwareAltitude != null) {
-              chosenAltitude = hardwareAltitude;
-              chosenLabel = "🟡 手机硬件高程(无网保底)";
-              chosenBadgeClass = "badge--hardware";
-              chosenStatus = "DEM 不可用，已降级为手机硬件海拔保底";
-              chosenStatusClass = "alt-status--success";
-            } else {
-              chosenAltitude = 0;
-              chosenLabel = "🔴 信号断绝，请手动输入RTK手簿数据";
-              chosenBadgeClass = "badge--critical";
-              chosenStatus = "网络中断且硬件海拔无效，已填充 0.00，请立即手动录入 RTK 数据";
-              chosenStatusClass = "alt-status--warn";
-            }
-          }
-          altitude.value = _toFixed2(chosenAltitude);
-          sourceLabel.value = chosenLabel;
-          sourceBadgeClass.value = chosenBadgeClass;
-          statusMsg.value = chosenStatus;
-          statusClass.value = chosenStatusClass;
-          detailText.value = `经度 ${longitude.toFixed(8)} ｜ 纬度 ${latitude.toFixed(8)} ｜ ${hardware.detail} ｜ 精度 ${accuracy != null ? `±${Math.round(accuracy)}m` : "未知"}${demFailureReason ? ` ｜ DEM失败: ${demFailureReason}` : ""}`;
-          emit("update:modelValue", altitude.value);
-          emit("collect-done", {
-            longitude,
-            latitude,
-            accuracy,
-            altitude: Number(altitude.value),
-            hardwareAltitude,
-            hardwareSource: hardware.source,
-            source: chosenLabel
-          });
-          uni.showToast({
-            title: `海拔 ${altitude.value}m`,
-            icon: "none",
-            duration: 1800
-          });
-        } catch (err) {
-          statusMsg.value = err && err.message || "采集失败，请检查定位权限后重试";
-          statusClass.value = "alt-status--error";
-          sourceLabel.value = "定位失败";
-          sourceBadgeClass.value = "badge--critical";
-          detailText.value = "";
-          uni.showToast({ title: statusMsg.value, icon: "none", duration: 2600 });
-        } finally {
-          collecting.value = false;
-        }
-      }
-      __expose({
-        startCollect
-      });
-      const __returned__ = { DEM_TIMEOUT_MS, GPS_TIMEOUT_MS, BARO_TIMEOUT_MS, STD_PRESSURE_HPA, BARO_PRESSURE_MIN_HPA, BARO_PRESSURE_MAX_HPA, ALTITUDE_MIN_M, ALTITUDE_MAX_M, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, _toValidHardwareAltitude, _toValidPressureHpa, _toFixed2, pressureToAltitude, fuseHardwareAltitude, _mapGpsError, getAndroidNativeGpsPosition, getNativeGpsPosition, getAndroidBarometerPressureBySensorManager, getBarometerPressureByPlus, buildHardwareAltitude, requestDemAltitude, requestHardwareAltitudeFallback, startCollect, ref: vue.ref, watch: vue.watch, get config() {
-        return config;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "alt-widget" }, [
-      vue.createElementVNode("view", { class: "alt-header" }, [
-        vue.createElementVNode("text", { class: "alt-label" }, "海拔高程（米）"),
-        $setup.sourceLabel ? (vue.openBlock(), vue.createElementBlock(
-          "view",
-          {
-            key: 0,
-            class: vue.normalizeClass(["alt-badge", $setup.sourceBadgeClass])
-          },
-          [
-            vue.createElementVNode(
-              "text",
-              { class: "alt-badge-text" },
-              vue.toDisplayString($setup.sourceLabel),
-              1
-              /* TEXT */
-            )
-          ],
-          2
-          /* CLASS */
-        )) : vue.createCommentVNode("v-if", true)
-      ]),
-      vue.createElementVNode("view", { class: "alt-row" }, [
-        vue.createElementVNode("input", {
-          value: $setup.altitude,
-          type: "digit",
-          class: "alt-input",
-          placeholder: "自动采集 或 手动填写",
-          onInput: $setup.onManualInput
-        }, null, 40, ["value"]),
-        vue.createElementVNode("button", {
-          class: vue.normalizeClass(["alt-btn", $setup.collecting ? "alt-btn--loading" : ""]),
-          disabled: $setup.collecting,
-          "hover-class": "alt-btn--press",
-          onClick: $setup.startCollect
-        }, [
-          !$setup.collecting ? (vue.openBlock(), vue.createElementBlock("text", { key: 0 }, "📡 一键采集")) : (vue.openBlock(), vue.createElementBlock("text", {
-            key: 1,
-            class: "alt-pulse"
-          }, "采集中…"))
-        ], 10, ["disabled"])
-      ]),
-      $setup.statusMsg ? (vue.openBlock(), vue.createElementBlock(
-        "view",
-        {
-          key: 0,
-          class: vue.normalizeClass(["alt-status", $setup.statusClass])
-        },
-        [
-          vue.createElementVNode(
-            "text",
-            { class: "alt-status-text" },
-            vue.toDisplayString($setup.statusMsg),
-            1
-            /* TEXT */
-          )
-        ],
-        2
-        /* CLASS */
-      )) : vue.createCommentVNode("v-if", true),
-      $setup.detailText ? (vue.openBlock(), vue.createElementBlock("view", {
-        key: 1,
-        class: "alt-detail"
-      }, [
-        vue.createElementVNode(
-          "text",
-          { class: "alt-detail-text" },
-          vue.toDisplayString($setup.detailText),
-          1
-          /* TEXT */
-        )
-      ])) : vue.createCommentVNode("v-if", true)
-    ]);
-  }
-  const AltitudeCollect = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-76fd7a0e"], ["__file", "C:/Users/14434/uniapp/components/AltitudeCollect.vue"]]);
   const CHINA_REGION_TREE = [
     { name: "北京市", cities: [{ name: "北京市", counties: ["东城区", "西城区", "朝阳区", "海淀区", "丰台区", "石景山区", "通州区", "顺义区", "昌平区", "大兴区"] }] },
     { name: "天津市", cities: [{ name: "天津市", counties: ["和平区", "河东区", "河西区", "南开区", "河北区", "红桥区", "东丽区", "西青区", "津南区", "北辰区"] }] },
@@ -3707,6 +3095,499 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
     city: "吐鲁番市",
     county: "鄯善县"
   };
+  const _sfc_main$4 = {
+    __name: "CoordinateCollectCard",
+    props: {
+      modelValue: {
+        type: Array,
+        default: () => []
+      },
+      heritageName: {
+        type: String,
+        default: ""
+      },
+      capturePointData: {
+        type: Function,
+        default: null
+      }
+    },
+    emits: ["update:modelValue"],
+    setup(__props, { expose: __expose, emit: __emit }) {
+      const props = __props;
+      const emit = __emit;
+      const typeLabelByValue = {
+        boundary: "边界点",
+        marker: "标志点",
+        other: "其他"
+      };
+      const typeValueByLabel = {
+        边界点: "boundary",
+        标志点: "marker",
+        其他: "other"
+      };
+      const typeLabelList = ["边界点", "标志点", "其他"];
+      const coordList = vue.reactive([]);
+      const loadingMap = vue.reactive({});
+      const pointWindowVisible = vue.ref(false);
+      const activePointId = vue.ref("");
+      const pointThemes = [
+        { bg: "#FFFBE6", border: "#FFE58F" },
+        { bg: "#F6FFED", border: "#B7EB8F" },
+        { bg: "#E6F7FF", border: "#91D5FF" },
+        { bg: "#F9F0FF", border: "#D3ADF7" },
+        { bg: "#FFF1F0", border: "#FFA39E" },
+        { bg: "#FCFFE6", border: "#D3F261" }
+      ];
+      let uidSeed = 0;
+      function nextId() {
+        uidSeed += 1;
+        return `coord_${Date.now()}_${uidSeed}`;
+      }
+      function buildBoundaryDefaultDescription() {
+        const name = String(props.heritageName || "").trim();
+        if (name)
+          return `${name}边界点`;
+        return "该文物点边界点";
+      }
+      function normalizePoint(raw) {
+        const type = (raw == null ? void 0 : raw.type) && typeLabelByValue[raw.type] ? raw.type : "boundary";
+        return {
+          id: (raw == null ? void 0 : raw.id) || nextId(),
+          type,
+          longitude: (raw == null ? void 0 : raw.longitude) != null ? String(raw.longitude) : "",
+          latitude: (raw == null ? void 0 : raw.latitude) != null ? String(raw.latitude) : "",
+          altitude: (raw == null ? void 0 : raw.altitude) != null ? String(raw.altitude) : "",
+          sourceTag: (raw == null ? void 0 : raw.sourceTag) != null ? String(raw.sourceTag) : "",
+          description: (raw == null ? void 0 : raw.description) || (type === "boundary" ? buildBoundaryDefaultDescription() : ""),
+          remark: (raw == null ? void 0 : raw.remark) || "",
+          // 内部标记：description 是否由系统自动填充，便于切换类型时安全覆盖。
+          _descriptionAuto: (raw == null ? void 0 : raw._descriptionAuto) !== void 0 ? !!raw._descriptionAuto : type === "boundary"
+        };
+      }
+      function syncFromModelValue() {
+        coordList.splice(0, coordList.length, ...(props.modelValue || []).map((item) => normalizePoint(item)));
+      }
+      vue.watch(
+        () => props.modelValue,
+        () => {
+          syncFromModelValue();
+        },
+        { immediate: true, deep: true }
+      );
+      vue.watch(
+        () => props.heritageName,
+        () => {
+          coordList.forEach((item) => {
+            if (item.type === "boundary" && item._descriptionAuto) {
+              item.description = buildBoundaryDefaultDescription();
+            }
+          });
+          emitModel();
+        }
+      );
+      function emitModel() {
+        const payload = coordList.map((item) => ({
+          type: item.type,
+          longitude: item.longitude,
+          latitude: item.latitude,
+          altitude: item.altitude,
+          sourceTag: item.sourceTag,
+          description: item.description,
+          remark: item.remark
+        }));
+        emit("update:modelValue", payload);
+      }
+      function pointThemeStyle(index) {
+        const theme = pointThemes[index % pointThemes.length];
+        return {
+          background: theme.bg,
+          borderColor: theme.border
+        };
+      }
+      const activePointIndex = vue.computed(() => {
+        return coordList.findIndex((item) => item.id === activePointId.value);
+      });
+      const activePoint = vue.computed(() => {
+        if (activePointIndex.value < 0)
+          return null;
+        return coordList[activePointIndex.value] || null;
+      });
+      function openPointWindow(pointId) {
+        activePointId.value = pointId;
+        pointWindowVisible.value = true;
+      }
+      function closePointWindow() {
+        pointWindowVisible.value = false;
+      }
+      function addPoint() {
+        const point = normalizePoint({
+          type: "boundary",
+          description: buildBoundaryDefaultDescription(),
+          _descriptionAuto: true
+        });
+        coordList.push(point);
+        emitModel();
+        openPointWindow(point.id);
+      }
+      function removePoint(index) {
+        const removed = coordList[index];
+        coordList.splice(index, 1);
+        if (removed && removed.id === activePointId.value) {
+          closePointWindow();
+          activePointId.value = "";
+        }
+        emitModel();
+      }
+      function onTypeChange(event, item) {
+        var _a;
+        const idx = Number(((_a = event == null ? void 0 : event.detail) == null ? void 0 : _a.value) || 0);
+        const label = typeLabelList[idx] || "边界点";
+        const newType = typeValueByLabel[label] || "boundary";
+        const oldType = item.type;
+        item.type = newType;
+        if (newType === "boundary") {
+          const current = String(item.description || "").trim();
+          const oldAutoText = buildBoundaryDefaultDescription();
+          if (!current || item._descriptionAuto || oldType !== "boundary" || current === oldAutoText) {
+            item.description = buildBoundaryDefaultDescription();
+            item._descriptionAuto = true;
+          }
+        } else if (item._descriptionAuto) {
+          item.description = "";
+          item._descriptionAuto = false;
+        }
+        emitModel();
+      }
+      function onFieldInput(event, item, fieldName) {
+        var _a;
+        item[fieldName] = ((_a = event == null ? void 0 : event.detail) == null ? void 0 : _a.value) ?? "";
+        emitModel();
+      }
+      function onDescriptionInput(event, item) {
+        var _a;
+        item.description = ((_a = event == null ? void 0 : event.detail) == null ? void 0 : _a.value) ?? "";
+        item._descriptionAuto = false;
+        emitModel();
+      }
+      function getTypePickerIndex(typeValue) {
+        const label = typeLabelByValue[typeValue] || "边界点";
+        const idx = typeLabelList.findIndex((x) => x === label);
+        return idx >= 0 ? idx : 0;
+      }
+      function setLoading(pointId, field, loading) {
+        if (!loadingMap[pointId])
+          loadingMap[pointId] = {};
+        loadingMap[pointId][field] = loading;
+      }
+      function isPointLoading(pointId) {
+        var _a;
+        return !!((_a = loadingMap[pointId]) == null ? void 0 : _a.all);
+      }
+      async function grabPoint(item) {
+        if (typeof props.capturePointData !== "function") {
+          uni.showToast({ title: "未配置定位抓取逻辑", icon: "none" });
+          return;
+        }
+        try {
+          setLoading(item.id, "all", true);
+          const result = await props.capturePointData(item);
+          if (!result || typeof result !== "object") {
+            uni.showToast({ title: "抓取失败，请重试", icon: "none" });
+            return;
+          }
+          if (Number.isFinite(Number(result.longitude))) {
+            item.longitude = Number(result.longitude).toFixed(6);
+          }
+          if (Number.isFinite(Number(result.latitude))) {
+            item.latitude = Number(result.latitude).toFixed(6);
+          }
+          if (Number.isFinite(Number(result.altitude))) {
+            item.altitude = Number(result.altitude).toFixed(2);
+          }
+          if (result.sourceTag != null) {
+            item.sourceTag = String(result.sourceTag);
+          }
+          emitModel();
+          uni.showToast({ title: "当前点位抓取成功", icon: "none" });
+        } catch (error) {
+          uni.showToast({ title: "定位抓取失败", icon: "none" });
+        } finally {
+          setLoading(item.id, "all", false);
+        }
+      }
+      const boundaryCount = vue.computed(() => coordList.filter((item) => item.type === "boundary").length);
+      function validateBeforeSubmit() {
+        if (boundaryCount.value < 3) {
+          return {
+            ok: false,
+            message: "边界点至少需要 3 个，无法提交。"
+          };
+        }
+        return { ok: true, message: "" };
+      }
+      function getCoordPayload() {
+        return coordList.map((item) => ({
+          type: item.type,
+          longitude: item.longitude,
+          latitude: item.latitude,
+          altitude: item.altitude,
+          sourceTag: item.sourceTag,
+          description: item.description,
+          remark: item.remark
+        }));
+      }
+      __expose({
+        validateBeforeSubmit,
+        getCoordPayload,
+        addPoint,
+        coordList
+      });
+      const __returned__ = { props, emit, typeLabelByValue, typeValueByLabel, typeLabelList, coordList, loadingMap, pointWindowVisible, activePointId, pointThemes, get uidSeed() {
+        return uidSeed;
+      }, set uidSeed(v) {
+        uidSeed = v;
+      }, nextId, buildBoundaryDefaultDescription, normalizePoint, syncFromModelValue, emitModel, pointThemeStyle, activePointIndex, activePoint, openPointWindow, closePointWindow, addPoint, removePoint, onTypeChange, onFieldInput, onDescriptionInput, getTypePickerIndex, setLoading, isPointLoading, grabPoint, boundaryCount, validateBeforeSubmit, getCoordPayload, computed: vue.computed, reactive: vue.reactive, ref: vue.ref, watch: vue.watch };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "coord-card" }, [
+      vue.createElementVNode("view", { class: "card-head" }, [
+        vue.createElementVNode("text", { class: "card-title" }, "区块2：坐标采集"),
+        vue.createElementVNode("text", { class: "card-subtitle" }, "边界点至少 3 个；标志点/其他为可选")
+      ]),
+      vue.createElementVNode("view", { class: "head-actions" }, [
+        vue.createElementVNode("button", {
+          class: "btn-add",
+          onClick: $setup.addPoint
+        }, "新增定位点")
+      ]),
+      $setup.coordList.length === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 0,
+        class: "empty-wrap"
+      }, [
+        vue.createElementVNode("text", { class: "empty-text" }, "暂无坐标点，请点击“新增定位点”")
+      ])) : vue.createCommentVNode("v-if", true),
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($setup.coordList, (item, index) => {
+          return vue.openBlock(), vue.createElementBlock(
+            "view",
+            {
+              key: item.id,
+              class: "point-brief",
+              style: vue.normalizeStyle($setup.pointThemeStyle(index))
+            },
+            [
+              vue.createElementVNode("view", { class: "brief-head" }, [
+                vue.createElementVNode(
+                  "text",
+                  { class: "brief-title" },
+                  "定位点 " + vue.toDisplayString(index + 1),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "text",
+                  { class: "brief-type" },
+                  vue.toDisplayString($setup.typeLabelByValue[item.type]),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "brief-body" }, [
+                vue.createElementVNode(
+                  "text",
+                  { class: "brief-row" },
+                  "经度：" + vue.toDisplayString(item.longitude || "未填"),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "text",
+                  { class: "brief-row" },
+                  "纬度：" + vue.toDisplayString(item.latitude || "未填"),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "text",
+                  { class: "brief-row" },
+                  "海拔：" + vue.toDisplayString(item.altitude || "未填"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "brief-actions" }, [
+                vue.createElementVNode("button", {
+                  class: "btn-open",
+                  onClick: ($event) => $setup.openPointWindow(item.id)
+                }, "打开坐标窗口", 8, ["onClick"]),
+                vue.createElementVNode("button", {
+                  class: "btn-delete",
+                  onClick: ($event) => $setup.removePoint(index)
+                }, "删除", 8, ["onClick"])
+              ])
+            ],
+            4
+            /* STYLE */
+          );
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      )),
+      $setup.pointWindowVisible && $setup.activePoint ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 1,
+        class: "point-overlay",
+        onClick: vue.withModifiers($setup.closePointWindow, ["self"])
+      }, [
+        vue.createElementVNode(
+          "view",
+          {
+            class: "point-window",
+            style: vue.normalizeStyle($setup.pointThemeStyle($setup.activePointIndex))
+          },
+          [
+            vue.createElementVNode("view", { class: "window-head" }, [
+              vue.createElementVNode(
+                "text",
+                { class: "window-title" },
+                "定位点 " + vue.toDisplayString($setup.activePointIndex + 1) + " 坐标窗口",
+                1
+                /* TEXT */
+              ),
+              vue.createElementVNode("button", {
+                class: "btn-close",
+                onClick: $setup.closePointWindow
+              }, "关闭")
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "坐标类型"),
+              vue.createElementVNode("picker", {
+                class: "row-right",
+                range: $setup.typeLabelList,
+                value: $setup.getTypePickerIndex($setup.activePoint.type),
+                onChange: _cache[0] || (_cache[0] = ($event) => $setup.onTypeChange($event, $setup.activePoint))
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.typeLabelByValue[$setup.activePoint.type]),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "经度"),
+              vue.createElementVNode("view", { class: "row-right" }, [
+                vue.createElementVNode("input", {
+                  class: "row-input",
+                  type: "digit",
+                  value: $setup.activePoint.longitude,
+                  placeholder: "自动抓取或手动填写",
+                  onInput: _cache[1] || (_cache[1] = ($event) => $setup.onFieldInput($event, $setup.activePoint, "longitude"))
+                }, null, 40, ["value"])
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "纬度"),
+              vue.createElementVNode("view", { class: "row-right" }, [
+                vue.createElementVNode("input", {
+                  class: "row-input",
+                  type: "digit",
+                  value: $setup.activePoint.latitude,
+                  placeholder: "自动抓取或手动填写",
+                  onInput: _cache[2] || (_cache[2] = ($event) => $setup.onFieldInput($event, $setup.activePoint, "latitude"))
+                }, null, 40, ["value"])
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "海拔(米)"),
+              vue.createElementVNode("view", { class: "row-right" }, [
+                vue.createElementVNode("input", {
+                  class: "row-input",
+                  type: "digit",
+                  value: $setup.activePoint.altitude,
+                  placeholder: "自动抓取或手动填写",
+                  onInput: _cache[3] || (_cache[3] = ($event) => $setup.onFieldInput($event, $setup.activePoint, "altitude"))
+                }, null, 40, ["value"])
+              ])
+            ]),
+            $setup.activePoint.sourceTag ? (vue.openBlock(), vue.createElementBlock("view", {
+              key: 0,
+              class: "form-row"
+            }, [
+              vue.createElementVNode("text", { class: "row-label" }, "高程来源"),
+              vue.createElementVNode("view", { class: "row-right source-tag-wrap" }, [
+                vue.createElementVNode(
+                  "text",
+                  { class: "source-tag-text" },
+                  vue.toDisplayString($setup.activePoint.sourceTag),
+                  1
+                  /* TEXT */
+                )
+              ])
+            ])) : vue.createCommentVNode("v-if", true),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "点位说明"),
+              vue.createElementVNode("input", {
+                class: "row-right row-input",
+                value: $setup.activePoint.description,
+                maxlength: "200",
+                placeholder: "请输入坐标点说明",
+                onInput: _cache[4] || (_cache[4] = ($event) => $setup.onDescriptionInput($event, $setup.activePoint))
+              }, null, 40, ["value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "备注"),
+              vue.createElementVNode("input", {
+                class: "row-right row-input",
+                value: $setup.activePoint.remark,
+                maxlength: "200",
+                placeholder: "选填",
+                onInput: _cache[5] || (_cache[5] = ($event) => $setup.onFieldInput($event, $setup.activePoint, "remark"))
+              }, null, 40, ["value"])
+            ]),
+            vue.createElementVNode("view", { class: "window-actions" }, [
+              vue.createElementVNode("button", {
+                class: "btn-grab",
+                disabled: $setup.isPointLoading($setup.activePoint.id),
+                onClick: _cache[6] || (_cache[6] = ($event) => $setup.grabPoint($setup.activePoint))
+              }, vue.toDisplayString($setup.isPointLoading($setup.activePoint.id) ? "定位中" : "实时定位"), 9, ["disabled"]),
+              vue.createElementVNode("button", {
+                class: "btn-finish",
+                onClick: $setup.closePointWindow
+              }, "完成当前点位")
+            ])
+          ],
+          4
+          /* STYLE */
+        )
+      ])) : vue.createCommentVNode("v-if", true),
+      vue.createElementVNode("view", { class: "footer-tip" }, [
+        vue.createElementVNode(
+          "text",
+          { class: "tip-text" },
+          "边界点数量：" + vue.toDisplayString($setup.boundaryCount) + " 个",
+          1
+          /* TEXT */
+        ),
+        $setup.boundaryCount < 3 ? (vue.openBlock(), vue.createElementBlock("text", {
+          key: 0,
+          class: "tip-warn"
+        }, "提交前至少补齐 3 个边界点")) : vue.createCommentVNode("v-if", true)
+      ])
+    ]);
+  }
+  const CoordinateCollectCard = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-80f12d19"], ["__file", "C:/Users/14434/uniapp/components/CoordinateCollectCard.vue"]]);
+  const DEM_TIMEOUT_MS = 15e3;
+  const ALTITUDE_MIN_M = -500;
+  const ALTITUDE_MAX_M = 9e3;
+  const ALTITUDE_ZERO_EPS = 0.01;
+  const GPS_TIMEOUT_MS = 12e3;
   const _sfc_main$3 = {
     __name: "HeritageCollectRefactor",
     props: {
@@ -3724,13 +3605,33 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         })
       }
     },
-    emits: ["submit", "collect-coordinate", "calibrate-altitude", "open-watermark-camera"],
+    emits: ["submit"],
     setup(__props, { expose: __expose, emit: __emit }) {
       const props = __props;
       const emitting = __emit;
+      const currentStep = vue.ref(0);
+      const stepDefs = [
+        { key: "step1", label: "第一步：基础地理" },
+        { key: "step2", label: "第二步：多点坐标" },
+        { key: "step3", label: "第三步：多媒体/审核" }
+      ];
+      function stepNodeClass(idx) {
+        if (currentStep.value === idx)
+          return "active";
+        if (currentStep.value > idx)
+          return "done";
+        return "pending";
+      }
+      const altitudeMode = vue.ref("dem");
       const photos = vue.ref([]);
-      const rtkFileName = vue.ref("");
       const signStatus = vue.ref("");
+      const watermarkCanvas = vue.reactive({ width: 1, height: 1 });
+      const coordRef = vue.ref(null);
+      const coordList = vue.ref([]);
+      const instance = vue.getCurrentInstance();
+      if (instance && instance.proxy) {
+        instance.proxy.watermarkCanvas = watermarkCanvas;
+      }
       const form = vue.reactive({
         surveyCodeAuto: true,
         name: "",
@@ -3776,7 +3677,8 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       const badgeClassMap = {
         dem: "badge-dem",
         hardware: "badge-hardware",
-        manual: "badge-manual"
+        manual: "badge-manual",
+        alert: "badge-alert"
       };
       const categoryLabels = vue.computed(() => {
         var _a;
@@ -3844,11 +3746,40 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       });
       const altitudeSourceLabel = vue.computed(() => {
         if (altitudeSource.value === "dem")
-          return "DEM对齐";
+          return "🟢 DEM国家高程校准";
         if (altitudeSource.value === "hardware")
-          return "手机硬件";
-        return "手动录入";
+          return "🟢 手机硬件直出";
+        if (altitudeSource.value === "manual")
+          return "灰色 手动录入";
+        return "🔴 信号断绝，请手动录入";
       });
+      const boundaryPointCount = vue.computed(() => {
+        return (coordList.value || []).filter((item) => (item == null ? void 0 : item.type) === "boundary").length;
+      });
+      function goPrevStep() {
+        currentStep.value = Math.max(0, currentStep.value - 1);
+      }
+      function goStep1ToStep2() {
+        currentStep.value = 1;
+      }
+      function goStep2ToStep3() {
+        var _a, _b;
+        if (boundaryPointCount.value < 3) {
+          uni.showToast({ title: "边界点不足3个，无法进入下一步", icon: "none" });
+          return;
+        }
+        const coordCheck = (_b = (_a = coordRef.value) == null ? void 0 : _a.validateBeforeSubmit) == null ? void 0 : _b.call(_a);
+        if (coordCheck && !coordCheck.ok) {
+          uni.showToast({ title: coordCheck.message || "坐标采集校验未通过", icon: "none" });
+          return;
+        }
+        currentStep.value = 2;
+      }
+      function onModeChange(e) {
+        var _a;
+        const v = (_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value;
+        altitudeMode.value = v === "hardware" ? "hardware" : "dem";
+      }
       function onCategoryChange(e) {
         var _a, _b, _c;
         const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
@@ -3913,25 +3844,258 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         form.county = countyOptions.value[idx] || countyOptions.value[0] || "";
       }
       applyDefaultRegion();
-      function setAltitudeByDem(value) {
-        form.altitude = Number(value).toFixed(2);
-        altitudeSource.value = "dem";
+      function isInChoices(value, choices) {
+        return Array.isArray(choices) && choices.some((item) => item.value === value);
       }
-      function setAltitudeByHardware(value) {
-        form.altitude = Number(value).toFixed(2);
-        altitudeSource.value = "hardware";
+      function isInList(value, list) {
+        return Array.isArray(list) && list.includes(value);
       }
-      function setAltitudeManual(value) {
-        form.altitude = value;
-        altitudeSource.value = "manual";
+      function collectSignature() {
+        signStatus.value = "签名已采集";
+        uni.showToast({ title: "签名采集成功", icon: "success" });
       }
-      function handleCollectCoordinate() {
-        emitting("collect-coordinate");
-        uni.showToast({ title: "开始采集坐标", icon: "none" });
+      function setMainAltitude(altitude, sourceTag, sourceKey) {
+        if (Number.isFinite(Number(altitude))) {
+          form.altitude = Number(altitude).toFixed(2);
+        }
+        if (sourceKey === "dem")
+          altitudeSource.value = "dem";
+        else if (sourceKey === "hardware")
+          altitudeSource.value = "hardware";
+        else if (sourceKey === "alert")
+          altitudeSource.value = "alert";
+        else
+          altitudeSource.value = "manual";
+        uni.showToast({ title: sourceTag, icon: "none", duration: 1800 });
       }
-      function handleCalibrateAltitude() {
-        emitting("calibrate-altitude");
-        uni.showToast({ title: "开始校准海拔", icon: "none" });
+      function getWatermarkUserName() {
+        const user = getUser() || {};
+        return user.full_name || user.username || "未登录用户";
+      }
+      function getSelectedSiteName() {
+        return form.name || "未命名文物";
+      }
+      function buildWatermarkText(time) {
+        const longitude = Number(form.longitude || 0).toFixed(6);
+        const latitude = Number(form.latitude || 0).toFixed(6);
+        return `用户: ${getWatermarkUserName()}
+文物点: ${getSelectedSiteName()}
+时间: ${time}
+经纬度: ${longitude}, ${latitude}`;
+      }
+      function normalizeHardwareAltitude(rawAltitude) {
+        const altitude = Number(rawAltitude);
+        if (!Number.isFinite(altitude))
+          return null;
+        if (Math.abs(altitude) < ALTITUDE_ZERO_EPS)
+          return null;
+        if (altitude < ALTITUDE_MIN_M || altitude > ALTITUDE_MAX_M)
+          return null;
+        return altitude;
+      }
+      function requestDemAltitude(longitude, latitude) {
+        return new Promise((resolve, reject) => {
+          const fallbackDirectUrl = `${config.WEB_BASE_URL}/api/dem-elevation-lookup/`;
+          const fallbackAppApiUrl = `${config.WEB_BASE_URL}/app-api/api/dem-elevation-lookup/`;
+          const fallbackByReplace = `${String(config.API_BASE_URL || "").replace(/\/app-api\/?$/, "")}/api/dem-elevation-lookup/`;
+          const urlCandidates = Array.from(new Set([fallbackDirectUrl, fallbackAppApiUrl, fallbackByReplace].filter(Boolean)));
+          let attemptIndex = 0;
+          const tryNext = (lastError) => {
+            if (attemptIndex >= urlCandidates.length) {
+              reject(lastError || new Error("DEM 请求失败"));
+              return;
+            }
+            const targetUrl = urlCandidates[attemptIndex++];
+            uni.request({
+              url: targetUrl,
+              method: "POST",
+              timeout: DEM_TIMEOUT_MS,
+              sslVerify: false,
+              header: { "Content-Type": "application/json" },
+              data: { longitude, latitude },
+              success: (res) => {
+                const data = (res == null ? void 0 : res.data) || {};
+                if (res.statusCode !== 200) {
+                  tryNext(new Error(`DEM HTTP ${res.statusCode || "ERR"}`));
+                  return;
+                }
+                const demOk = data.code === 200 || data.success === true || data.status === "success";
+                const demAltitude = data.altitude ?? data.elevation ?? (data.data && (data.data.altitude ?? data.data.elevation));
+                if (!demOk || demAltitude == null || Number.isNaN(Number(demAltitude))) {
+                  tryNext(new Error("DEM 返回无有效高程"));
+                  return;
+                }
+                resolve(Number(demAltitude));
+              },
+              fail: () => tryNext(new Error("DEM 请求失败"))
+            });
+          };
+          tryNext();
+        });
+      }
+      async function resolveAltitude(lon, lat, gpsHardwareAlt) {
+        const hardware = normalizeHardwareAltitude(gpsHardwareAlt);
+        if (altitudeMode.value === "hardware") {
+          if (hardware != null) {
+            return { altitude: hardware, sourceTag: "🟢 手机硬件直出", sourceKey: "hardware" };
+          }
+          return { altitude: null, sourceTag: "🔴 硬件海拔无效，请手动录入", sourceKey: "alert" };
+        }
+        try {
+          const demAltitude = await requestDemAltitude(lon, lat);
+          return { altitude: demAltitude, sourceTag: "🟢 DEM国家高程校准", sourceKey: "dem" };
+        } catch (_) {
+          if (hardware != null) {
+            return { altitude: hardware, sourceTag: "🟡 手机硬件(无网保底)", sourceKey: "hardware" };
+          }
+          return { altitude: null, sourceTag: "🔴 DEM不可用且硬件海拔无效，请手动录入", sourceKey: "alert" };
+        }
+      }
+      function getNativeGpsPosition() {
+        return new Promise((resolve, reject) => {
+          const resolveByPlusGeolocation = () => {
+            plus.geolocation.getCurrentPosition(
+              (position) => {
+                const coords = position && position.coords ? position.coords : {};
+                resolve({
+                  longitude: Number(coords.longitude),
+                  latitude: Number(coords.latitude),
+                  altitude: coords.altitude != null ? Number(coords.altitude) : null,
+                  accuracy: coords.accuracy != null ? Number(coords.accuracy) : null
+                });
+              },
+              (err) => {
+                reject(err || new Error("gps failed"));
+              },
+              {
+                provider: "gps",
+                enableHighAccuracy: true,
+                coordsType: "wgs84",
+                timeout: GPS_TIMEOUT_MS,
+                maximumAge: 0,
+                geocode: false
+              }
+            );
+          };
+          try {
+            const isAndroid = typeof plus !== "undefined" && plus.os && String(plus.os.name || "").toLowerCase() === "android";
+            if (!isAndroid || !plus.android) {
+              resolveByPlusGeolocation();
+              return;
+            }
+            plus.android.importClass("android.location.LocationManager");
+            const activity = plus.android.runtimeMainActivity();
+            const locationManager = plus.android.invoke(activity, "getSystemService", "location");
+            if (!locationManager) {
+              resolveByPlusGeolocation();
+              return;
+            }
+            const provider = "gps";
+            const providerEnabled = plus.android.invoke(locationManager, "isProviderEnabled", provider);
+            if (!providerEnabled) {
+              resolveByPlusGeolocation();
+              return;
+            }
+            let done = false;
+            let timeoutTimer = null;
+            let listener = null;
+            const parseLocation = (loc) => {
+              if (!loc)
+                return null;
+              const longitude = Number(plus.android.invoke(loc, "getLongitude"));
+              const latitude = Number(plus.android.invoke(loc, "getLatitude"));
+              if (!Number.isFinite(longitude) || !Number.isFinite(latitude))
+                return null;
+              const hasAltitude = !!plus.android.invoke(loc, "hasAltitude");
+              const hasAccuracy = !!plus.android.invoke(loc, "hasAccuracy");
+              const altitude = hasAltitude ? Number(plus.android.invoke(loc, "getAltitude")) : null;
+              const accuracy = hasAccuracy ? Number(plus.android.invoke(loc, "getAccuracy")) : null;
+              return {
+                longitude,
+                latitude,
+                altitude: Number.isFinite(altitude) ? altitude : null,
+                accuracy: Number.isFinite(accuracy) ? accuracy : null
+              };
+            };
+            const finish = (payload, err) => {
+              if (done)
+                return;
+              done = true;
+              if (timeoutTimer)
+                clearTimeout(timeoutTimer);
+              try {
+                if (listener)
+                  plus.android.invoke(locationManager, "removeUpdates", listener);
+              } catch (_) {
+              }
+              if (err) {
+                resolveByPlusGeolocation();
+                return;
+              }
+              resolve(payload);
+            };
+            listener = plus.android.implements("android.location.LocationListener", {
+              onLocationChanged: (location) => {
+                const parsed = parseLocation(location);
+                if (parsed)
+                  finish(parsed, null);
+              },
+              onStatusChanged: () => {
+              },
+              onProviderEnabled: () => {
+              },
+              onProviderDisabled: () => {
+              }
+            });
+            const lastKnown = plus.android.invoke(locationManager, "getLastKnownLocation", provider);
+            const parsedLastKnown = parseLocation(lastKnown);
+            if (parsedLastKnown) {
+              finish(parsedLastKnown, null);
+              return;
+            }
+            plus.android.invoke(locationManager, "requestLocationUpdates", provider, 0, 0, listener);
+            timeoutTimer = setTimeout(() => {
+              finish(null, new Error("android gps timeout"));
+            }, GPS_TIMEOUT_MS);
+          } catch (_) {
+            resolveByPlusGeolocation();
+          }
+        });
+      }
+      async function capturePointData() {
+        const gps = await getNativeGpsPosition();
+        const lon = Number(gps.longitude);
+        const lat = Number(gps.latitude);
+        const hardwareAlt = Number.isFinite(Number(gps.altitude)) ? Number(gps.altitude) : null;
+        const result = await resolveAltitude(lon, lat, hardwareAlt);
+        return {
+          longitude: lon,
+          latitude: lat,
+          altitude: result.altitude,
+          sourceTag: result.sourceTag
+        };
+      }
+      async function handleCollectCoordinate() {
+        try {
+          const r = await capturePointData();
+          form.longitude = Number(r.longitude).toFixed(8);
+          form.latitude = Number(r.latitude).toFixed(8);
+          setMainAltitude(r.altitude, r.sourceTag, r.sourceTag.includes("DEM") ? "dem" : r.sourceTag.includes("硬件") ? "hardware" : "alert");
+        } catch (_) {
+          uni.showToast({ title: "定位采集失败，请重试", icon: "none" });
+        }
+      }
+      async function handleCollectAltitude() {
+        try {
+          const r = await capturePointData();
+          if (Number.isFinite(Number(r.longitude)) && Number.isFinite(Number(r.latitude))) {
+            form.longitude = Number(r.longitude).toFixed(8);
+            form.latitude = Number(r.latitude).toFixed(8);
+          }
+          setMainAltitude(r.altitude, r.sourceTag, r.sourceTag.includes("DEM") ? "dem" : r.sourceTag.includes("硬件") ? "hardware" : "alert");
+        } catch (_) {
+          uni.showToast({ title: "海拔采集失败，请重试", icon: "none" });
+        }
       }
       function pickPhoto() {
         const remain = 10 - photos.value.length;
@@ -3939,39 +4103,28 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           count: remain,
           sizeType: ["compressed"],
           sourceType: ["camera", "album"],
-          success: (res) => {
-            const selected = (res.tempFilePaths || []).map((path, index) => ({
-              id: `${Date.now()}_${index}`,
-              path
-            }));
+          success: async (res) => {
+            const tempFilePaths = res.tempFilePaths || [];
+            const selected = [];
+            for (let index = 0; index < tempFilePaths.length; index += 1) {
+              const path = tempFilePaths[index];
+              const now = /* @__PURE__ */ new Date();
+              const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+              const watermarkText = buildWatermarkText(time);
+              try {
+                await vue.nextTick();
+                const watermarkedPath = await addWatermark(path, watermarkText, instance.proxy);
+                selected.push({ id: `${Date.now()}_${index}`, path: watermarkedPath });
+              } catch (_) {
+                selected.push({ id: `${Date.now()}_${index}`, path });
+              }
+            }
             photos.value = photos.value.concat(selected).slice(0, 10);
           }
         });
       }
       function removePhoto(index) {
         photos.value.splice(index, 1);
-      }
-      function openWatermarkCamera() {
-        emitting("open-watermark-camera");
-        uni.showToast({ title: "打开水印相机", icon: "none" });
-      }
-      function attachRtkFile() {
-        uni.showActionSheet({
-          itemList: ["从文件管理器选择", "拍照上传手簿"],
-          success: () => {
-            rtkFileName.value = `RTK手簿_${Date.now()}.pdf`;
-          }
-        });
-      }
-      function collectSignature() {
-        signStatus.value = "签名已采集";
-        uni.showToast({ title: "签名采集成功", icon: "success" });
-      }
-      function isInChoices(value, choices) {
-        return Array.isArray(choices) && choices.some((item) => item.value === value);
-      }
-      function isInList(value, list) {
-        return Array.isArray(list) && list.includes(value);
       }
       function validateForm() {
         var _a, _b, _c, _d;
@@ -4027,8 +4180,14 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         return "";
       }
       function handleSubmit() {
+        var _a, _b;
         if (props.loading)
           return;
+        const coordCheck = (_b = (_a = coordRef.value) == null ? void 0 : _a.validateBeforeSubmit) == null ? void 0 : _b.call(_a);
+        if (coordCheck && !coordCheck.ok) {
+          uni.showToast({ title: coordCheck.message || "坐标采集校验未通过", icon: "none" });
+          return;
+        }
         const msg = validateForm();
         if (msg) {
           uni.showToast({ title: msg, icon: "none" });
@@ -4036,43 +4195,140 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         }
         emitting("submit", {
           ...form,
+          coord_list: coordList.value,
+          altitude_mode: altitudeMode.value,
           altitude_source: altitudeSource.value,
           photos: photos.value,
-          rtk_file_name: rtkFileName.value,
           signature_status: signStatus.value
         });
       }
       __expose({
-        setAltitudeByDem,
-        setAltitudeByHardware,
-        setAltitudeManual,
-        form
+        form,
+        altitudeMode,
+        resolveAltitude,
+        capturePointData
       });
-      const __returned__ = { props, emitting, photos, rtkFileName, signStatus, form, altitudeSource, badgeClassMap, categoryLabels, protectionLabels, ownershipLabels, preservationLabels, categoryIndex, protectionIndex, ownershipIndex, preservationIndex, categoryText, protectionText, ownershipText, preservationText, provinceOptions, cityOptions, countyOptions, provinceIndex, cityIndex, countyIndex, altitudeSourceLabel, onCategoryChange, onProtectionChange, onOwnershipChange, onPreservationChange, ensureRegionChain, applyDefaultRegion, onProvinceChange, onCityChange, onCountyChange, setAltitudeByDem, setAltitudeByHardware, setAltitudeManual, handleCollectCoordinate, handleCalibrateAltitude, pickPhoto, removePhoto, openWatermarkCamera, attachRtkFile, collectSignature, isInChoices, isInList, validateForm, handleSubmit, computed: vue.computed, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get CHINA_REGION_TREE() {
+      const __returned__ = { DEM_TIMEOUT_MS, ALTITUDE_MIN_M, ALTITUDE_MAX_M, ALTITUDE_ZERO_EPS, GPS_TIMEOUT_MS, props, emitting, currentStep, stepDefs, stepNodeClass, altitudeMode, photos, signStatus, watermarkCanvas, coordRef, coordList, instance, form, altitudeSource, badgeClassMap, categoryLabels, protectionLabels, ownershipLabels, preservationLabels, categoryIndex, protectionIndex, ownershipIndex, preservationIndex, categoryText, protectionText, ownershipText, preservationText, provinceOptions, cityOptions, countyOptions, provinceIndex, cityIndex, countyIndex, altitudeSourceLabel, boundaryPointCount, goPrevStep, goStep1ToStep2, goStep2ToStep3, onModeChange, onCategoryChange, onProtectionChange, onOwnershipChange, onPreservationChange, ensureRegionChain, applyDefaultRegion, onProvinceChange, onCityChange, onCountyChange, isInChoices, isInList, collectSignature, setMainAltitude, getWatermarkUserName, getSelectedSiteName, buildWatermarkText, normalizeHardwareAltitude, requestDemAltitude, resolveAltitude, getNativeGpsPosition, capturePointData, handleCollectCoordinate, handleCollectAltitude, pickPhoto, removePhoto, validateForm, handleSubmit, computed: vue.computed, getCurrentInstance: vue.getCurrentInstance, nextTick: vue.nextTick, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get config() {
+        return config;
+      }, get CHINA_REGION_TREE() {
         return CHINA_REGION_TREE;
       }, get DEFAULT_REGION() {
         return DEFAULT_REGION;
-      } };
+      }, get addWatermark() {
+        return addWatermark;
+      }, get getUser() {
+        return getUser;
+      }, CoordinateCollectCard };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
   function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "collect-page" }, [
-      vue.createElementVNode("scroll-view", {
-        class: "scroll-body",
-        "scroll-y": "",
-        "show-scrollbar": false,
-        "enable-flex": ""
-      }, [
-        vue.createElementVNode("view", { class: "page-inner" }, [
-          vue.createElementVNode("view", { class: "page-title-wrap" }, [
-            vue.createElementVNode("text", { class: "page-title" }, "不可移动文物现场采集"),
-            vue.createElementVNode("text", { class: "page-subtitle" }, "极简规范化采集表单")
-          ]),
-          vue.createElementVNode("view", { class: "card" }, [
+    return vue.openBlock(), vue.createElementBlock("view", { class: "wizard-page" }, [
+      vue.createElementVNode("view", { class: "wizard-header" }, [
+        vue.createElementVNode("view", { class: "header-top" }, [
+          vue.createElementVNode("text", { class: "page-title" }, "不可移动文物现场数据采集"),
+          vue.createElementVNode("text", { class: "page-subtitle" }, "横向流程式录入")
+        ]),
+        vue.createElementVNode("view", { class: "stepper-wrap" }, [
+          (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($setup.stepDefs, (step, idx) => {
+              return vue.createElementVNode("view", {
+                key: step.key,
+                class: "stepper-item"
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: vue.normalizeClass(["stepper-node", $setup.stepNodeClass(idx)])
+                  },
+                  [
+                    vue.createElementVNode(
+                      "text",
+                      { class: "stepper-node-text" },
+                      vue.toDisplayString($setup.currentStep > idx ? "✓" : idx + 1),
+                      1
+                      /* TEXT */
+                    )
+                  ],
+                  2
+                  /* CLASS */
+                ),
+                vue.createElementVNode(
+                  "text",
+                  {
+                    class: vue.normalizeClass(["stepper-label", { active: $setup.currentStep === idx }])
+                  },
+                  vue.toDisplayString(step.label),
+                  3
+                  /* TEXT, CLASS */
+                ),
+                idx < $setup.stepDefs.length - 1 ? (vue.openBlock(), vue.createElementBlock(
+                  "view",
+                  {
+                    key: 0,
+                    class: vue.normalizeClass(["stepper-line", { done: $setup.currentStep > idx }])
+                  },
+                  null,
+                  2
+                  /* CLASS */
+                )) : vue.createCommentVNode("v-if", true)
+              ]);
+            }),
+            64
+            /* STABLE_FRAGMENT */
+          ))
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "wizard-content" }, [
+        $setup.currentStep === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "step-panel"
+        }, [
+          vue.createElementVNode("view", { class: "card step-card" }, [
             vue.createElementVNode("view", { class: "card-head" }, [
-              vue.createElementVNode("text", { class: "card-title" }, "区块一：基础地理信息")
+              vue.createElementVNode("text", { class: "card-title" }, "第一步：基础地理"),
+              vue.createElementVNode("text", { class: "card-tag" }, "信息校核")
+            ]),
+            vue.createElementVNode("view", { class: "strategy-card" }, [
+              vue.createElementVNode("view", { class: "strategy-head" }, [
+                vue.createElementVNode("text", { class: "strategy-title" }, "全局采集策略")
+              ]),
+              vue.createElementVNode(
+                "radio-group",
+                {
+                  class: "strategy-group",
+                  onChange: $setup.onModeChange
+                },
+                [
+                  vue.createElementVNode("label", { class: "strategy-item" }, [
+                    vue.createElementVNode("radio", {
+                      value: "dem",
+                      checked: $setup.altitudeMode === "dem",
+                      color: "#1890FF"
+                    }, null, 8, ["checked"]),
+                    vue.createElementVNode("view", { class: "strategy-copy" }, [
+                      vue.createElementVNode("text", { class: "strategy-copy-title" }, "DEM 优先模式（推荐）"),
+                      vue.createElementVNode("text", { class: "strategy-copy-desc" }, "优先后端 DEM 反查，弱网时自动降级硬件海拔")
+                    ])
+                  ]),
+                  vue.createElementVNode("label", { class: "strategy-item" }, [
+                    vue.createElementVNode("radio", {
+                      value: "hardware",
+                      checked: $setup.altitudeMode === "hardware",
+                      color: "#1890FF"
+                    }, null, 8, ["checked"]),
+                    vue.createElementVNode("view", { class: "strategy-copy" }, [
+                      vue.createElementVNode("text", { class: "strategy-copy-title" }, "硬件优先模式"),
+                      vue.createElementVNode("text", { class: "strategy-copy-desc" }, "跳过 DEM 请求，直接使用手机硬件高程")
+                    ])
+                  ])
+                ],
+                32
+                /* NEED_HYDRATION */
+              )
             ]),
             vue.createElementVNode("view", { class: "form-row" }, [
               vue.createElementVNode("text", { class: "row-label required" }, "文物名称"),
@@ -4366,13 +4622,49 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
               }, "采集坐标"),
               vue.createElementVNode("button", {
                 class: "btn-secondary",
-                onClick: $setup.handleCalibrateAltitude
-              }, "硬件高程校准")
+                onClick: $setup.handleCollectAltitude
+              }, "采集海拔")
             ])
-          ]),
-          vue.createElementVNode("view", { class: "card" }, [
+          ])
+        ])) : vue.createCommentVNode("v-if", true),
+        $setup.currentStep === 1 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 1,
+          class: "step-panel"
+        }, [
+          vue.createElementVNode("view", { class: "card step-card step2-focus" }, [
             vue.createElementVNode("view", { class: "card-head" }, [
-              vue.createElementVNode("text", { class: "card-title" }, "区块二：多媒体采集")
+              vue.createElementVNode("text", { class: "card-title" }, "第二步：多点坐标"),
+              vue.createElementVNode("text", { class: "card-tag warm" }, "高频核心操作区")
+            ]),
+            vue.createElementVNode("view", { class: "focus-tip" }, [
+              vue.createElementVNode("text", { class: "focus-tip-text" }, "围绕遗址走动采集时，请优先使用“新增定位点”和“实时定位”完成边界点/标志点录入。")
+            ]),
+            vue.createVNode($setup["CoordinateCollectCard"], {
+              ref: "coordRef",
+              modelValue: $setup.coordList,
+              "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => $setup.coordList = $event),
+              "heritage-name": $setup.form.name,
+              "capture-point-data": $setup.capturePointData
+            }, null, 8, ["modelValue", "heritage-name"]),
+            vue.createElementVNode("view", { class: "step2-meta" }, [
+              vue.createElementVNode(
+                "text",
+                { class: "step2-meta-text" },
+                "当前边界点：" + vue.toDisplayString($setup.boundaryPointCount) + " 个（至少 3 个）",
+                1
+                /* TEXT */
+              )
+            ])
+          ])
+        ])) : vue.createCommentVNode("v-if", true),
+        $setup.currentStep === 2 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 2,
+          class: "step-panel"
+        }, [
+          vue.createElementVNode("view", { class: "card step-card" }, [
+            vue.createElementVNode("view", { class: "card-head" }, [
+              vue.createElementVNode("text", { class: "card-title" }, "第三步：多媒体/审核"),
+              vue.createElementVNode("text", { class: "card-tag" }, "提交前复核")
             ]),
             vue.createElementVNode("view", { class: "form-row column-row" }, [
               vue.createElementVNode("view", { class: "column-head" }, [
@@ -4412,37 +4704,6 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
                   vue.createElementVNode("text", { class: "photo-add-text" }, "添加照片")
                 ])) : vue.createCommentVNode("v-if", true)
               ])
-            ]),
-            vue.createElementVNode("view", { class: "form-row" }, [
-              vue.createElementVNode("text", { class: "row-label" }, "水印相机"),
-              vue.createElementVNode("button", {
-                class: "btn-secondary single-btn",
-                onClick: $setup.openWatermarkCamera
-              }, "打开水印拍照")
-            ]),
-            vue.createElementVNode("view", { class: "form-row" }, [
-              vue.createElementVNode("text", { class: "row-label" }, "RTK 手簿附件"),
-              vue.createElementVNode("button", {
-                class: "btn-secondary single-btn",
-                onClick: $setup.attachRtkFile
-              }, "上传附件")
-            ]),
-            $setup.rtkFileName ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 0,
-              class: "inline-hint"
-            }, [
-              vue.createElementVNode(
-                "text",
-                { class: "inline-hint-text" },
-                "已上传：" + vue.toDisplayString($setup.rtkFileName),
-                1
-                /* TEXT */
-              )
-            ])) : vue.createCommentVNode("v-if", true)
-          ]),
-          vue.createElementVNode("view", { class: "card last-card" }, [
-            vue.createElementVNode("view", { class: "card-head" }, [
-              vue.createElementVNode("text", { class: "card-title" }, "区块三：审核与备注")
             ]),
             vue.createElementVNode("view", { class: "form-row" }, [
               vue.createElementVNode("text", { class: "row-label" }, "保护级别"),
@@ -4523,7 +4784,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
                 "textarea",
                 {
                   class: "remark-input",
-                  "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => $setup.form.remark = $event),
+                  "onUpdate:modelValue": _cache[13] || (_cache[13] = ($event) => $setup.form.remark = $event),
                   maxlength: "2000",
                   placeholder: "请填写现场情况、病害信息、交通与环境说明"
                 },
@@ -4535,15 +4796,52 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
               ])
             ])
           ])
-        ])
+        ])) : vue.createCommentVNode("v-if", true)
       ]),
-      vue.createElementVNode("view", { class: "bottom-bar" }, [
-        vue.createElementVNode("button", {
-          class: "btn-submit",
-          disabled: $props.loading,
-          onClick: $setup.handleSubmit
-        }, vue.toDisplayString($props.loading ? "提交中..." : "提交采集信息"), 9, ["disabled"])
-      ])
+      vue.createElementVNode("view", { class: "wizard-footer" }, [
+        $setup.currentStep === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "footer-row single"
+        }, [
+          vue.createElementVNode("button", {
+            class: "btn-flow btn-flow-primary btn-flow-wide",
+            onClick: $setup.goStep1ToStep2
+          }, "下一步：采集坐标")
+        ])) : vue.createCommentVNode("v-if", true),
+        $setup.currentStep === 1 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 1,
+          class: "footer-row split"
+        }, [
+          vue.createElementVNode("button", {
+            class: "btn-flow btn-flow-ghost left",
+            onClick: $setup.goPrevStep
+          }, "返回上一步"),
+          vue.createElementVNode("button", {
+            class: "btn-flow btn-flow-primary right",
+            onClick: $setup.goStep2ToStep3
+          }, "下一步：多媒体/审核")
+        ])) : vue.createCommentVNode("v-if", true),
+        $setup.currentStep === 2 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 2,
+          class: "footer-row split"
+        }, [
+          vue.createElementVNode("button", {
+            class: "btn-flow btn-flow-ghost left",
+            onClick: $setup.goPrevStep
+          }, "返回上一步"),
+          vue.createElementVNode("button", {
+            class: "btn-flow btn-flow-submit right",
+            disabled: $props.loading,
+            onClick: $setup.handleSubmit
+          }, vue.toDisplayString($props.loading ? "提交中..." : "完成并提交数据"), 9, ["disabled"])
+        ])) : vue.createCommentVNode("v-if", true)
+      ]),
+      vue.createElementVNode("canvas", {
+        "canvas-id": "watermarkCanvas",
+        width: $setup.watermarkCanvas.width,
+        height: $setup.watermarkCanvas.height,
+        style: vue.normalizeStyle(`position:absolute;left:-9999px;top:-9999px;width:${$setup.watermarkCanvas.width}px;height:${$setup.watermarkCanvas.height}px;pointer-events:none;`)
+      }, null, 12, ["width", "height"])
     ]);
   }
   const HeritageCollectRefactor = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-ebe4f3bc"], ["__file", "C:/Users/14434/uniapp/components/HeritageCollectRefactor.vue"]]);
@@ -4553,8 +4851,6 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       __expose();
       const API2 = config.API_BASE_URL;
       const collectRef = vue.ref(null);
-      const altitudeRef = vue.ref(null);
-      const shadowAltitude = vue.ref("");
       const submitting = vue.ref(false);
       const formMeta = vue.reactive({
         categoryChoices: [],
@@ -4571,65 +4867,6 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       });
       function cleanText(value) {
         return String(value || "").trim();
-      }
-      function applyCoordinateToForm(longitude, latitude) {
-        var _a;
-        const form = (_a = collectRef.value) == null ? void 0 : _a.form;
-        if (!form)
-          return;
-        form.longitude = Number(longitude).toFixed(8);
-        form.latitude = Number(latitude).toFixed(8);
-      }
-      function applyAltitudeToForm(altitudeValue, source) {
-        if (!collectRef.value)
-          return;
-        if (!Number.isFinite(Number(altitudeValue)))
-          return;
-        if (source && source.includes("DEM")) {
-          collectRef.value.setAltitudeByDem(Number(altitudeValue));
-          return;
-        }
-        if (source && (source.includes("硬件") || source.includes("GPS") || source.includes("气压"))) {
-          collectRef.value.setAltitudeByHardware(Number(altitudeValue));
-          return;
-        }
-        collectRef.value.setAltitudeManual(String(Number(altitudeValue).toFixed(2)));
-      }
-      function handleAltitudeCollected(info) {
-        if (!info || typeof info !== "object")
-          return;
-        if (info.longitude != null && info.latitude != null) {
-          applyCoordinateToForm(info.longitude, info.latitude);
-        }
-        if (info.altitude != null) {
-          applyAltitudeToForm(info.altitude, info.source || "");
-        }
-      }
-      function handleCollectCoordinate() {
-        uni.getLocation({
-          type: "wgs84",
-          isHighAccuracy: true,
-          highAccuracyExpireTime: 15e3,
-          success: (res) => {
-            applyCoordinateToForm(res.longitude, res.latitude);
-            uni.showToast({ title: "坐标采集成功", icon: "success" });
-          },
-          fail: (err) => {
-            const msg = String((err == null ? void 0 : err.errMsg) || "").toLowerCase();
-            const hint = msg.includes("denied") || msg.includes("permission") ? "定位权限被拒绝，请在系统设置开启定位" : msg.includes("timeout") ? "定位超时，请移至开阔区域重试" : "坐标采集失败，请重试";
-            uni.showToast({ title: hint, icon: "none" });
-          }
-        });
-      }
-      function handleCalibrateAltitude() {
-        if (!altitudeRef.value || typeof altitudeRef.value.startCollect !== "function") {
-          uni.showToast({ title: "海拔采集组件未就绪", icon: "none" });
-          return;
-        }
-        altitudeRef.value.startCollect();
-      }
-      function handleOpenWatermarkCamera() {
-        uni.showToast({ title: "请使用添加照片入口拍摄，系统将自动加水印", icon: "none" });
       }
       function loadFormMetaDefaults() {
         uni.request({
@@ -4697,6 +4934,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
               former_name: cleanText(payload.former_name),
               era: cleanText(payload.era),
               category: resolvedCategory,
+              coord_list: Array.isArray(payload.coord_list) ? payload.coord_list : [],
               province: cleanText(payload.province),
               city: cleanText(payload.city),
               county: cleanText(payload.county),
@@ -4790,13 +5028,13 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           submitting.value = false;
         }
       }
-      const __returned__ = { API: API2, collectRef, altitudeRef, shadowAltitude, submitting, formMeta, cleanText, applyCoordinateToForm, applyAltitudeToForm, handleAltitudeCollected, handleCollectCoordinate, handleCalibrateAltitude, handleOpenWatermarkCamera, loadFormMetaDefaults, createHeritage, uploadPhoto, handleSubmit, get onLoad() {
+      const __returned__ = { API: API2, collectRef, submitting, formMeta, cleanText, loadFormMetaDefaults, createHeritage, uploadPhoto, handleSubmit, get onLoad() {
         return onLoad;
       }, reactive: vue.reactive, ref: vue.ref, get config() {
         return config;
       }, get getToken() {
         return getToken;
-      }, AltitudeCollect, HeritageCollectRefactor };
+      }, HeritageCollectRefactor };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -4807,22 +5045,8 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         ref: "collectRef",
         loading: $setup.submitting,
         meta: $setup.formMeta,
-        onCollectCoordinate: $setup.handleCollectCoordinate,
-        onCalibrateAltitude: $setup.handleCalibrateAltitude,
-        onOpenWatermarkCamera: $setup.handleOpenWatermarkCamera,
         onSubmit: $setup.handleSubmit
-      }, null, 8, ["loading", "meta"]),
-      vue.createElementVNode("view", {
-        class: "hidden-altitude-collector",
-        "aria-hidden": "true"
-      }, [
-        vue.createVNode($setup["AltitudeCollect"], {
-          ref: "altitudeRef",
-          modelValue: $setup.shadowAltitude,
-          "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.shadowAltitude = $event),
-          onCollectDone: $setup.handleAltitudeCollected
-        }, null, 8, ["modelValue"])
-      ])
+      }, null, 8, ["loading", "meta"])
     ]);
   }
   const PagesCollectCollect = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-b24c290b"], ["__file", "C:/Users/14434/uniapp/pages/collect/collect.vue"]]);

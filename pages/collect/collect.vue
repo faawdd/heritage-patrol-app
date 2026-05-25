@@ -4,19 +4,8 @@
       ref="collectRef"
       :loading="submitting"
       :meta="formMeta"
-      @collect-coordinate="handleCollectCoordinate"
-      @calibrate-altitude="handleCalibrateAltitude"
-      @open-watermark-camera="handleOpenWatermarkCamera"
       @submit="handleSubmit"
     />
-
-    <view class="hidden-altitude-collector" aria-hidden="true">
-      <AltitudeCollect
-        ref="altitudeRef"
-        v-model="shadowAltitude"
-        @collect-done="handleAltitudeCollected"
-      />
-    </view>
   </view>
 </template>
 
@@ -25,14 +14,11 @@ import { onLoad } from '@dcloudio/uni-app';
 import { reactive, ref } from 'vue';
 import config from '../../common/js/config.js';
 import { getToken } from '../../common/js/auth.js';
-import AltitudeCollect from '../../components/AltitudeCollect.vue';
 import HeritageCollectRefactor from '../../components/HeritageCollectRefactor.vue';
 
 const API = config.API_BASE_URL;
 
 const collectRef = ref(null);
-const altitudeRef = ref(null);
-const shadowAltitude = ref('');
 const submitting = ref(false);
 const formMeta = reactive({
   categoryChoices: [],
@@ -51,73 +37,6 @@ onLoad(() => {
 
 function cleanText(value) {
   return String(value || '').trim();
-}
-
-function applyCoordinateToForm(longitude, latitude) {
-  const form = collectRef.value?.form;
-  if (!form) return;
-  form.longitude = Number(longitude).toFixed(8);
-  form.latitude = Number(latitude).toFixed(8);
-}
-
-function applyAltitudeToForm(altitudeValue, source) {
-  if (!collectRef.value) return;
-  if (!Number.isFinite(Number(altitudeValue))) return;
-
-  if (source && source.includes('DEM')) {
-    collectRef.value.setAltitudeByDem(Number(altitudeValue));
-    return;
-  }
-
-  if (source && (source.includes('硬件') || source.includes('GPS') || source.includes('气压'))) {
-    collectRef.value.setAltitudeByHardware(Number(altitudeValue));
-    return;
-  }
-
-  collectRef.value.setAltitudeManual(String(Number(altitudeValue).toFixed(2)));
-}
-
-function handleAltitudeCollected(info) {
-  if (!info || typeof info !== 'object') return;
-  if (info.longitude != null && info.latitude != null) {
-    applyCoordinateToForm(info.longitude, info.latitude);
-  }
-  if (info.altitude != null) {
-    applyAltitudeToForm(info.altitude, info.source || '');
-  }
-}
-
-function handleCollectCoordinate() {
-  uni.getLocation({
-    type: 'wgs84',
-    isHighAccuracy: true,
-    highAccuracyExpireTime: 15000,
-    success: (res) => {
-      applyCoordinateToForm(res.longitude, res.latitude);
-      uni.showToast({ title: '坐标采集成功', icon: 'success' });
-    },
-    fail: (err) => {
-      const msg = String(err?.errMsg || '').toLowerCase();
-      const hint = msg.includes('denied') || msg.includes('permission')
-        ? '定位权限被拒绝，请在系统设置开启定位'
-        : msg.includes('timeout')
-        ? '定位超时，请移至开阔区域重试'
-        : '坐标采集失败，请重试';
-      uni.showToast({ title: hint, icon: 'none' });
-    },
-  });
-}
-
-function handleCalibrateAltitude() {
-  if (!altitudeRef.value || typeof altitudeRef.value.startCollect !== 'function') {
-    uni.showToast({ title: '海拔采集组件未就绪', icon: 'none' });
-    return;
-  }
-  altitudeRef.value.startCollect();
-}
-
-function handleOpenWatermarkCamera() {
-  uni.showToast({ title: '请使用添加照片入口拍摄，系统将自动加水印', icon: 'none' });
 }
 
 function loadFormMetaDefaults() {
@@ -187,6 +106,7 @@ function createHeritage(payload) {
         former_name: cleanText(payload.former_name),
         era: cleanText(payload.era),
         category: resolvedCategory,
+        coord_list: Array.isArray(payload.coord_list) ? payload.coord_list : [],
         province: cleanText(payload.province),
         city: cleanText(payload.city),
         county: cleanText(payload.county),
@@ -283,16 +203,5 @@ async function handleSubmit(payload) {
 <style scoped>
 .page-wrap {
   min-height: 100vh;
-}
-
-.hidden-altitude-collector {
-  position: absolute;
-  left: -9999px;
-  top: -9999px;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
 }
 </style>

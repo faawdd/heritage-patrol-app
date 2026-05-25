@@ -1,15 +1,49 @@
 <template>
-  <view class="collect-page">
-    <scroll-view class="scroll-body" scroll-y :show-scrollbar="false" enable-flex>
-      <view class="page-inner">
-        <view class="page-title-wrap">
-          <text class="page-title">不可移动文物现场采集</text>
-          <text class="page-subtitle">极简规范化采集表单</text>
+  <view class="wizard-page">
+    <view class="wizard-header">
+      <view class="header-top">
+        <text class="page-title">不可移动文物现场数据采集</text>
+        <text class="page-subtitle">横向流程式录入</text>
+      </view>
+      <view class="stepper-wrap">
+        <view v-for="(step, idx) in stepDefs" :key="step.key" class="stepper-item">
+          <view class="stepper-node" :class="stepNodeClass(idx)">
+            <text class="stepper-node-text">{{ currentStep > idx ? '✓' : idx + 1 }}</text>
+          </view>
+          <text class="stepper-label" :class="{ active: currentStep === idx }">{{ step.label }}</text>
+          <view v-if="idx < stepDefs.length - 1" class="stepper-line" :class="{ done: currentStep > idx }"></view>
         </view>
+      </view>
+    </view>
 
-        <view class="card">
+    <view class="wizard-content">
+      <view v-if="currentStep === 0" class="step-panel">
+        <view class="card step-card">
           <view class="card-head">
-            <text class="card-title">区块一：基础地理信息</text>
+            <text class="card-title">第一步：基础地理</text>
+            <text class="card-tag">信息校核</text>
+          </view>
+
+          <view class="strategy-card">
+            <view class="strategy-head">
+              <text class="strategy-title">全局采集策略</text>
+            </view>
+            <radio-group class="strategy-group" @change="onModeChange">
+              <label class="strategy-item">
+                <radio value="dem" :checked="altitudeMode === 'dem'" color="#1890FF" />
+                <view class="strategy-copy">
+                  <text class="strategy-copy-title">DEM 优先模式（推荐）</text>
+                  <text class="strategy-copy-desc">优先后端 DEM 反查，弱网时自动降级硬件海拔</text>
+                </view>
+              </label>
+              <label class="strategy-item">
+                <radio value="hardware" :checked="altitudeMode === 'hardware'" color="#1890FF" />
+                <view class="strategy-copy">
+                  <text class="strategy-copy-title">硬件优先模式</text>
+                  <text class="strategy-copy-desc">跳过 DEM 请求，直接使用手机硬件高程</text>
+                </view>
+              </label>
+            </radio-group>
           </view>
 
           <view class="form-row">
@@ -105,13 +139,37 @@
 
           <view class="btn-group-compact">
             <button class="btn-secondary" @click="handleCollectCoordinate">采集坐标</button>
-            <button class="btn-secondary" @click="handleCalibrateAltitude">硬件高程校准</button>
+            <button class="btn-secondary" @click="handleCollectAltitude">采集海拔</button>
           </view>
         </view>
+      </view>
 
-        <view class="card">
+      <view v-if="currentStep === 1" class="step-panel">
+        <view class="card step-card step2-focus">
           <view class="card-head">
-            <text class="card-title">区块二：多媒体采集</text>
+            <text class="card-title">第二步：多点坐标</text>
+            <text class="card-tag warm">高频核心操作区</text>
+          </view>
+          <view class="focus-tip">
+            <text class="focus-tip-text">围绕遗址走动采集时，请优先使用“新增定位点”和“实时定位”完成边界点/标志点录入。</text>
+          </view>
+          <CoordinateCollectCard
+            ref="coordRef"
+            v-model="coordList"
+            :heritage-name="form.name"
+            :capture-point-data="capturePointData"
+          />
+          <view class="step2-meta">
+            <text class="step2-meta-text">当前边界点：{{ boundaryPointCount }} 个（至少 3 个）</text>
+          </view>
+        </view>
+      </view>
+
+      <view v-if="currentStep === 2" class="step-panel">
+        <view class="card step-card">
+          <view class="card-head">
+            <text class="card-title">第三步：多媒体/审核</text>
+            <text class="card-tag">提交前复核</text>
           </view>
 
           <view class="form-row column-row">
@@ -130,25 +188,6 @@
                 <text class="photo-add-text">添加照片</text>
               </view>
             </view>
-          </view>
-
-          <view class="form-row">
-            <text class="row-label">水印相机</text>
-            <button class="btn-secondary single-btn" @click="openWatermarkCamera">打开水印拍照</button>
-          </view>
-
-          <view class="form-row">
-            <text class="row-label">RTK 手簿附件</text>
-            <button class="btn-secondary single-btn" @click="attachRtkFile">上传附件</button>
-          </view>
-          <view v-if="rtkFileName" class="inline-hint">
-            <text class="inline-hint-text">已上传：{{ rtkFileName }}</text>
-          </view>
-        </view>
-
-        <view class="card last-card">
-          <view class="card-head">
-            <text class="card-title">区块三：审核与备注</text>
           </view>
 
           <view class="form-row">
@@ -194,19 +233,48 @@
           </view>
         </view>
       </view>
-    </scroll-view>
-
-    <view class="bottom-bar">
-      <button class="btn-submit" :disabled="loading" @click="handleSubmit">
-        {{ loading ? '提交中...' : '提交采集信息' }}
-      </button>
     </view>
+
+    <view class="wizard-footer">
+      <view v-if="currentStep === 0" class="footer-row single">
+        <button class="btn-flow btn-flow-primary btn-flow-wide" @click="goStep1ToStep2">下一步：采集坐标</button>
+      </view>
+
+      <view v-if="currentStep === 1" class="footer-row split">
+        <button class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</button>
+        <button class="btn-flow btn-flow-primary right" @click="goStep2ToStep3">下一步：多媒体/审核</button>
+      </view>
+
+      <view v-if="currentStep === 2" class="footer-row split">
+        <button class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</button>
+        <button class="btn-flow btn-flow-submit right" :disabled="loading" @click="handleSubmit">
+          {{ loading ? '提交中...' : '完成并提交数据' }}
+        </button>
+      </view>
+    </view>
+
+    <canvas
+      canvas-id="watermarkCanvas"
+      :width="watermarkCanvas.width"
+      :height="watermarkCanvas.height"
+      :style="`position:absolute;left:-9999px;top:-9999px;width:${watermarkCanvas.width}px;height:${watermarkCanvas.height}px;pointer-events:none;`"
+    ></canvas>
   </view>
 </template>
 
 <script setup>
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, getCurrentInstance, nextTick, reactive, ref, watch } from 'vue';
+import config from '../common/js/config.js';
 import { CHINA_REGION_TREE, DEFAULT_REGION } from '../common/js/china_regions.js';
+import { addWatermark } from '../common/js/watermark.js';
+import { getUser } from '../common/js/auth.js';
+import CoordinateCollectCard from './CoordinateCollectCard.vue';
+
+const DEM_TIMEOUT_MS = 15000;
+const ALTITUDE_MIN_M = -500;
+const ALTITUDE_MAX_M = 9000;
+const ALTITUDE_ZERO_EPS = 0.01;
+const GPS_TIMEOUT_MS = 12000;
 
 const props = defineProps({
   loading: {
@@ -224,10 +292,30 @@ const props = defineProps({
   },
 });
 
-const emitting = defineEmits(['submit', 'collect-coordinate', 'calibrate-altitude', 'open-watermark-camera']);
+const emitting = defineEmits(['submit']);
+const currentStep = ref(0);
+
+const stepDefs = [
+  { key: 'step1', label: '第一步：基础地理' },
+  { key: 'step2', label: '第二步：多点坐标' },
+  { key: 'step3', label: '第三步：多媒体/审核' },
+];
+
+function stepNodeClass(idx) {
+  if (currentStep.value === idx) return 'active';
+  if (currentStep.value > idx) return 'done';
+  return 'pending';
+}
+const altitudeMode = ref('dem');
 const photos = ref([]);
-const rtkFileName = ref('');
 const signStatus = ref('');
+const watermarkCanvas = reactive({ width: 1, height: 1 });
+const coordRef = ref(null);
+const coordList = ref([]);
+const instance = getCurrentInstance();
+if (instance && instance.proxy) {
+  instance.proxy.watermarkCanvas = watermarkCanvas;
+}
 
 const form = reactive({
   surveyCodeAuto: true,
@@ -275,6 +363,7 @@ const badgeClassMap = {
   dem: 'badge-dem',
   hardware: 'badge-hardware',
   manual: 'badge-manual',
+  alert: 'badge-alert',
 };
 
 const categoryLabels = computed(() => (props.meta?.categoryChoices || []).map((item) => item.label));
@@ -330,10 +419,41 @@ const countyIndex = computed(() => {
 });
 
 const altitudeSourceLabel = computed(() => {
-  if (altitudeSource.value === 'dem') return 'DEM对齐';
-  if (altitudeSource.value === 'hardware') return '手机硬件';
-  return '手动录入';
+  if (altitudeSource.value === 'dem') return '🟢 DEM国家高程校准';
+  if (altitudeSource.value === 'hardware') return '🟢 手机硬件直出';
+  if (altitudeSource.value === 'manual') return '灰色 手动录入';
+  return '🔴 信号断绝，请手动录入';
 });
+
+const boundaryPointCount = computed(() => {
+  return (coordList.value || []).filter((item) => item?.type === 'boundary').length;
+});
+
+function goPrevStep() {
+  currentStep.value = Math.max(0, currentStep.value - 1);
+}
+
+function goStep1ToStep2() {
+  currentStep.value = 1;
+}
+
+function goStep2ToStep3() {
+  if (boundaryPointCount.value < 3) {
+    uni.showToast({ title: '边界点不足3个，无法进入下一步', icon: 'none' });
+    return;
+  }
+  const coordCheck = coordRef.value?.validateBeforeSubmit?.();
+  if (coordCheck && !coordCheck.ok) {
+    uni.showToast({ title: coordCheck.message || '坐标采集校验未通过', icon: 'none' });
+    return;
+  }
+  currentStep.value = 2;
+}
+
+function onModeChange(e) {
+  const v = e?.detail?.value;
+  altitudeMode.value = v === 'hardware' ? 'hardware' : 'dem';
+}
 
 function onCategoryChange(e) {
   const idx = Number(e?.detail?.value || 0);
@@ -395,63 +515,11 @@ function onCountyChange(e) {
 
 applyDefaultRegion();
 
-function setAltitudeByDem(value) {
-  form.altitude = Number(value).toFixed(2);
-  altitudeSource.value = 'dem';
+function isInChoices(value, choices) {
+  return Array.isArray(choices) && choices.some((item) => item.value === value);
 }
-
-function setAltitudeByHardware(value) {
-  form.altitude = Number(value).toFixed(2);
-  altitudeSource.value = 'hardware';
-}
-
-function setAltitudeManual(value) {
-  form.altitude = value;
-  altitudeSource.value = 'manual';
-}
-
-function handleCollectCoordinate() {
-  emitting('collect-coordinate');
-  uni.showToast({ title: '开始采集坐标', icon: 'none' });
-}
-
-function handleCalibrateAltitude() {
-  emitting('calibrate-altitude');
-  uni.showToast({ title: '开始校准海拔', icon: 'none' });
-}
-
-function pickPhoto() {
-  const remain = 10 - photos.value.length;
-  uni.chooseImage({
-    count: remain,
-    sizeType: ['compressed'],
-    sourceType: ['camera', 'album'],
-    success: (res) => {
-      const selected = (res.tempFilePaths || []).map((path, index) => ({
-        id: `${Date.now()}_${index}`,
-        path,
-      }));
-      photos.value = photos.value.concat(selected).slice(0, 10);
-    },
-  });
-}
-
-function removePhoto(index) {
-  photos.value.splice(index, 1);
-}
-
-function openWatermarkCamera() {
-  emitting('open-watermark-camera');
-  uni.showToast({ title: '打开水印相机', icon: 'none' });
-}
-
-function attachRtkFile() {
-  uni.showActionSheet({
-    itemList: ['从文件管理器选择', '拍照上传手簿'],
-    success: () => {
-      rtkFileName.value = `RTK手簿_${Date.now()}.pdf`;
-    },
-  });
+function isInList(value, list) {
+  return Array.isArray(list) && list.includes(value);
 }
 
 function collectSignature() {
@@ -459,12 +527,308 @@ function collectSignature() {
   uni.showToast({ title: '签名采集成功', icon: 'success' });
 }
 
-function isInChoices(value, choices) {
-  return Array.isArray(choices) && choices.some((item) => item.value === value);
+function setMainAltitude(altitude, sourceTag, sourceKey) {
+  if (Number.isFinite(Number(altitude))) {
+    form.altitude = Number(altitude).toFixed(2);
+  }
+  if (sourceKey === 'dem') altitudeSource.value = 'dem';
+  else if (sourceKey === 'hardware') altitudeSource.value = 'hardware';
+  else if (sourceKey === 'alert') altitudeSource.value = 'alert';
+  else altitudeSource.value = 'manual';
+  uni.showToast({ title: sourceTag, icon: 'none', duration: 1800 });
 }
 
-function isInList(value, list) {
-  return Array.isArray(list) && list.includes(value);
+function getWatermarkUserName() {
+  const user = getUser() || {};
+  return user.full_name || user.username || '未登录用户';
+}
+
+function getSelectedSiteName() {
+  return form.name || '未命名文物';
+}
+
+function buildWatermarkText(time) {
+  const longitude = Number(form.longitude || 0).toFixed(6);
+  const latitude = Number(form.latitude || 0).toFixed(6);
+
+  return `用户: ${getWatermarkUserName()}\n文物点: ${getSelectedSiteName()}\n时间: ${time}\n经纬度: ${longitude}, ${latitude}`;
+}
+
+function normalizeHardwareAltitude(rawAltitude) {
+  const altitude = Number(rawAltitude);
+  if (!Number.isFinite(altitude)) return null;
+  if (Math.abs(altitude) < ALTITUDE_ZERO_EPS) return null;
+  if (altitude < ALTITUDE_MIN_M || altitude > ALTITUDE_MAX_M) return null;
+  return altitude;
+}
+
+function requestDemAltitude(longitude, latitude) {
+  return new Promise((resolve, reject) => {
+    const fallbackDirectUrl = `${config.WEB_BASE_URL}/api/dem-elevation-lookup/`;
+    const fallbackAppApiUrl = `${config.WEB_BASE_URL}/app-api/api/dem-elevation-lookup/`;
+    const fallbackByReplace = `${String(config.API_BASE_URL || '').replace(/\/app-api\/?$/, '')}/api/dem-elevation-lookup/`;
+    const urlCandidates = Array.from(new Set([fallbackDirectUrl, fallbackAppApiUrl, fallbackByReplace].filter(Boolean)));
+    let attemptIndex = 0;
+
+    const tryNext = (lastError) => {
+      if (attemptIndex >= urlCandidates.length) {
+        reject(lastError || new Error('DEM 请求失败'));
+        return;
+      }
+      const targetUrl = urlCandidates[attemptIndex++];
+      uni.request({
+        url: targetUrl,
+        method: 'POST',
+        timeout: DEM_TIMEOUT_MS,
+        sslVerify: false,
+        header: { 'Content-Type': 'application/json' },
+        data: { longitude, latitude },
+        success: (res) => {
+          const data = res?.data || {};
+          if (res.statusCode !== 200) {
+            tryNext(new Error(`DEM HTTP ${res.statusCode || 'ERR'}`));
+            return;
+          }
+          const demOk = data.code === 200 || data.success === true || data.status === 'success';
+          const demAltitude = data.altitude ?? data.elevation ?? (data.data && (data.data.altitude ?? data.data.elevation));
+          if (!demOk || demAltitude == null || Number.isNaN(Number(demAltitude))) {
+            tryNext(new Error('DEM 返回无有效高程'));
+            return;
+          }
+          resolve(Number(demAltitude));
+        },
+        fail: () => tryNext(new Error('DEM 请求失败')),
+      });
+    };
+
+    tryNext();
+  });
+}
+
+async function resolveAltitude(lon, lat, gpsHardwareAlt) {
+  const hardware = normalizeHardwareAltitude(gpsHardwareAlt);
+
+  if (altitudeMode.value === 'hardware') {
+    if (hardware != null) {
+      return { altitude: hardware, sourceTag: '🟢 手机硬件直出', sourceKey: 'hardware' };
+    }
+    return { altitude: null, sourceTag: '🔴 硬件海拔无效，请手动录入', sourceKey: 'alert' };
+  }
+
+  try {
+    const demAltitude = await requestDemAltitude(lon, lat);
+    return { altitude: demAltitude, sourceTag: '🟢 DEM国家高程校准', sourceKey: 'dem' };
+  } catch (_) {
+    if (hardware != null) {
+      return { altitude: hardware, sourceTag: '🟡 手机硬件(无网保底)', sourceKey: 'hardware' };
+    }
+    return { altitude: null, sourceTag: '🔴 DEM不可用且硬件海拔无效，请手动录入', sourceKey: 'alert' };
+  }
+}
+
+function getNativeGpsPosition() {
+  return new Promise((resolve, reject) => {
+    // #ifdef APP-PLUS
+    const resolveByPlusGeolocation = () => {
+      plus.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = position && position.coords ? position.coords : {};
+          resolve({
+            longitude: Number(coords.longitude),
+            latitude: Number(coords.latitude),
+            altitude: coords.altitude != null ? Number(coords.altitude) : null,
+            accuracy: coords.accuracy != null ? Number(coords.accuracy) : null,
+          });
+        },
+        (err) => {
+          reject(err || new Error('gps failed'));
+        },
+        {
+          provider: 'gps',
+          enableHighAccuracy: true,
+          coordsType: 'wgs84',
+          timeout: GPS_TIMEOUT_MS,
+          maximumAge: 0,
+          geocode: false,
+        }
+      );
+    };
+
+    try {
+      const isAndroid = typeof plus !== 'undefined' && plus.os && String(plus.os.name || '').toLowerCase() === 'android';
+      if (!isAndroid || !plus.android) {
+        resolveByPlusGeolocation();
+        return;
+      }
+
+      plus.android.importClass('android.location.LocationManager');
+      const activity = plus.android.runtimeMainActivity();
+      const locationManager = plus.android.invoke(activity, 'getSystemService', 'location');
+      if (!locationManager) {
+        resolveByPlusGeolocation();
+        return;
+      }
+
+      const provider = 'gps';
+      const providerEnabled = plus.android.invoke(locationManager, 'isProviderEnabled', provider);
+      if (!providerEnabled) {
+        resolveByPlusGeolocation();
+        return;
+      }
+
+      let done = false;
+      let timeoutTimer = null;
+      let listener = null;
+
+      const parseLocation = (loc) => {
+        if (!loc) return null;
+        const longitude = Number(plus.android.invoke(loc, 'getLongitude'));
+        const latitude = Number(plus.android.invoke(loc, 'getLatitude'));
+        if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
+        const hasAltitude = !!plus.android.invoke(loc, 'hasAltitude');
+        const hasAccuracy = !!plus.android.invoke(loc, 'hasAccuracy');
+        const altitude = hasAltitude ? Number(plus.android.invoke(loc, 'getAltitude')) : null;
+        const accuracy = hasAccuracy ? Number(plus.android.invoke(loc, 'getAccuracy')) : null;
+        return {
+          longitude,
+          latitude,
+          altitude: Number.isFinite(altitude) ? altitude : null,
+          accuracy: Number.isFinite(accuracy) ? accuracy : null,
+        };
+      };
+
+      const finish = (payload, err) => {
+        if (done) return;
+        done = true;
+        if (timeoutTimer) clearTimeout(timeoutTimer);
+        try {
+          if (listener) plus.android.invoke(locationManager, 'removeUpdates', listener);
+        } catch (_) {}
+
+        if (err) {
+          resolveByPlusGeolocation();
+          return;
+        }
+        resolve(payload);
+      };
+
+      listener = plus.android.implements('android.location.LocationListener', {
+        onLocationChanged: (location) => {
+          const parsed = parseLocation(location);
+          if (parsed) finish(parsed, null);
+        },
+        onStatusChanged: () => {},
+        onProviderEnabled: () => {},
+        onProviderDisabled: () => {},
+      });
+
+      const lastKnown = plus.android.invoke(locationManager, 'getLastKnownLocation', provider);
+      const parsedLastKnown = parseLocation(lastKnown);
+      if (parsedLastKnown) {
+        finish(parsedLastKnown, null);
+        return;
+      }
+
+      plus.android.invoke(locationManager, 'requestLocationUpdates', provider, 0, 0, listener);
+      timeoutTimer = setTimeout(() => {
+        finish(null, new Error('android gps timeout'));
+      }, GPS_TIMEOUT_MS);
+    } catch (_) {
+      resolveByPlusGeolocation();
+    }
+    // #endif
+
+    // #ifndef APP-PLUS
+    uni.getLocation({
+      type: 'wgs84',
+      altitude: true,
+      isHighAccuracy: true,
+      highAccuracyExpireTime: 12000,
+      success: (res) => {
+        resolve({
+          longitude: Number(res.longitude),
+          latitude: Number(res.latitude),
+          altitude: res.altitude != null ? Number(res.altitude) : null,
+          accuracy: res.accuracy != null ? Number(res.accuracy) : null,
+        });
+      },
+      fail: (err) => reject(err),
+    });
+    // #endif
+  });
+}
+
+async function capturePointData() {
+  const gps = await getNativeGpsPosition();
+  const lon = Number(gps.longitude);
+  const lat = Number(gps.latitude);
+  const hardwareAlt = Number.isFinite(Number(gps.altitude)) ? Number(gps.altitude) : null;
+  const result = await resolveAltitude(lon, lat, hardwareAlt);
+  return {
+    longitude: lon,
+    latitude: lat,
+    altitude: result.altitude,
+    sourceTag: result.sourceTag,
+  };
+}
+
+async function handleCollectCoordinate() {
+  try {
+    const r = await capturePointData();
+    form.longitude = Number(r.longitude).toFixed(8);
+    form.latitude = Number(r.latitude).toFixed(8);
+    setMainAltitude(r.altitude, r.sourceTag, r.sourceTag.includes('DEM') ? 'dem' : r.sourceTag.includes('硬件') ? 'hardware' : 'alert');
+  } catch (_) {
+    uni.showToast({ title: '定位采集失败，请重试', icon: 'none' });
+  }
+}
+
+async function handleCollectAltitude() {
+  try {
+    const r = await capturePointData();
+    if (Number.isFinite(Number(r.longitude)) && Number.isFinite(Number(r.latitude))) {
+      form.longitude = Number(r.longitude).toFixed(8);
+      form.latitude = Number(r.latitude).toFixed(8);
+    }
+    setMainAltitude(r.altitude, r.sourceTag, r.sourceTag.includes('DEM') ? 'dem' : r.sourceTag.includes('硬件') ? 'hardware' : 'alert');
+  } catch (_) {
+    uni.showToast({ title: '海拔采集失败，请重试', icon: 'none' });
+  }
+}
+
+function pickPhoto() {
+  const remain = 10 - photos.value.length;
+
+  uni.chooseImage({
+    count: remain,
+    sizeType: ['compressed'],
+    sourceType: ['camera', 'album'],
+    success: async (res) => {
+      const tempFilePaths = res.tempFilePaths || [];
+      const selected = [];
+
+      for (let index = 0; index < tempFilePaths.length; index += 1) {
+        const path = tempFilePaths[index];
+        const now = new Date();
+        const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        const watermarkText = buildWatermarkText(time);
+
+        try {
+          await nextTick();
+          const watermarkedPath = await addWatermark(path, watermarkText, instance.proxy);
+          selected.push({ id: `${Date.now()}_${index}`, path: watermarkedPath });
+        } catch (_) {
+          selected.push({ id: `${Date.now()}_${index}`, path });
+        }
+      }
+
+      photos.value = photos.value.concat(selected).slice(0, 10);
+    },
+  });
+}
+
+function removePhoto(index) {
+  photos.value.splice(index, 1);
 }
 
 function validateForm() {
@@ -511,6 +875,13 @@ function validateForm() {
 
 function handleSubmit() {
   if (props.loading) return;
+
+  const coordCheck = coordRef.value?.validateBeforeSubmit?.();
+  if (coordCheck && !coordCheck.ok) {
+    uni.showToast({ title: coordCheck.message || '坐标采集校验未通过', icon: 'none' });
+    return;
+  }
+
   const msg = validateForm();
   if (msg) {
     uni.showToast({ title: msg, icon: 'none' });
@@ -519,101 +890,249 @@ function handleSubmit() {
 
   emitting('submit', {
     ...form,
+    coord_list: coordList.value,
+    altitude_mode: altitudeMode.value,
     altitude_source: altitudeSource.value,
     photos: photos.value,
-    rtk_file_name: rtkFileName.value,
     signature_status: signStatus.value,
   });
 }
 
 defineExpose({
-  setAltitudeByDem,
-  setAltitudeByHardware,
-  setAltitudeManual,
   form,
+  altitudeMode,
+  resolveAltitude,
+  capturePointData,
 });
 </script>
 
 <style scoped lang="scss">
-.collect-page {
-  min-height: 100vh;
-  background: #f5f7fa;
-  position: relative;
-}
-
-.scroll-body {
+.wizard-page {
   height: 100vh;
-  box-sizing: border-box;
-  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
-  padding-bottom: calc(140rpx + constant(safe-area-inset-bottom));
+  background: #eef2f7;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-.page-inner {
-  padding: 24rpx;
+.wizard-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #ffffff;
+  border-bottom: 1rpx solid #e6ebf2;
+  box-shadow: 0 8rpx 24rpx rgba(5, 24, 56, 0.06);
 }
 
-.page-title-wrap {
-  margin-bottom: 20rpx;
+.header-top {
+  padding: 18rpx 22rpx 10rpx;
 }
 
 .page-title {
   display: block;
-  font-size: 36rpx;
-  line-height: 1.4;
+  font-size: 34rpx;
   color: #001529;
   font-weight: 700;
 }
 
 .page-subtitle {
   display: block;
-  margin-top: 6rpx;
+  margin-top: 4rpx;
   font-size: 24rpx;
-  color: #595959;
+  color: #5f6f85;
+}
+
+.stepper-wrap {
+  padding: 8rpx 20rpx 16rpx;
+  display: flex;
+}
+
+.stepper-item {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stepper-node {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  border: 2rpx solid #d9d9d9;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-node.pending {
+  border-color: #d9d9d9;
+}
+
+.stepper-node.active,
+.stepper-node.done {
+  border-color: #1890ff;
+  background: #1890ff;
+}
+
+.stepper-node-text {
+  font-size: 24rpx;
+  color: #8c8c8c;
+  font-weight: 700;
+}
+
+.stepper-node.active .stepper-node-text,
+.stepper-node.done .stepper-node-text {
+  color: #ffffff;
+}
+
+.stepper-label {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #8c8c8c;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.stepper-label.active {
+  color: #004da8;
+  font-weight: 700;
+}
+
+.stepper-line {
+  position: absolute;
+  top: 22rpx;
+  left: 50%;
+  width: 100%;
+  height: 2rpx;
+  transform: translateX(22rpx);
+  background: #d9d9d9;
+}
+
+.stepper-line.done {
+  background: #1890ff;
+}
+
+.wizard-content {
+  flex: 1;
+  overflow: hidden;
+  padding: 14rpx 16rpx 0;
+}
+
+.step-panel {
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 18rpx;
+  box-sizing: border-box;
 }
 
 .card {
-  background: #ffffff;
   border-radius: 14rpx;
-  padding: 20rpx 20rpx 8rpx;
-  margin-bottom: 16rpx;
-  border: 1rpx solid #eef1f5;
+  border: 1rpx solid #e8edf3;
+  background: #ffffff;
+  box-shadow: 0 6rpx 18rpx rgba(14, 35, 78, 0.04);
+  padding: 18rpx;
 }
 
-.last-card {
+.step-card {
   margin-bottom: 8rpx;
 }
 
 .card-head {
   margin-bottom: 8rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .card-title {
   font-size: 30rpx;
-  color: #001529;
+  color: #0b1f3a;
   font-weight: 700;
-  line-height: 1.5;
+}
+
+.card-tag {
+  font-size: 22rpx;
+  color: #4f6a8b;
+  background: #f0f5ff;
+  border: 1rpx solid #d6e4ff;
+  padding: 6rpx 10rpx;
+  border-radius: 999rpx;
+}
+
+.card-tag.warm {
+  color: #ad6800;
+  background: #fffbe6;
+  border-color: #ffe58f;
+}
+
+.strategy-card {
+  background: #f5fafe;
+  border: 1rpx solid #d6ecff;
+  border-radius: 12rpx;
+  padding: 14rpx;
+  margin-bottom: 12rpx;
+}
+
+.strategy-head {
+  margin-bottom: 6rpx;
+}
+
+.strategy-title {
+  font-size: 28rpx;
+  color: #113a6b;
+  font-weight: 700;
+}
+
+.strategy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.strategy-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  padding: 6rpx 0;
+}
+
+.strategy-copy {
+  display: flex;
+  flex-direction: column;
+}
+
+.strategy-copy-title {
+  font-size: 27rpx;
+  color: #0f2c4f;
+  font-weight: 600;
+}
+
+.strategy-copy-desc {
+  margin-top: 2rpx;
+  font-size: 23rpx;
+  color: #58708e;
 }
 
 .form-row {
-  min-height: 88rpx;
+  min-height: 82rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1rpx solid #f0f0f0;
-  padding: 10rpx 0;
-  gap: 20rpx;
+  gap: 16rpx;
+  border-bottom: 1rpx solid #edf1f6;
 }
 
 .form-row:last-child {
-  border-bottom: 0;
+  border-bottom: none;
 }
 
 .row-label {
-  width: 220rpx;
+  width: 210rpx;
   flex-shrink: 0;
-  font-size: 30rpx;
-  color: #001529;
-  line-height: 1.4;
+  font-size: 28rpx;
+  color: #173251;
 }
 
 .row-label.required::after {
@@ -625,9 +1144,9 @@ defineExpose({
 .picker-value {
   flex: 1;
   text-align: right;
-  font-size: 30rpx;
-  color: #262626;
-  min-height: 70rpx;
+  font-size: 28rpx;
+  color: #1a2a40;
+  min-height: 68rpx;
 }
 
 .picker-wrap {
@@ -635,13 +1154,13 @@ defineExpose({
 }
 
 .row-input::placeholder {
-  color: #bfbfbf;
+  color: #b6bfcc;
 }
 
 .row-altitude {
   align-items: flex-start;
-  padding-top: 16rpx;
-  padding-bottom: 16rpx;
+  padding-top: 10rpx;
+  padding-bottom: 10rpx;
 }
 
 .altitude-cell {
@@ -649,28 +1168,25 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 12rpx;
+  gap: 10rpx;
 }
 
 .altitude-input {
-  min-width: 180rpx;
+  min-width: 170rpx;
 }
 
 .alt-badge {
-  padding: 6rpx 12rpx;
+  padding: 6rpx 10rpx;
   border-radius: 8rpx;
 }
 
 .alt-badge-text {
-  font-size: 24rpx;
-  line-height: 1.4;
-  color: #595959;
+  font-size: 22rpx;
 }
 
 .badge-dem {
   background: #f6ffed;
   border: 1rpx solid #b7eb8f;
-
   .alt-badge-text {
     color: #389e0d;
   }
@@ -679,7 +1195,6 @@ defineExpose({
 .badge-hardware {
   background: #fffbe6;
   border: 1rpx solid #ffe58f;
-
   .alt-badge-text {
     color: #d48806;
   }
@@ -688,9 +1203,16 @@ defineExpose({
 .badge-manual {
   background: #fafafa;
   border: 1rpx solid #d9d9d9;
-
   .alt-badge-text {
     color: #595959;
+  }
+}
+
+.badge-alert {
+  background: #fff1f0;
+  border: 1rpx solid #ffa39e;
+  .alt-badge-text {
+    color: #cf1322;
   }
 }
 
@@ -698,7 +1220,6 @@ defineExpose({
   flex: 1;
   display: flex;
   justify-content: flex-end;
-  gap: 0;
   border: 1rpx solid #d9e2ec;
   border-radius: 10rpx;
   overflow: hidden;
@@ -707,33 +1228,32 @@ defineExpose({
 .mode-item {
   min-width: 110rpx;
   text-align: center;
-  font-size: 26rpx;
-  color: #595959;
+  font-size: 24rpx;
+  color: #5d7088;
   background: #f5f7fa;
-  padding: 10rpx 16rpx;
+  padding: 8rpx 14rpx;
 }
 
 .mode-item.active {
   color: #ffffff;
-  background: #1677ff;
+  background: #1890ff;
 }
 
 .btn-group-compact {
-  padding: 14rpx 0 10rpx;
+  margin-top: 12rpx;
   display: flex;
-  gap: 12rpx;
+  gap: 10rpx;
 }
 
 .btn-secondary {
   flex: 1;
-  height: 76rpx;
+  height: 72rpx;
   border-radius: 10rpx;
-  border: 1rpx solid #bcdcff;
-  background: #e6f7ff;
-  color: #003a8c;
-  font-size: 28rpx;
-  line-height: 76rpx;
-  padding: 0 20rpx;
+  border: 1rpx solid #b8dcff;
+  background: #eaf5ff;
+  color: #0456a7;
+  font-size: 27rpx;
+  line-height: 72rpx;
 }
 
 .single-btn {
@@ -741,22 +1261,65 @@ defineExpose({
   flex: 0 0 auto;
 }
 
+.step2-focus {
+  background: #fffbe6;
+  border-color: #ffe58f;
+  box-shadow: 0 10rpx 24rpx rgba(173, 104, 0, 0.12);
+}
+
+.focus-tip {
+  margin-bottom: 12rpx;
+  background: #fff7d1;
+  border: 1rpx dashed #ffd666;
+  border-radius: 10rpx;
+  padding: 10rpx 12rpx;
+}
+
+.focus-tip-text {
+  font-size: 24rpx;
+  color: #8d5a00;
+  line-height: 1.6;
+}
+
+.step2-meta {
+  margin-top: 12rpx;
+}
+
+.step2-meta-text {
+  font-size: 24rpx;
+  color: #ad6800;
+  font-weight: 600;
+}
+
+.step2-focus :deep(.coord-card) {
+  background: #fffdf2;
+  border-color: #ffd666;
+}
+
+.step2-focus :deep(.btn-add),
+.step2-focus :deep(.btn-grab) {
+  background: #fff7e6;
+  border-color: #faad14;
+  color: #ad6800;
+  font-weight: 700;
+}
+
 .column-row {
   display: block;
-  padding-top: 14rpx;
-  padding-bottom: 14rpx;
+  padding-top: 12rpx;
+  padding-bottom: 12rpx;
 }
 
 .column-head {
   display: flex;
-  align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 10rpx;
+  align-items: baseline;
+  margin-bottom: 8rpx;
 }
 
 .column-meta {
-  font-size: 24rpx;
-  color: #8c8c8c;
+  font-size: 23rpx;
+  color: #8093ad;
 }
 
 .photo-grid {
@@ -768,13 +1331,13 @@ defineExpose({
 .photo-item,
 .photo-add {
   position: relative;
-  height: 180rpx;
+  height: 168rpx;
   border-radius: 10rpx;
   overflow: hidden;
 }
 
 .photo-item {
-  background: #f0f0f0;
+  background: #edf1f5;
 }
 
 .photo-img {
@@ -789,7 +1352,7 @@ defineExpose({
   width: 36rpx;
   height: 36rpx;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0, 0, 0, 0.52);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -801,89 +1364,114 @@ defineExpose({
 }
 
 .photo-add {
-  border: 1rpx dashed #91caff;
-  background: #f9fbff;
+  border: 1rpx dashed #9ccfff;
+  background: #f8fbff;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .photo-add-text {
-  font-size: 26rpx;
+  font-size: 25rpx;
   color: #0958d9;
 }
 
 .inline-hint {
-  margin-top: 8rpx;
-  margin-bottom: 10rpx;
+  margin: 8rpx 0 10rpx;
 }
 
 .inline-hint-text {
   font-size: 24rpx;
-  color: #595959;
+  color: #4f657f;
 }
 
 .remark-input {
   width: 100%;
-  min-height: 180rpx;
-  box-sizing: border-box;
-  border: 1rpx solid #d9d9d9;
+  min-height: 170rpx;
   border-radius: 10rpx;
+  border: 1rpx solid #d7e0eb;
   padding: 14rpx;
-  font-size: 28rpx;
-  color: #262626;
+  box-sizing: border-box;
+  font-size: 27rpx;
+  color: #1f314b;
   background: #ffffff;
 }
 
-.bottom-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+.wizard-footer {
   background: #ffffff;
-  padding: 10rpx 20rpx calc(10rpx + env(safe-area-inset-bottom));
-  padding: 10rpx 20rpx calc(10rpx + constant(safe-area-inset-bottom));
-  border-top: 1rpx solid #f0f0f0;
+  border-top: 1rpx solid #e7ecf2;
+  padding: 10rpx 16rpx calc(10rpx + env(safe-area-inset-bottom));
+  padding: 10rpx 16rpx calc(10rpx + constant(safe-area-inset-bottom));
 }
 
-.btn-submit {
-  width: 100%;
-  height: 96rpx;
+.footer-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.footer-row.single {
+  justify-content: center;
+}
+
+.footer-row.split .left {
+  flex: 0 0 30%;
+}
+
+.footer-row.split .right {
+  flex: 0 0 calc(70% - 10rpx);
+}
+
+.btn-flow {
+  height: 88rpx;
   border-radius: 10rpx;
-  background: #001529;
-  color: #ffffff;
-  font-size: 34rpx;
+  font-size: 30rpx;
   font-weight: 700;
-  line-height: 96rpx;
-  border: 0;
+  line-height: 88rpx;
+  border: 1rpx solid transparent;
 }
 
-.btn-submit[disabled] {
+.btn-flow-wide {
+  width: 80%;
+}
+
+.btn-flow-primary {
+  background: #1890ff;
+  color: #ffffff;
+}
+
+.btn-flow-ghost {
+  background: #ffffff;
+  color: #5c6f86;
+  border-color: #cfd8e5;
+}
+
+.btn-flow-submit {
+  background: #1f9d55;
+  color: #ffffff;
+}
+
+.btn-flow-submit[disabled] {
   opacity: 0.65;
 }
 
 @media screen and (max-width: 430px) {
-  .page-inner {
-    padding: 16rpx;
-  }
-
-  .card {
-    padding: 16rpx 16rpx 6rpx;
-    border-radius: 12rpx;
-  }
-
   .row-label {
-    width: 180rpx;
-    font-size: 28rpx;
+    width: 176rpx;
+    font-size: 26rpx;
   }
 
   .row-input,
   .picker-value {
-    font-size: 28rpx;
+    font-size: 26rpx;
   }
 
-  .btn-secondary {
-    font-size: 26rpx;
+  .stepper-label {
+    font-size: 20rpx;
+  }
+
+  .btn-flow {
+    font-size: 28rpx;
   }
 
   .photo-grid {
