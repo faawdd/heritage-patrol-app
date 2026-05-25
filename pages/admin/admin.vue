@@ -97,6 +97,11 @@
 					<button class="primary-btn" @click="openKmlTool">{{ t('admin.openKml') }}</button>
 				</view>
 				<view class="card" style="margin-top:20rpx;">
+					<text class="card-title">Django管理端 · 鄯善县不可移动文物采集</text>
+					<text class="card-text">进入 Django 管理端采集页面，支持现场采集表单填写、照片上传与登记记录管理。</text>
+					<button class="primary-btn" @click="openDjangoCollectTool">打开采集管理页</button>
+				</view>
+				<view class="card" style="margin-top:20rpx;">
 					<text class="card-title">四普现场数据采集</text>
 					<text class="card-text">在现场对不可移动文物点进行登记采集，支持 GPS 定位、照片上传并自动加水印。</text>
 					<view style="display:flex;gap:16rpx;margin-top:16rpx;">
@@ -362,6 +367,19 @@
 			async openKmlTool() {
 				try {
 					const response = await this.request(`${config.API_BASE_URL}/api/admin/kml-overlay-entry`);
+					const url = response.data && response.data.url;
+					if (!url) {
+						uni.showToast({ title: this.t('admin.toolAddressMissing'), icon: 'none' });
+						return;
+					}
+					uni.navigateTo({ url: `/pages/kml/kml?url=${encodeURIComponent(url)}` });
+				} catch (error) {
+					uni.showToast({ title: this.t('admin.openFailed'), icon: 'none' });
+				}
+			},
+			async openDjangoCollectTool() {
+				try {
+					const response = await this.request(`${config.API_BASE_URL}/api/admin/collect-entry`);
 					const url = response.data && response.data.url;
 					if (!url) {
 						uni.showToast({ title: this.t('admin.toolAddressMissing'), icon: 'none' });
