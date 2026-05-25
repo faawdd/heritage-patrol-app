@@ -424,7 +424,7 @@ if (uni.restoreGlobal) {
     }
     return target;
   };
-  const _sfc_main$c = {
+  const _sfc_main$d = {
     mixins: [createPageI18n("index")],
     data() {
       return {
@@ -487,7 +487,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
       vue.createElementVNode("view", { class: "login-wrap" }, [
         vue.createElementVNode("view", { class: "brand" }, [
@@ -568,8 +568,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const PagesIndexIndex = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__file", "C:/Users/14434/uniapp/pages/index/index.vue"]]);
-  const _sfc_main$b = {
+  const PagesIndexIndex = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__file", "C:/Users/14434/uniapp/pages/index/index.vue"]]);
+  const _sfc_main$c = {
     name: "BottomNav",
     props: {
       current: {
@@ -628,7 +628,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "view",
       {
@@ -672,7 +672,7 @@ if (uni.restoreGlobal) {
       /* CLASS */
     );
   }
-  const BottomNav = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-53d1cde7"], ["__file", "C:/Users/14434/uniapp/components/BottomNav.vue"]]);
+  const BottomNav = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-53d1cde7"], ["__file", "C:/Users/14434/uniapp/components/BottomNav.vue"]]);
   const featureDefinitions = [
     { key: "patrol", labelKey: "home.featurePatrol", icon: "巡", url: "/pages/patrol/patrol" },
     { key: "records", labelKey: "home.featureRecords", icon: "记", url: "/pages/records/records" },
@@ -682,7 +682,7 @@ if (uni.restoreGlobal) {
     { key: "kml", labelKey: "home.featureKml", icon: "图", url: "/pages/kml/kml" },
     { key: "my", labelKey: "home.featureMy", icon: "我", url: "/pages/my/my" }
   ];
-  const _sfc_main$a = {
+  const _sfc_main$b = {
     mixins: [createPageI18n("home")],
     components: {
       BottomNav
@@ -832,7 +832,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_BottomNav = vue.resolveComponent("BottomNav");
     return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
       vue.createElementVNode("view", { class: "header-card" }, [
@@ -1017,7 +1017,8 @@ if (uni.restoreGlobal) {
       }, null, 8, ["userInfo"])
     ]);
   }
-  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__file", "C:/Users/14434/uniapp/pages/home/home.vue"]]);
+  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__file", "C:/Users/14434/uniapp/pages/home/home.vue"]]);
+  const ON_LOAD = "onLoad";
   function formatAppLog(type, filename, ...args) {
     if (uni.__log__) {
       uni.__log__(type, filename, ...args);
@@ -1025,6 +1026,14 @@ if (uni.restoreGlobal) {
       console[type].apply(console, [...args, filename]);
     }
   }
+  const createLifeCycleHook = (lifecycle, flag = 0) => (hook, target = vue.getCurrentInstance()) => {
+    !vue.isInSSRComponentSetup && vue.injectHook(lifecycle, hook, target);
+  };
+  const onLoad = /* @__PURE__ */ createLifeCycleHook(
+    ON_LOAD,
+    2
+    /* HookFlags.PAGE */
+  );
   function addWatermark(tempFilePath, text, context) {
     return new Promise((resolve, reject) => {
       const ctx = uni.createCanvasContext("watermarkCanvas", context);
@@ -1093,7 +1102,7 @@ if (uni.restoreGlobal) {
       });
     });
   }
-  const _sfc_main$9 = {
+  const _sfc_main$a = {
     mixins: [createPageI18n("patrol")],
     components: {
       BottomNav
@@ -1391,7 +1400,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       }
     }
   };
-  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_BottomNav = vue.resolveComponent("BottomNav");
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createElementVNode("view", { class: "hero-card" }, [
@@ -1675,8 +1684,8 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       }, null, 12, ["width", "height"])
     ]);
   }
-  const PagesPatrolPatrol = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__file", "C:/Users/14434/uniapp/pages/patrol/patrol.vue"]]);
-  const _sfc_main$8 = {
+  const PagesPatrolPatrol = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__file", "C:/Users/14434/uniapp/pages/patrol/patrol.vue"]]);
+  const _sfc_main$9 = {
     mixins: [createPageI18n("records")],
     components: {
       BottomNav
@@ -1727,7 +1736,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       }
     }
   };
-  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_BottomNav = vue.resolveComponent("BottomNav");
     return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
       vue.createElementVNode("view", { class: "hero" }, [
@@ -1859,8 +1868,8 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       vue.createVNode(_component_BottomNav, { current: "records" })
     ]);
   }
-  const PagesRecordsRecords = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__file", "C:/Users/14434/uniapp/pages/records/records.vue"]]);
-  const _sfc_main$7 = {
+  const PagesRecordsRecords = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__file", "C:/Users/14434/uniapp/pages/records/records.vue"]]);
+  const _sfc_main$8 = {
     mixins: [createPageI18n("my")],
     components: {
       BottomNav
@@ -1986,7 +1995,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       }
     }
   };
-  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_BottomNav = vue.resolveComponent("BottomNav");
     return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
       vue.createElementVNode("view", { class: "hero" }, [
@@ -2140,11 +2149,11 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       }, null, 8, ["userInfo"])
     ]);
   }
-  const PagesMyMy = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__file", "C:/Users/14434/uniapp/pages/my/my.vue"]]);
-  const _sfc_main$6 = {
+  const PagesMyMy = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__file", "C:/Users/14434/uniapp/pages/my/my.vue"]]);
+  const _sfc_main$7 = {
     mixins: [createPageI18n("about")]
   };
-  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
       vue.createElementVNode("view", { class: "hero" }, [
         vue.createElementVNode(
@@ -2229,7 +2238,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       ])
     ]);
   }
-  const PagesAboutAbout = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__file", "C:/Users/14434/uniapp/pages/about/about.vue"]]);
+  const PagesAboutAbout = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__file", "C:/Users/14434/uniapp/pages/about/about.vue"]]);
   const workflowValues = [
     "received",
     "ovital_checked",
@@ -2239,7 +2248,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
     "replied_to_project",
     "archived"
   ];
-  const _sfc_main$5 = {
+  const _sfc_main$6 = {
     mixins: [createPageI18n("admin")],
     components: {
       BottomNav
@@ -2504,7 +2513,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       }
     }
   };
-  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_BottomNav = vue.resolveComponent("BottomNav");
     return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
       vue.createElementVNode("view", { class: "hero" }, [
@@ -2990,8 +2999,8 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       vue.createVNode(_component_BottomNav, { current: "admin" })
     ]);
   }
-  const PagesAdminAdmin = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__file", "C:/Users/14434/uniapp/pages/admin/admin.vue"]]);
-  const _sfc_main$4 = {
+  const PagesAdminAdmin = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__file", "C:/Users/14434/uniapp/pages/admin/admin.vue"]]);
+  const _sfc_main$5 = {
     mixins: [createPageI18n("kml")],
     components: {
       BottomNav
@@ -3007,7 +3016,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       }
     }
   };
-  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_BottomNav = vue.resolveComponent("BottomNav");
     return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
       vue.createElementVNode("view", { class: "notice" }, [
@@ -3037,7 +3046,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       vue.createVNode(_component_BottomNav, { current: "admin" })
     ]);
   }
-  const PagesKmlKml = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__file", "C:/Users/14434/uniapp/pages/kml/kml.vue"]]);
+  const PagesKmlKml = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__file", "C:/Users/14434/uniapp/pages/kml/kml.vue"]]);
   const DEM_TIMEOUT_MS = 15e3;
   const GPS_TIMEOUT_MS = 12e3;
   const BARO_TIMEOUT_MS = 3e3;
@@ -3046,7 +3055,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
   const BARO_PRESSURE_MAX_HPA = 1100;
   const ALTITUDE_MIN_M = -500;
   const ALTITUDE_MAX_M = 9e3;
-  const _sfc_main$3 = {
+  const _sfc_main$4 = {
     __name: "AltitudeCollect",
     props: {
       modelValue: {
@@ -3061,7 +3070,6 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
     },
     emits: ["update:modelValue", "collect-done"],
     setup(__props, { expose: __expose, emit: __emit }) {
-      __expose();
       const props = __props;
       const emit = __emit;
       const altitude = vue.ref(props.modelValue != null ? String(props.modelValue) : "");
@@ -3565,6 +3573,9 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           collecting.value = false;
         }
       }
+      __expose({
+        startCollect
+      });
       const __returned__ = { DEM_TIMEOUT_MS, GPS_TIMEOUT_MS, BARO_TIMEOUT_MS, STD_PRESSURE_HPA, BARO_PRESSURE_MIN_HPA, BARO_PRESSURE_MAX_HPA, ALTITUDE_MIN_M, ALTITUDE_MAX_M, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, _toValidHardwareAltitude, _toValidPressureHpa, _toFixed2, pressureToAltitude, fuseHardwareAltitude, _mapGpsError, getAndroidNativeGpsPosition, getNativeGpsPosition, getAndroidBarometerPressureBySensorManager, getBarometerPressureByPlus, buildHardwareAltitude, requestDemAltitude, requestHardwareAltitudeFallback, startCollect, ref: vue.ref, watch: vue.watch, get config() {
         return config;
       } };
@@ -3572,7 +3583,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       return __returned__;
     }
   };
-  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "alt-widget" }, [
       vue.createElementVNode("view", { class: "alt-header" }, [
         vue.createElementVNode("text", { class: "alt-label" }, "海拔高程（米）"),
@@ -3647,165 +3658,994 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       ])) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const AltitudeCollect = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-76fd7a0e"], ["__file", "C:/Users/14434/uniapp/components/AltitudeCollect.vue"]]);
-  const API$1 = config.API_BASE_URL;
-  const _sfc_main$2 = {
-    components: { AltitudeCollect },
-    data() {
-      return {
-        step: 0,
-        steps: ["基础信息", "地理位置", "状态权属", "现场照片"],
+  const AltitudeCollect = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-76fd7a0e"], ["__file", "C:/Users/14434/uniapp/components/AltitudeCollect.vue"]]);
+  const CHINA_REGION_TREE = [
+    { name: "北京市", cities: [{ name: "北京市", counties: ["东城区", "西城区", "朝阳区", "海淀区", "丰台区", "石景山区", "通州区", "顺义区", "昌平区", "大兴区"] }] },
+    { name: "天津市", cities: [{ name: "天津市", counties: ["和平区", "河东区", "河西区", "南开区", "河北区", "红桥区", "东丽区", "西青区", "津南区", "北辰区"] }] },
+    { name: "河北省", cities: [{ name: "石家庄市", counties: ["长安区", "桥西区", "新华区", "裕华区"] }, { name: "唐山市", counties: ["路南区", "路北区", "丰南区", "丰润区"] }] },
+    { name: "山西省", cities: [{ name: "太原市", counties: ["小店区", "迎泽区", "杏花岭区", "尖草坪区"] }] },
+    { name: "内蒙古自治区", cities: [{ name: "呼和浩特市", counties: ["新城区", "回民区", "玉泉区", "赛罕区"] }] },
+    { name: "辽宁省", cities: [{ name: "沈阳市", counties: ["和平区", "沈河区", "皇姑区", "铁西区"] }] },
+    { name: "吉林省", cities: [{ name: "长春市", counties: ["南关区", "宽城区", "朝阳区", "二道区"] }] },
+    { name: "黑龙江省", cities: [{ name: "哈尔滨市", counties: ["道里区", "南岗区", "道外区", "香坊区"] }] },
+    { name: "上海市", cities: [{ name: "上海市", counties: ["黄浦区", "徐汇区", "长宁区", "静安区", "浦东新区", "闵行区"] }] },
+    { name: "江苏省", cities: [{ name: "南京市", counties: ["玄武区", "秦淮区", "建邺区", "鼓楼区"] }, { name: "苏州市", counties: ["姑苏区", "吴中区", "相城区", "工业园区"] }] },
+    { name: "浙江省", cities: [{ name: "杭州市", counties: ["上城区", "拱墅区", "西湖区", "滨江区"] }, { name: "宁波市", counties: ["海曙区", "江北区", "鄞州区"] }] },
+    { name: "安徽省", cities: [{ name: "合肥市", counties: ["瑶海区", "庐阳区", "蜀山区", "包河区"] }] },
+    { name: "福建省", cities: [{ name: "福州市", counties: ["鼓楼区", "台江区", "仓山区", "晋安区"] }, { name: "厦门市", counties: ["思明区", "湖里区", "集美区"] }] },
+    { name: "江西省", cities: [{ name: "南昌市", counties: ["东湖区", "西湖区", "青云谱区", "青山湖区"] }] },
+    { name: "山东省", cities: [{ name: "济南市", counties: ["历下区", "市中区", "槐荫区", "历城区"] }, { name: "青岛市", counties: ["市南区", "市北区", "崂山区", "黄岛区"] }] },
+    { name: "河南省", cities: [{ name: "郑州市", counties: ["中原区", "二七区", "金水区", "惠济区"] }] },
+    { name: "湖北省", cities: [{ name: "武汉市", counties: ["江岸区", "江汉区", "武昌区", "洪山区"] }] },
+    { name: "湖南省", cities: [{ name: "长沙市", counties: ["芙蓉区", "天心区", "岳麓区", "雨花区"] }] },
+    { name: "广东省", cities: [{ name: "广州市", counties: ["越秀区", "海珠区", "天河区", "白云区"] }, { name: "深圳市", counties: ["福田区", "罗湖区", "南山区", "宝安区"] }] },
+    { name: "广西壮族自治区", cities: [{ name: "南宁市", counties: ["兴宁区", "青秀区", "江南区", "西乡塘区"] }] },
+    { name: "海南省", cities: [{ name: "海口市", counties: ["秀英区", "龙华区", "琼山区", "美兰区"] }, { name: "三亚市", counties: ["海棠区", "吉阳区", "天涯区", "崖州区"] }] },
+    { name: "重庆市", cities: [{ name: "重庆市", counties: ["渝中区", "江北区", "南岸区", "九龙坡区", "沙坪坝区", "渝北区"] }] },
+    { name: "四川省", cities: [{ name: "成都市", counties: ["锦江区", "青羊区", "金牛区", "武侯区", "成华区"] }] },
+    { name: "贵州省", cities: [{ name: "贵阳市", counties: ["南明区", "云岩区", "花溪区", "观山湖区"] }] },
+    { name: "云南省", cities: [{ name: "昆明市", counties: ["五华区", "盘龙区", "官渡区", "西山区"] }] },
+    { name: "西藏自治区", cities: [{ name: "拉萨市", counties: ["城关区", "堆龙德庆区", "达孜区", "林周县"] }] },
+    {
+      name: "新疆维吾尔自治区",
+      cities: [
+        { name: "乌鲁木齐市", counties: ["天山区", "沙依巴克区", "新市区", "水磨沟区"] },
+        { name: "吐鲁番市", counties: ["高昌区", "鄯善县", "托克逊县"] },
+        { name: "哈密市", counties: ["伊州区", "巴里坤哈萨克自治县", "伊吾县"] }
+      ]
+    },
+    { name: "陕西省", cities: [{ name: "西安市", counties: ["新城区", "碑林区", "莲湖区", "雁塔区"] }] },
+    { name: "甘肃省", cities: [{ name: "兰州市", counties: ["城关区", "七里河区", "西固区", "安宁区"] }] },
+    { name: "青海省", cities: [{ name: "西宁市", counties: ["城东区", "城中区", "城西区", "城北区"] }] },
+    { name: "宁夏回族自治区", cities: [{ name: "银川市", counties: ["兴庆区", "金凤区", "西夏区", "永宁县"] }] },
+    { name: "香港特别行政区", cities: [{ name: "香港特别行政区", counties: ["中西区", "湾仔区", "东区", "南区"] }] },
+    { name: "澳门特别行政区", cities: [{ name: "澳门特别行政区", counties: ["花地玛堂区", "圣安多尼堂区", "大堂区", "望德堂区"] }] },
+    { name: "台湾省", cities: [{ name: "台北市", counties: ["中正区", "大同区", "中山区", "松山区", "大安区"] }] }
+  ];
+  const DEFAULT_REGION = {
+    province: "新疆维吾尔自治区",
+    city: "吐鲁番市",
+    county: "鄯善县"
+  };
+  const _sfc_main$3 = {
+    __name: "HeritageCollectRefactor",
+    props: {
+      loading: {
+        type: Boolean,
+        default: false
+      },
+      meta: {
+        type: Object,
+        default: () => ({
+          categoryChoices: [],
+          protectionLevelChoices: [],
+          ownershipChoices: [],
+          preservationStatusChoices: []
+        })
+      }
+    },
+    emits: ["submit", "collect-coordinate", "calibrate-altitude", "open-watermark-camera"],
+    setup(__props, { expose: __expose, emit: __emit }) {
+      const props = __props;
+      const emitting = __emit;
+      const photos = vue.ref([]);
+      const rtkFileName = vue.ref("");
+      const signStatus = vue.ref("");
+      const form = vue.reactive({
         surveyCodeAuto: true,
-        submitting: false,
-        submitDone: false,
-        progressMsg: "",
-        generatedSurveyCode: "",
-        currentUser: {},
-        // 表单数据
-        form: {
-          survey_code: "",
-          name: "",
-          former_name: "",
-          era: "",
-          category: "",
-          province: "",
-          city: "",
-          county: "",
-          township: "",
-          village: "",
-          address: "",
-          longitude: "",
-          latitude: "",
-          altitude: "",
-          protection_level: "DS",
-          ownership: "state",
-          preservation_status: "一般",
-          description: ""
+        name: "",
+        former_name: "",
+        code: "",
+        era: "",
+        category: "",
+        longitude: "",
+        latitude: "",
+        altitude: "",
+        province: "",
+        city: "",
+        county: "",
+        township: "",
+        village: "",
+        address: "",
+        protection_level: "",
+        ownership: "",
+        preservation_status: "",
+        remark: ""
+      });
+      vue.watch(
+        () => props.meta,
+        (meta) => {
+          const c = (meta == null ? void 0 : meta.categoryChoices) || [];
+          const p = (meta == null ? void 0 : meta.protectionLevelChoices) || [];
+          const o = (meta == null ? void 0 : meta.ownershipChoices) || [];
+          const s = (meta == null ? void 0 : meta.preservationStatusChoices) || [];
+          if (!form.category && c.length)
+            form.category = c[0].value;
+          if (!form.protection_level && p.length) {
+            const ds = p.find((item) => item.value === "DS");
+            form.protection_level = ds ? ds.value : p[0].value;
+          }
+          if (!form.ownership && o.length)
+            form.ownership = o[0].value;
+          if (!form.preservation_status && s.length)
+            form.preservation_status = s[0].value;
         },
-        errors: {},
-        // 定位
-        locating: false,
-        locationAccuracy: null,
-        // 照片列表，每项 { path: String, status: 'pending'|'uploading'|'done'|'error' }
-        photos: [],
-        // 表单选项（从服务端拉取）
+        { immediate: true, deep: true }
+      );
+      const altitudeSource = vue.ref("manual");
+      const badgeClassMap = {
+        dem: "badge-dem",
+        hardware: "badge-hardware",
+        manual: "badge-manual"
+      };
+      const categoryLabels = vue.computed(() => {
+        var _a;
+        return (((_a = props.meta) == null ? void 0 : _a.categoryChoices) || []).map((item) => item.label);
+      });
+      const protectionLabels = vue.computed(() => {
+        var _a;
+        return (((_a = props.meta) == null ? void 0 : _a.protectionLevelChoices) || []).map((item) => item.label);
+      });
+      const ownershipLabels = vue.computed(() => {
+        var _a;
+        return (((_a = props.meta) == null ? void 0 : _a.ownershipChoices) || []).map((item) => item.label);
+      });
+      const preservationLabels = vue.computed(() => {
+        var _a;
+        return (((_a = props.meta) == null ? void 0 : _a.preservationStatusChoices) || []).map((item) => item.label);
+      });
+      const categoryIndex = vue.computed(() => {
+        var _a;
+        const idx = (((_a = props.meta) == null ? void 0 : _a.categoryChoices) || []).findIndex((item) => item.value === form.category);
+        return idx >= 0 ? idx : 0;
+      });
+      const protectionIndex = vue.computed(() => {
+        var _a;
+        const idx = (((_a = props.meta) == null ? void 0 : _a.protectionLevelChoices) || []).findIndex((item) => item.value === form.protection_level);
+        return idx >= 0 ? idx : 0;
+      });
+      const ownershipIndex = vue.computed(() => {
+        var _a;
+        const idx = (((_a = props.meta) == null ? void 0 : _a.ownershipChoices) || []).findIndex((item) => item.value === form.ownership);
+        return idx >= 0 ? idx : 0;
+      });
+      const preservationIndex = vue.computed(() => {
+        var _a;
+        const idx = (((_a = props.meta) == null ? void 0 : _a.preservationStatusChoices) || []).findIndex((item) => item.value === form.preservation_status);
+        return idx >= 0 ? idx : 0;
+      });
+      const categoryText = vue.computed(() => categoryLabels.value[categoryIndex.value] || "请选择");
+      const protectionText = vue.computed(() => protectionLabels.value[protectionIndex.value] || "请选择");
+      const ownershipText = vue.computed(() => ownershipLabels.value[ownershipIndex.value] || "请选择");
+      const preservationText = vue.computed(() => preservationLabels.value[preservationIndex.value] || "请选择");
+      const provinceOptions = vue.computed(() => CHINA_REGION_TREE.map((item) => item.name));
+      const cityOptions = vue.computed(() => {
+        const province = CHINA_REGION_TREE.find((item) => item.name === form.province);
+        return province ? province.cities.map((item) => item.name) : [];
+      });
+      const countyOptions = vue.computed(() => {
+        const province = CHINA_REGION_TREE.find((item) => item.name === form.province);
+        if (!province)
+          return [];
+        const city = province.cities.find((item) => item.name === form.city);
+        return city ? city.counties : [];
+      });
+      const provinceIndex = vue.computed(() => {
+        const idx = provinceOptions.value.findIndex((item) => item === form.province);
+        return idx >= 0 ? idx : 0;
+      });
+      const cityIndex = vue.computed(() => {
+        const idx = cityOptions.value.findIndex((item) => item === form.city);
+        return idx >= 0 ? idx : 0;
+      });
+      const countyIndex = vue.computed(() => {
+        const idx = countyOptions.value.findIndex((item) => item === form.county);
+        return idx >= 0 ? idx : 0;
+      });
+      const altitudeSourceLabel = vue.computed(() => {
+        if (altitudeSource.value === "dem")
+          return "DEM对齐";
+        if (altitudeSource.value === "hardware")
+          return "手机硬件";
+        return "手动录入";
+      });
+      function onCategoryChange(e) {
+        var _a, _b, _c;
+        const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
+        const target = (_c = (_b = props.meta) == null ? void 0 : _b.categoryChoices) == null ? void 0 : _c[idx];
+        if (target)
+          form.category = target.value;
+      }
+      function onProtectionChange(e) {
+        var _a, _b, _c;
+        const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
+        const target = (_c = (_b = props.meta) == null ? void 0 : _b.protectionLevelChoices) == null ? void 0 : _c[idx];
+        if (target)
+          form.protection_level = target.value;
+      }
+      function onOwnershipChange(e) {
+        var _a, _b, _c;
+        const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
+        const target = (_c = (_b = props.meta) == null ? void 0 : _b.ownershipChoices) == null ? void 0 : _c[idx];
+        if (target)
+          form.ownership = target.value;
+      }
+      function onPreservationChange(e) {
+        var _a, _b, _c;
+        const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
+        const target = (_c = (_b = props.meta) == null ? void 0 : _b.preservationStatusChoices) == null ? void 0 : _c[idx];
+        if (target)
+          form.preservation_status = target.value;
+      }
+      function ensureRegionChain() {
+        const province = CHINA_REGION_TREE.find((item) => item.name === form.province) || CHINA_REGION_TREE[0];
+        if (!province)
+          return;
+        form.province = province.name;
+        const city = province.cities.find((item) => item.name === form.city) || province.cities[0];
+        if (!city)
+          return;
+        form.city = city.name;
+        const county = city.counties.find((item) => item === form.county) || city.counties[0] || "";
+        form.county = county;
+      }
+      function applyDefaultRegion() {
+        form.province = DEFAULT_REGION.province;
+        form.city = DEFAULT_REGION.city;
+        form.county = DEFAULT_REGION.county;
+        ensureRegionChain();
+      }
+      function onProvinceChange(e) {
+        var _a;
+        const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
+        form.province = provinceOptions.value[idx] || provinceOptions.value[0] || "";
+        ensureRegionChain();
+      }
+      function onCityChange(e) {
+        var _a;
+        const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
+        form.city = cityOptions.value[idx] || cityOptions.value[0] || "";
+        ensureRegionChain();
+      }
+      function onCountyChange(e) {
+        var _a;
+        const idx = Number(((_a = e == null ? void 0 : e.detail) == null ? void 0 : _a.value) || 0);
+        form.county = countyOptions.value[idx] || countyOptions.value[0] || "";
+      }
+      applyDefaultRegion();
+      function setAltitudeByDem(value) {
+        form.altitude = Number(value).toFixed(2);
+        altitudeSource.value = "dem";
+      }
+      function setAltitudeByHardware(value) {
+        form.altitude = Number(value).toFixed(2);
+        altitudeSource.value = "hardware";
+      }
+      function setAltitudeManual(value) {
+        form.altitude = value;
+        altitudeSource.value = "manual";
+      }
+      function handleCollectCoordinate() {
+        emitting("collect-coordinate");
+        uni.showToast({ title: "开始采集坐标", icon: "none" });
+      }
+      function handleCalibrateAltitude() {
+        emitting("calibrate-altitude");
+        uni.showToast({ title: "开始校准海拔", icon: "none" });
+      }
+      function pickPhoto() {
+        const remain = 10 - photos.value.length;
+        uni.chooseImage({
+          count: remain,
+          sizeType: ["compressed"],
+          sourceType: ["camera", "album"],
+          success: (res) => {
+            const selected = (res.tempFilePaths || []).map((path, index) => ({
+              id: `${Date.now()}_${index}`,
+              path
+            }));
+            photos.value = photos.value.concat(selected).slice(0, 10);
+          }
+        });
+      }
+      function removePhoto(index) {
+        photos.value.splice(index, 1);
+      }
+      function openWatermarkCamera() {
+        emitting("open-watermark-camera");
+        uni.showToast({ title: "打开水印相机", icon: "none" });
+      }
+      function attachRtkFile() {
+        uni.showActionSheet({
+          itemList: ["从文件管理器选择", "拍照上传手簿"],
+          success: () => {
+            rtkFileName.value = `RTK手簿_${Date.now()}.pdf`;
+          }
+        });
+      }
+      function collectSignature() {
+        signStatus.value = "签名已采集";
+        uni.showToast({ title: "签名采集成功", icon: "success" });
+      }
+      function isInChoices(value, choices) {
+        return Array.isArray(choices) && choices.some((item) => item.value === value);
+      }
+      function isInList(value, list) {
+        return Array.isArray(list) && list.includes(value);
+      }
+      function validateForm() {
+        var _a, _b, _c, _d;
+        if (!form.name.trim())
+          return "请填写文物名称";
+        if (!form.surveyCodeAuto) {
+          const code = form.code.trim();
+          if (!code)
+            return "手动模式下请填写普查编号";
+          if (!/^SS-CJ-\d{4}-\d{4}$/.test(code))
+            return "普查编号格式应为 SS-CJ-YYYY-NNNN";
+        }
+        if (!form.era.trim())
+          return "请填写时代";
+        if (!form.category)
+          return "请选择文物类别";
+        if (!isInChoices(form.category, ((_a = props.meta) == null ? void 0 : _a.categoryChoices) || []))
+          return "文物类别无效，请重新选择";
+        if (!form.longitude.trim() || !form.latitude.trim())
+          return "请采集经纬度";
+        const lon = Number(form.longitude);
+        const lat = Number(form.latitude);
+        if (!Number.isFinite(lon) || lon < -180 || lon > 180)
+          return "经度须在 -180 到 180 之间";
+        if (!Number.isFinite(lat) || lat < -90 || lat > 90)
+          return "纬度须在 -90 到 90 之间";
+        if (form.altitude.trim()) {
+          const alt = Number(form.altitude);
+          if (!Number.isFinite(alt))
+            return "海拔必须为数字";
+        }
+        if (!form.province.trim())
+          return "请填写省/自治区";
+        if (!isInList(form.province, provinceOptions.value))
+          return "省份选择无效，请重新选择";
+        if (!isInList(form.city, cityOptions.value))
+          return "城市选择无效，请重新选择";
+        if (!isInList(form.county, countyOptions.value))
+          return "区县选择无效，请重新选择";
+        if (!form.address.trim())
+          return "请填写详细地址";
+        if (!form.protection_level || !isInChoices(form.protection_level, ((_b = props.meta) == null ? void 0 : _b.protectionLevelChoices) || [])) {
+          return "保护级别无效，请重新选择";
+        }
+        if (!form.ownership || !isInChoices(form.ownership, ((_c = props.meta) == null ? void 0 : _c.ownershipChoices) || [])) {
+          return "权属无效，请重新选择";
+        }
+        if (!form.preservation_status || !isInChoices(form.preservation_status, ((_d = props.meta) == null ? void 0 : _d.preservationStatusChoices) || [])) {
+          return "保存现状无效，请重新选择";
+        }
+        if (!signStatus.value)
+          return "请先完成普查员签名";
+        return "";
+      }
+      function handleSubmit() {
+        if (props.loading)
+          return;
+        const msg = validateForm();
+        if (msg) {
+          uni.showToast({ title: msg, icon: "none" });
+          return;
+        }
+        emitting("submit", {
+          ...form,
+          altitude_source: altitudeSource.value,
+          photos: photos.value,
+          rtk_file_name: rtkFileName.value,
+          signature_status: signStatus.value
+        });
+      }
+      __expose({
+        setAltitudeByDem,
+        setAltitudeByHardware,
+        setAltitudeManual,
+        form
+      });
+      const __returned__ = { props, emitting, photos, rtkFileName, signStatus, form, altitudeSource, badgeClassMap, categoryLabels, protectionLabels, ownershipLabels, preservationLabels, categoryIndex, protectionIndex, ownershipIndex, preservationIndex, categoryText, protectionText, ownershipText, preservationText, provinceOptions, cityOptions, countyOptions, provinceIndex, cityIndex, countyIndex, altitudeSourceLabel, onCategoryChange, onProtectionChange, onOwnershipChange, onPreservationChange, ensureRegionChain, applyDefaultRegion, onProvinceChange, onCityChange, onCountyChange, setAltitudeByDem, setAltitudeByHardware, setAltitudeManual, handleCollectCoordinate, handleCalibrateAltitude, pickPhoto, removePhoto, openWatermarkCamera, attachRtkFile, collectSignature, isInChoices, isInList, validateForm, handleSubmit, computed: vue.computed, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get CHINA_REGION_TREE() {
+        return CHINA_REGION_TREE;
+      }, get DEFAULT_REGION() {
+        return DEFAULT_REGION;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "collect-page" }, [
+      vue.createElementVNode("scroll-view", {
+        class: "scroll-body",
+        "scroll-y": "",
+        "show-scrollbar": false,
+        "enable-flex": ""
+      }, [
+        vue.createElementVNode("view", { class: "page-inner" }, [
+          vue.createElementVNode("view", { class: "page-title-wrap" }, [
+            vue.createElementVNode("text", { class: "page-title" }, "不可移动文物现场采集"),
+            vue.createElementVNode("text", { class: "page-subtitle" }, "极简规范化采集表单")
+          ]),
+          vue.createElementVNode("view", { class: "card" }, [
+            vue.createElementVNode("view", { class: "card-head" }, [
+              vue.createElementVNode("text", { class: "card-title" }, "区块一：基础地理信息")
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "文物名称"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.form.name = $event),
+                  placeholder: "请输入文物名称",
+                  maxlength: "200"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.name]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "曾用名"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.form.former_name = $event),
+                  placeholder: "选填",
+                  maxlength: "200"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.former_name]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "编号模式"),
+              vue.createElementVNode("view", { class: "mode-switch" }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: vue.normalizeClass(["mode-item", { active: $setup.form.surveyCodeAuto }]),
+                    onClick: _cache[2] || (_cache[2] = ($event) => $setup.form.surveyCodeAuto = true)
+                  },
+                  "自动",
+                  2
+                  /* CLASS */
+                ),
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: vue.normalizeClass(["mode-item", { active: !$setup.form.surveyCodeAuto }]),
+                    onClick: _cache[3] || (_cache[3] = ($event) => $setup.form.surveyCodeAuto = false)
+                  },
+                  "手动",
+                  2
+                  /* CLASS */
+                )
+              ])
+            ]),
+            !$setup.form.surveyCodeAuto ? (vue.openBlock(), vue.createElementBlock("view", {
+              key: 0,
+              class: "form-row"
+            }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "普查编号"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.form.code = $event),
+                  placeholder: "请输入普查编号",
+                  maxlength: "50"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.code]
+              ])
+            ])) : vue.createCommentVNode("v-if", true),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "时代"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.form.era = $event),
+                  placeholder: "如：汉、唐宋",
+                  maxlength: "100"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.era]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "文物类别"),
+              vue.createElementVNode("picker", {
+                class: "picker-wrap",
+                range: $setup.categoryLabels,
+                value: $setup.categoryIndex,
+                onChange: $setup.onCategoryChange
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.categoryText),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["range", "value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "经度"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.form.longitude = $event),
+                  type: "digit",
+                  placeholder: "自动采集或手动填写"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.longitude]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "纬度"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $setup.form.latitude = $event),
+                  type: "digit",
+                  placeholder: "自动采集或手动填写"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.latitude]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row row-altitude" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "海拔"),
+              vue.createElementVNode("view", { class: "altitude-cell" }, [
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    class: "row-input altitude-input",
+                    "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => $setup.form.altitude = $event),
+                    type: "digit",
+                    placeholder: "自动采集或手动填写"
+                  },
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.form.altitude]
+                ]),
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: vue.normalizeClass(["alt-badge", $setup.badgeClassMap[$setup.altitudeSource]])
+                  },
+                  [
+                    vue.createElementVNode(
+                      "text",
+                      { class: "alt-badge-text" },
+                      vue.toDisplayString($setup.altitudeSourceLabel),
+                      1
+                      /* TEXT */
+                    )
+                  ],
+                  2
+                  /* CLASS */
+                )
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "省/自治区"),
+              vue.createElementVNode("picker", {
+                class: "picker-wrap",
+                range: $setup.provinceOptions,
+                value: $setup.provinceIndex,
+                onChange: $setup.onProvinceChange
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.form.province || "请选择"),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["range", "value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "市/州"),
+              vue.createElementVNode("picker", {
+                class: "picker-wrap",
+                range: $setup.cityOptions,
+                value: $setup.cityIndex,
+                onChange: $setup.onCityChange
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.form.city || "请选择"),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["range", "value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "县/区"),
+              vue.createElementVNode("picker", {
+                class: "picker-wrap",
+                range: $setup.countyOptions,
+                value: $setup.countyIndex,
+                onChange: $setup.onCountyChange
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.form.county || "请选择"),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["range", "value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "乡镇/街道"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[9] || (_cache[9] = ($event) => $setup.form.township = $event),
+                  placeholder: "选填",
+                  maxlength: "50"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.township]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "村/社区"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $setup.form.village = $event),
+                  placeholder: "选填",
+                  maxlength: "50"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.village]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "详细地址"),
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  class: "row-input",
+                  "onUpdate:modelValue": _cache[11] || (_cache[11] = ($event) => $setup.form.address = $event),
+                  placeholder: "选填",
+                  maxlength: "500"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.address]
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "btn-group-compact" }, [
+              vue.createElementVNode("button", {
+                class: "btn-secondary",
+                onClick: $setup.handleCollectCoordinate
+              }, "采集坐标"),
+              vue.createElementVNode("button", {
+                class: "btn-secondary",
+                onClick: $setup.handleCalibrateAltitude
+              }, "硬件高程校准")
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "card" }, [
+            vue.createElementVNode("view", { class: "card-head" }, [
+              vue.createElementVNode("text", { class: "card-title" }, "区块二：多媒体采集")
+            ]),
+            vue.createElementVNode("view", { class: "form-row column-row" }, [
+              vue.createElementVNode("view", { class: "column-head" }, [
+                vue.createElementVNode("text", { class: "row-label required" }, "现场照片"),
+                vue.createElementVNode("text", { class: "column-meta" }, "最多 10 张")
+              ]),
+              vue.createElementVNode("view", { class: "photo-grid" }, [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($setup.photos, (item, idx) => {
+                    return vue.openBlock(), vue.createElementBlock("view", {
+                      key: item.id,
+                      class: "photo-item"
+                    }, [
+                      vue.createElementVNode("image", {
+                        src: item.path,
+                        class: "photo-img",
+                        mode: "aspectFill"
+                      }, null, 8, ["src"]),
+                      vue.createElementVNode("view", {
+                        class: "photo-remove",
+                        onClick: ($event) => $setup.removePhoto(idx)
+                      }, [
+                        vue.createElementVNode("text", { class: "photo-remove-text" }, "删")
+                      ], 8, ["onClick"])
+                    ]);
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                )),
+                $setup.photos.length < 10 ? (vue.openBlock(), vue.createElementBlock("view", {
+                  key: 0,
+                  class: "photo-add",
+                  onClick: $setup.pickPhoto
+                }, [
+                  vue.createElementVNode("text", { class: "photo-add-text" }, "添加照片")
+                ])) : vue.createCommentVNode("v-if", true)
+              ])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "水印相机"),
+              vue.createElementVNode("button", {
+                class: "btn-secondary single-btn",
+                onClick: $setup.openWatermarkCamera
+              }, "打开水印拍照")
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "RTK 手簿附件"),
+              vue.createElementVNode("button", {
+                class: "btn-secondary single-btn",
+                onClick: $setup.attachRtkFile
+              }, "上传附件")
+            ]),
+            $setup.rtkFileName ? (vue.openBlock(), vue.createElementBlock("view", {
+              key: 0,
+              class: "inline-hint"
+            }, [
+              vue.createElementVNode(
+                "text",
+                { class: "inline-hint-text" },
+                "已上传：" + vue.toDisplayString($setup.rtkFileName),
+                1
+                /* TEXT */
+              )
+            ])) : vue.createCommentVNode("v-if", true)
+          ]),
+          vue.createElementVNode("view", { class: "card last-card" }, [
+            vue.createElementVNode("view", { class: "card-head" }, [
+              vue.createElementVNode("text", { class: "card-title" }, "区块三：审核与备注")
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "保护级别"),
+              vue.createElementVNode("picker", {
+                class: "picker-wrap",
+                range: $setup.protectionLabels,
+                value: $setup.protectionIndex,
+                onChange: $setup.onProtectionChange
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.protectionText),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["range", "value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "权属"),
+              vue.createElementVNode("picker", {
+                class: "picker-wrap",
+                range: $setup.ownershipLabels,
+                value: $setup.ownershipIndex,
+                onChange: $setup.onOwnershipChange
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.ownershipText),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["range", "value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label" }, "保存现状"),
+              vue.createElementVNode("picker", {
+                class: "picker-wrap",
+                range: $setup.preservationLabels,
+                value: $setup.preservationIndex,
+                onChange: $setup.onPreservationChange
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "picker-value" },
+                  vue.toDisplayString($setup.preservationText),
+                  1
+                  /* TEXT */
+                )
+              ], 40, ["range", "value"])
+            ]),
+            vue.createElementVNode("view", { class: "form-row" }, [
+              vue.createElementVNode("text", { class: "row-label required" }, "普查员签名"),
+              vue.createElementVNode("button", {
+                class: "btn-secondary single-btn",
+                onClick: $setup.collectSignature
+              }, "采集签名")
+            ]),
+            $setup.signStatus ? (vue.openBlock(), vue.createElementBlock("view", {
+              key: 0,
+              class: "inline-hint"
+            }, [
+              vue.createElementVNode(
+                "text",
+                { class: "inline-hint-text" },
+                vue.toDisplayString($setup.signStatus),
+                1
+                /* TEXT */
+              )
+            ])) : vue.createCommentVNode("v-if", true),
+            vue.createElementVNode("view", { class: "form-row column-row" }, [
+              vue.createElementVNode("view", { class: "column-head" }, [
+                vue.createElementVNode("text", { class: "row-label" }, "现场备注"),
+                vue.createElementVNode("text", { class: "column-meta" }, "限 2000 字")
+              ]),
+              vue.withDirectives(vue.createElementVNode(
+                "textarea",
+                {
+                  class: "remark-input",
+                  "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => $setup.form.remark = $event),
+                  maxlength: "2000",
+                  placeholder: "请填写现场情况、病害信息、交通与环境说明"
+                },
+                null,
+                512
+                /* NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.form.remark]
+              ])
+            ])
+          ])
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "bottom-bar" }, [
+        vue.createElementVNode("button", {
+          class: "btn-submit",
+          disabled: $props.loading,
+          onClick: $setup.handleSubmit
+        }, vue.toDisplayString($props.loading ? "提交中..." : "提交采集信息"), 9, ["disabled"])
+      ])
+    ]);
+  }
+  const HeritageCollectRefactor = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-ebe4f3bc"], ["__file", "C:/Users/14434/uniapp/components/HeritageCollectRefactor.vue"]]);
+  const _sfc_main$2 = {
+    __name: "collect",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const API2 = config.API_BASE_URL;
+      const collectRef = vue.ref(null);
+      const altitudeRef = vue.ref(null);
+      const shadowAltitude = vue.ref("");
+      const submitting = vue.ref(false);
+      const formMeta = vue.reactive({
         categoryChoices: [],
         protectionLevelChoices: [],
         ownershipChoices: [],
-        preservationStatusChoices: [],
-        collectUnit: "文物管理部门",
-        watermarkCanvas: {
-          width: 1,
-          height: 1
+        preservationStatusChoices: []
+      });
+      onLoad(() => {
+        if (!getToken()) {
+          uni.reLaunch({ url: "/pages/index/index" });
+          return;
         }
-      };
-    },
-    computed: {
-      // ── Picker 选项数组 ──────────────────────────────────
-      categoryLabels() {
-        return this.categoryChoices.map((c) => c.label);
-      },
-      categoryIndex() {
-        const idx = this.categoryChoices.findIndex((c) => c.value === this.form.category);
-        return idx >= 0 ? idx : 0;
-      },
-      protectionLabels() {
-        return this.protectionLevelChoices.map((c) => c.label);
-      },
-      protectionIndex() {
-        const idx = this.protectionLevelChoices.findIndex((c) => c.value === this.form.protection_level);
-        return idx >= 0 ? idx : 0;
-      },
-      ownershipLabels() {
-        return this.ownershipChoices.map((c) => c.label);
-      },
-      ownershipIndex() {
-        const idx = this.ownershipChoices.findIndex((c) => c.value === this.form.ownership);
-        return idx >= 0 ? idx : 0;
-      },
-      preservationLabels() {
-        return this.preservationStatusChoices.map((c) => c.label);
-      },
-      preservationIndex() {
-        const idx = this.preservationStatusChoices.findIndex((c) => c.value === this.form.preservation_status);
-        return idx >= 0 ? idx : 0;
-      },
-      // ── GPS 状态 badge ───────────────────────────────────
-      gpsBadgeClass() {
-        if (this.locating)
-          return "badge-loading";
-        if (this.form.longitude)
-          return "badge-ok";
-        return "badge-idle";
-      },
-      gpsBadgeText() {
-        if (this.locating)
-          return "定位中…";
-        if (this.form.longitude)
-          return `已定位 ±${this.locationAccuracy || "?"}m`;
-        return "未定位";
-      }
-    },
-    onLoad() {
-      if (!getToken()) {
-        uni.reLaunch({ url: "/pages/index/index" });
-        return;
-      }
-      this.currentUser = getUser() || {};
-      this.loadFormMeta();
-    },
-    methods: {
-      getWatermarkUserName() {
-        return this.currentUser.full_name || this.currentUser.username || "未登录用户";
-      },
-      buildWatermarkText(time) {
-        const collector = this.getWatermarkUserName();
-        const name = this.form.name || "未命名文物";
-        const longitude = Number(this.form.longitude || 0).toFixed(6);
-        const latitude = Number(this.form.latitude || 0).toFixed(6);
-        return `采集人: ${collector}
-文物名称: ${name}
-采集时间: ${time}
-坐标: ${longitude}, ${latitude}`;
-      },
-      cleanText(value) {
+        loadFormMetaDefaults();
+      });
+      function cleanText(value) {
         return String(value || "").trim();
-      },
-      onAltitudeCollectDone(info) {
+      }
+      function applyCoordinateToForm(longitude, latitude) {
+        var _a;
+        const form = (_a = collectRef.value) == null ? void 0 : _a.form;
+        if (!form)
+          return;
+        form.longitude = Number(longitude).toFixed(8);
+        form.latitude = Number(latitude).toFixed(8);
+      }
+      function applyAltitudeToForm(altitudeValue, source) {
+        if (!collectRef.value)
+          return;
+        if (!Number.isFinite(Number(altitudeValue)))
+          return;
+        if (source && source.includes("DEM")) {
+          collectRef.value.setAltitudeByDem(Number(altitudeValue));
+          return;
+        }
+        if (source && (source.includes("硬件") || source.includes("GPS") || source.includes("气压"))) {
+          collectRef.value.setAltitudeByHardware(Number(altitudeValue));
+          return;
+        }
+        collectRef.value.setAltitudeManual(String(Number(altitudeValue).toFixed(2)));
+      }
+      function handleAltitudeCollected(info) {
         if (!info || typeof info !== "object")
           return;
         if (info.longitude != null && info.latitude != null) {
-          this.form.longitude = Number(info.longitude).toFixed(8);
-          this.form.latitude = Number(info.latitude).toFixed(8);
+          applyCoordinateToForm(info.longitude, info.latitude);
         }
-        if (info.accuracy != null) {
-          this.locationAccuracy = Math.round(info.accuracy);
+        if (info.altitude != null) {
+          applyAltitudeToForm(info.altitude, info.source || "");
         }
-      },
-      // ── 拉取表单选项 ──────────────────────────────────────
-      loadFormMeta() {
+      }
+      function handleCollectCoordinate() {
+        uni.getLocation({
+          type: "wgs84",
+          isHighAccuracy: true,
+          highAccuracyExpireTime: 15e3,
+          success: (res) => {
+            applyCoordinateToForm(res.longitude, res.latitude);
+            uni.showToast({ title: "坐标采集成功", icon: "success" });
+          },
+          fail: (err) => {
+            const msg = String((err == null ? void 0 : err.errMsg) || "").toLowerCase();
+            const hint = msg.includes("denied") || msg.includes("permission") ? "定位权限被拒绝，请在系统设置开启定位" : msg.includes("timeout") ? "定位超时，请移至开阔区域重试" : "坐标采集失败，请重试";
+            uni.showToast({ title: hint, icon: "none" });
+          }
+        });
+      }
+      function handleCalibrateAltitude() {
+        if (!altitudeRef.value || typeof altitudeRef.value.startCollect !== "function") {
+          uni.showToast({ title: "海拔采集组件未就绪", icon: "none" });
+          return;
+        }
+        altitudeRef.value.startCollect();
+      }
+      function handleOpenWatermarkCamera() {
+        uni.showToast({ title: "请使用添加照片入口拍摄，系统将自动加水印", icon: "none" });
+      }
+      function loadFormMetaDefaults() {
         uni.request({
-          url: `${API$1}/api/collect/form-meta`,
+          url: `${API2}/api/collect/form-meta`,
           header: { Authorization: `Bearer ${getToken()}` },
           success: (res) => {
-            if (res.statusCode === 200) {
-              const d = res.data;
-              this.categoryChoices = d.category_choices || [];
-              this.protectionLevelChoices = d.protection_level_choices || [];
-              this.ownershipChoices = d.ownership_choices || [];
-              this.preservationStatusChoices = d.preservation_status_choices || [];
-              this.collectUnit = d.collect_unit || "文物管理部门";
-              if (this.categoryChoices.length)
-                this.form.category = this.categoryChoices[0].value;
-              if (this.protectionLevelChoices.length) {
-                const ds = this.protectionLevelChoices.find((c) => c.value === "DS");
-                if (ds)
-                  this.form.protection_level = "DS";
-              }
-            }
+            if (res.statusCode !== 200 || !res.data)
+              return;
+            const d = res.data;
+            formMeta.categoryChoices = d.category_choices || [];
+            formMeta.protectionLevelChoices = d.protection_level_choices || [];
+            formMeta.ownershipChoices = d.ownership_choices || [];
+            formMeta.preservationStatusChoices = d.preservation_status_choices || [];
           },
           fail: () => {
-            this.categoryChoices = [
+            formMeta.categoryChoices = [
               { value: "GWZ", label: "古文化遗址" },
               { value: "GMZ", label: "古墓葬" },
               { value: "GJZ", label: "古建筑" },
@@ -3813,19 +4653,19 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
               { value: "JDJW", label: "近现代重要史迹及代表性建筑" },
               { value: "QT", label: "其他" }
             ];
-            this.protectionLevelChoices = [
+            formMeta.protectionLevelChoices = [
               { value: "GB", label: "全国重点文物保护单位" },
               { value: "SB", label: "省（自治区、直辖市）级文物保护单位" },
               { value: "XB", label: "市（县）级文物保护单位" },
               { value: "DS", label: "尚未定级的不可移动文物" }
             ];
-            this.ownershipChoices = [
+            formMeta.ownershipChoices = [
               { value: "state", label: "国有" },
               { value: "collective", label: "集体" },
               { value: "private", label: "私人" },
               { value: "other", label: "其他" }
             ];
-            this.preservationStatusChoices = [
+            formMeta.preservationStatusChoices = [
               { value: "好", label: "好" },
               { value: "较好", label: "较好" },
               { value: "一般", label: "一般" },
@@ -3834,194 +4674,62 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
             ];
           }
         });
-      },
-      // ── 步骤切换（含验证） ────────────────────────────────
-      goStep(target) {
-        if (target === 1 && !this.validateStep0())
-          return;
-        if (target === 2 && !this.validateStep1())
-          return;
-        this.step = target;
-        uni.pageScrollTo({ scrollTop: 0, duration: 100 });
-      },
-      validateStep0() {
-        const e = {};
-        if (!this.surveyCodeAuto && !this.cleanText(this.form.survey_code))
-          e.survey_code = "请填写普查编号或切换为自动生成";
-        if (!this.cleanText(this.form.name))
-          e.name = "文物名称不能为空";
-        if (!this.cleanText(this.form.era))
-          e.era = "时代不能为空";
-        if (!this.form.category)
-          e.category = "请选择文物类别";
-        this.errors = e;
-        return Object.keys(e).length === 0;
-      },
-      validateStep1() {
-        const e = {};
-        if (!this.form.longitude || !this.form.latitude) {
-          e.location = '请先点击"获取当前位置"以获取经纬度';
-        }
-        this.errors = e;
-        return Object.keys(e).length === 0;
-      },
-      // ── GPS 定位 ──────────────────────────────────────────
-      async getLocation() {
-        this.locating = true;
-        this.errors = {};
-        try {
-          const res = await new Promise((resolve, reject) => {
-            uni.getLocation({
-              type: "wgs84",
-              isHighAccuracy: true,
-              highAccuracyExpireTime: 15e3,
-              success: (data) => resolve(data),
-              fail: (err) => reject(err)
-            });
-          });
-          this.form.longitude = Number(res.longitude).toFixed(8);
-          this.form.latitude = Number(res.latitude).toFixed(8);
-          this.locationAccuracy = res.accuracy != null ? Math.round(res.accuracy) : null;
-          uni.showToast({ title: "GPS 定位成功", icon: "success", duration: 2e3 });
-        } catch (err) {
-          const errMsg = String((err == null ? void 0 : err.errMsg) || "").toLowerCase();
-          let hint = "获取位置失败，请重试";
-          if (errMsg.includes("auth denied") || errMsg.includes("denied") || errMsg.includes("permission")) {
-            hint = "定位权限被拒绝，请在手机设置中开启";
-          } else if (errMsg.includes("timeout")) {
-            hint = "GPS 信号超时，请移至开阔区域重试";
-          }
-          this.errors = { location: hint };
-          uni.showToast({ title: hint, icon: "none", duration: 3e3 });
-        } finally {
-          this.locating = false;
-        }
-      },
-      // ── Picker 事件 ──────────────────────────────────────
-      onCategoryChange(e) {
-        this.form.category = this.categoryChoices[e.detail.value].value;
-      },
-      onProtectionChange(e) {
-        this.form.protection_level = this.protectionLevelChoices[e.detail.value].value;
-      },
-      onOwnershipChange(e) {
-        this.form.ownership = this.ownershipChoices[e.detail.value].value;
-      },
-      onPreservationChange(e) {
-        this.form.preservation_status = this.preservationStatusChoices[e.detail.value].value;
-      },
-      // ── 照片选择 ─────────────────────────────────────────
-      async choosePhoto() {
-        const remaining = 10 - this.photos.length;
-        uni.chooseImage({
-          count: remaining,
-          sizeType: ["compressed"],
-          // 压缩图（减少流量）
-          sourceType: ["camera", "album"],
-          // 摄像头优先 + 相册
-          success: async (res) => {
-            const now = /* @__PURE__ */ new Date();
-            const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
-            const watermarkText = this.buildWatermarkText(time);
-            for (const path of res.tempFilePaths) {
-              try {
-                const watermarkedPath = await addWatermark(path, watermarkText, this);
-                this.photos.push({ path: watermarkedPath, status: "pending" });
-              } catch (error) {
-                this.photos.push({ path, status: "pending" });
-              }
-            }
-          }
-        });
-      },
-      removePhoto(idx) {
-        this.photos.splice(idx, 1);
-      },
-      photoStatusText(status) {
-        return { pending: "待上传", uploading: "上传中…", done: "✓ 完成", error: "✗ 失败" }[status] || "";
-      },
-      // ── 全流程提交 ───────────────────────────────────────
-      async submitAll() {
-        this.submitting = true;
-        this.step = 4;
-        this.progressMsg = "正在创建文物记录…";
-        let heritageId = null;
-        try {
-          const result = await this.createHeritage();
-          heritageId = result.heritage_id;
-          this.generatedSurveyCode = result.survey_code || "";
-        } catch (err) {
-          this.progressMsg = `记录创建失败：${err}`;
-          this.submitting = false;
-          return;
-        }
-        let successCount = 0;
-        for (let i = 0; i < this.photos.length; i++) {
-          this.progressMsg = `正在上传第 ${i + 1} / ${this.photos.length} 张照片…`;
-          this.photos[i].status = "uploading";
-          try {
-            await this.uploadPhoto(heritageId, this.photos[i].path, i === 0);
-            this.photos[i].status = "done";
-            successCount++;
-          } catch {
-            this.photos[i].status = "error";
-          }
-        }
-        this.submitDone = true;
-        this.submitting = false;
-        const photoHint = this.photos.length > 0 ? `，成功上传 ${successCount}/${this.photos.length} 张照片` : "";
-        this.progressMsg = `文物「${this.form.name}」已登记${photoHint}。`;
-      },
-      // 创建文物记录 → 返回 heritage_id (Promise)
-      // 创建文物记录 → 返回 { heritage_id, survey_code } (Promise)
-      createHeritage() {
+      }
+      function createHeritage(payload) {
+        const longitude = Number(payload.longitude);
+        const latitude = Number(payload.latitude);
+        const altitude = payload.altitude !== "" && payload.altitude != null ? Number(payload.altitude) : null;
+        const resolvedCategory = cleanText(payload.category);
+        const resolvedProtection = cleanText(payload.protection_level);
+        const resolvedOwnership = cleanText(payload.ownership);
+        const resolvedPreservation = cleanText(payload.preservation_status);
         return new Promise((resolve, reject) => {
           uni.request({
-            url: `${API$1}/api/collect/create`,
+            url: `${API2}/api/collect/create`,
             method: "POST",
             header: {
               "Content-Type": "application/json",
               Authorization: `Bearer ${getToken()}`
             },
             data: {
-              // 自动模式传空字符串，服务端自动生成；手动模式传用户填写值
-              survey_code: this.surveyCodeAuto ? "" : this.cleanText(this.form.survey_code),
-              name: this.cleanText(this.form.name),
-              former_name: this.cleanText(this.form.former_name),
-              era: this.cleanText(this.form.era),
-              category: this.form.category,
-              province: this.cleanText(this.form.province),
-              city: this.cleanText(this.form.city),
-              county: this.cleanText(this.form.county),
-              township: this.cleanText(this.form.township),
-              village: this.cleanText(this.form.village),
-              address: this.cleanText(this.form.address),
-              longitude: parseFloat(this.form.longitude),
-              latitude: parseFloat(this.form.latitude),
-              altitude: this.form.altitude ? parseFloat(this.form.altitude) : null,
-              protection_level: this.form.protection_level,
-              ownership: this.form.ownership,
-              preservation_status: this.form.preservation_status,
-              description: this.cleanText(this.form.description)
+              survey_code: payload.surveyCodeAuto ? "" : cleanText(payload.code),
+              name: cleanText(payload.name),
+              former_name: cleanText(payload.former_name),
+              era: cleanText(payload.era),
+              category: resolvedCategory,
+              province: cleanText(payload.province),
+              city: cleanText(payload.city),
+              county: cleanText(payload.county),
+              township: cleanText(payload.township),
+              village: cleanText(payload.village),
+              address: cleanText(payload.address),
+              longitude: Number.isFinite(longitude) ? longitude : null,
+              latitude: Number.isFinite(latitude) ? latitude : null,
+              altitude: Number.isFinite(altitude) ? altitude : null,
+              protection_level: resolvedProtection,
+              ownership: resolvedOwnership,
+              preservation_status: resolvedPreservation,
+              description: cleanText(payload.remark)
             },
             success: (res) => {
-              var _a, _b;
+              var _a, _b, _c, _d;
               if (res.statusCode === 201) {
-                resolve({ heritage_id: res.data.heritage_id, survey_code: res.data.survey_code });
-              } else {
-                const detail = ((_a = res.data) == null ? void 0 : _a.detail) || ((_b = res.data) == null ? void 0 : _b.message) || "未知错误";
-                reject(detail);
+                resolve({
+                  heritage_id: (_a = res.data) == null ? void 0 : _a.heritage_id,
+                  survey_code: ((_b = res.data) == null ? void 0 : _b.survey_code) || ""
+                });
+                return;
               }
+              reject(((_c = res.data) == null ? void 0 : _c.detail) || ((_d = res.data) == null ? void 0 : _d.message) || "创建失败");
             },
-            fail: (err) => reject(err.errMsg || "网络异常")
+            fail: (err) => reject((err == null ? void 0 : err.errMsg) || "网络异常")
           });
         });
-      },
-      // 上传单张照片（含水印由服务端处理）→ Promise
-      uploadPhoto(heritageId, filePath, isCover) {
+      }
+      function uploadPhoto(heritageId, filePath, isCover) {
         return new Promise((resolve, reject) => {
           uni.uploadFile({
-            url: `${API$1}/api/collect/photos/${heritageId}`,
+            url: `${API2}/api/collect/photos/${heritageId}`,
             filePath,
             name: "photo",
             formData: {
@@ -4033,793 +4741,88 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
               try {
                 const data = typeof res.data === "string" ? JSON.parse(res.data) : res.data;
                 if (res.statusCode === 201)
-                  resolve(data);
+                  resolve(data || {});
                 else
                   reject((data == null ? void 0 : data.detail) || "上传失败");
-              } catch {
+              } catch (_) {
                 if (res.statusCode === 201)
                   resolve({});
                 else
-                  reject("响应解析失败");
+                  reject("上传响应解析失败");
               }
             },
-            fail: (err) => reject(err.errMsg || "网络异常")
+            fail: (err) => reject((err == null ? void 0 : err.errMsg) || "网络异常")
           });
         });
-      },
-      // ── 重置表单（继续采集） ─────────────────────────────
-      resetForm() {
-        var _a;
-        const keep = {
-          province: this.form.province,
-          city: this.form.city,
-          county: this.form.county,
-          protection_level: this.form.protection_level,
-          ownership: this.form.ownership,
-          preservation_status: this.form.preservation_status
-        };
-        this.form = Object.assign({
-          survey_code: "",
-          name: "",
-          former_name: "",
-          era: "",
-          category: ((_a = this.categoryChoices[0]) == null ? void 0 : _a.value) || "",
-          township: "",
-          village: "",
-          address: "",
-          longitude: "",
-          latitude: "",
-          altitude: "",
-          description: ""
-        }, keep);
-        this.photos = [];
-        this.errors = {};
-        this.step = 0;
-        this.submitDone = false;
-        this.progressMsg = "";
-        this.generatedSurveyCode = "";
-        this.locationAccuracy = null;
-        this.surveyCodeAuto = true;
-      },
-      goMyRecords() {
-        uni.navigateTo({ url: "/pages/collect/my_records" });
       }
+      async function handleSubmit(payload) {
+        var _a;
+        if (submitting.value)
+          return;
+        submitting.value = true;
+        try {
+          const created = await createHeritage(payload);
+          const photos = Array.isArray(payload.photos) ? payload.photos : [];
+          let successCount = 0;
+          for (let i = 0; i < photos.length; i += 1) {
+            const path = (_a = photos[i]) == null ? void 0 : _a.path;
+            if (!path)
+              continue;
+            try {
+              await uploadPhoto(created.heritage_id, path, i === 0);
+              successCount += 1;
+            } catch (_) {
+            }
+          }
+          const suffix = photos.length > 0 ? `，照片 ${successCount}/${photos.length}` : "";
+          uni.showModal({
+            title: "采集提交成功",
+            content: `编号：${created.survey_code || "已生成"}${suffix}`,
+            showCancel: false
+          });
+        } catch (err) {
+          uni.showToast({
+            title: `提交失败：${String(err || "未知错误")}`,
+            icon: "none",
+            duration: 3e3
+          });
+        } finally {
+          submitting.value = false;
+        }
+      }
+      const __returned__ = { API: API2, collectRef, altitudeRef, shadowAltitude, submitting, formMeta, cleanText, applyCoordinateToForm, applyAltitudeToForm, handleAltitudeCollected, handleCollectCoordinate, handleCalibrateAltitude, handleOpenWatermarkCamera, loadFormMetaDefaults, createHeritage, uploadPhoto, handleSubmit, get onLoad() {
+        return onLoad;
+      }, reactive: vue.reactive, ref: vue.ref, get config() {
+        return config;
+      }, get getToken() {
+        return getToken;
+      }, AltitudeCollect, HeritageCollectRefactor };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
     }
   };
   function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_AltitudeCollect = vue.resolveComponent("AltitudeCollect");
-    return vue.openBlock(), vue.createElementBlock("view", { class: "page" }, [
-      vue.createElementVNode("view", { class: "steps-bar" }, [
-        (vue.openBlock(true), vue.createElementBlock(
-          vue.Fragment,
-          null,
-          vue.renderList($data.steps, (s, i) => {
-            return vue.openBlock(), vue.createElementBlock("view", {
-              key: i,
-              class: "step-item"
-            }, [
-              vue.createElementVNode(
-                "view",
-                {
-                  class: vue.normalizeClass(["step-dot", $data.step > i ? "done" : $data.step === i ? "active" : ""])
-                },
-                [
-                  $data.step > i ? (vue.openBlock(), vue.createElementBlock("text", {
-                    key: 0,
-                    class: "step-check"
-                  }, "✓")) : (vue.openBlock(), vue.createElementBlock(
-                    "text",
-                    {
-                      key: 1,
-                      class: "step-num"
-                    },
-                    vue.toDisplayString(i + 1),
-                    1
-                    /* TEXT */
-                  ))
-                ],
-                2
-                /* CLASS */
-              ),
-              vue.createElementVNode(
-                "text",
-                {
-                  class: vue.normalizeClass(["step-label", $data.step === i ? "step-label-active" : ""])
-                },
-                vue.toDisplayString(s),
-                3
-                /* TEXT, CLASS */
-              ),
-              i < $data.steps.length - 1 ? (vue.openBlock(), vue.createElementBlock(
-                "view",
-                {
-                  key: 0,
-                  class: vue.normalizeClass(["step-line", $data.step > i ? "done" : ""])
-                },
-                null,
-                2
-                /* CLASS */
-              )) : vue.createCommentVNode("v-if", true)
-            ]);
-          }),
-          128
-          /* KEYED_FRAGMENT */
-        ))
-      ]),
-      vue.createElementVNode("view", { class: "form-scroll" }, [
-        $data.step === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "section"
-        }, [
-          vue.createElementVNode("view", { class: "section-head" }, [
-            vue.createElementVNode("view", { class: "section-dot blue" }),
-            vue.createElementVNode("text", { class: "section-title" }, "基础信息")
-          ]),
-          vue.createElementVNode("view", { class: "field" }, [
-            vue.createElementVNode("view", { class: "code-label-row" }, [
-              vue.createElementVNode("text", {
-                class: "label",
-                style: { "margin-bottom": "0" }
-              }, "普查编号"),
-              vue.createElementVNode("view", { class: "code-toggle-row" }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: vue.normalizeClass(["toggle-btn", $data.surveyCodeAuto ? "toggle-active" : ""]),
-                    onClick: _cache[0] || (_cache[0] = ($event) => $data.surveyCodeAuto = true)
-                  },
-                  "自动生成",
-                  2
-                  /* CLASS */
-                ),
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: vue.normalizeClass(["toggle-btn", !$data.surveyCodeAuto ? "toggle-active" : ""]),
-                    onClick: _cache[1] || (_cache[1] = ($event) => $data.surveyCodeAuto = false)
-                  },
-                  "手动填写",
-                  2
-                  /* CLASS */
-                )
-              ])
-            ]),
-            $data.surveyCodeAuto ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 0,
-              class: "code-auto-hint"
-            }, [
-              vue.createElementVNode("text", { class: "code-auto-icon" }, "🔖"),
-              vue.createElementVNode("text", { class: "code-auto-text" }, "提交后由系统自动分配（格式：SS-CJ-YYYY-NNNN）")
-            ])) : vue.createCommentVNode("v-if", true),
-            !$data.surveyCodeAuto ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
-              "input",
-              {
-                key: 1,
-                "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $data.form.survey_code = $event),
-                class: "input",
-                placeholder: "如：SS-CJ-2026-0001",
-                maxlength: "50"
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            )), [
-              [vue.vModelText, $data.form.survey_code]
-            ]) : vue.createCommentVNode("v-if", true),
-            $data.errors.survey_code ? (vue.openBlock(), vue.createElementBlock(
-              "text",
-              {
-                key: 2,
-                class: "err"
-              },
-              vue.toDisplayString($data.errors.survey_code),
-              1
-              /* TEXT */
-            )) : vue.createCommentVNode("v-if", true)
-          ]),
-          vue.createElementVNode("view", { class: "field" }, [
-            vue.createElementVNode("text", { class: "label required" }, "文物名称"),
-            vue.withDirectives(vue.createElementVNode(
-              "input",
-              {
-                "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.form.name = $event),
-                class: "input",
-                placeholder: "请输入文物标准名称",
-                maxlength: "200"
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            ), [
-              [vue.vModelText, $data.form.name]
-            ]),
-            $data.errors.name ? (vue.openBlock(), vue.createElementBlock(
-              "text",
-              {
-                key: 0,
-                class: "err"
-              },
-              vue.toDisplayString($data.errors.name),
-              1
-              /* TEXT */
-            )) : vue.createCommentVNode("v-if", true)
-          ]),
-          vue.createElementVNode("view", { class: "field" }, [
-            vue.createElementVNode("text", { class: "label" }, "曾用名 / 别名"),
-            vue.withDirectives(vue.createElementVNode(
-              "input",
-              {
-                "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $data.form.former_name = $event),
-                class: "input",
-                placeholder: "（选填）",
-                maxlength: "200"
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            ), [
-              [vue.vModelText, $data.form.former_name]
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "field-row" }, [
-            vue.createElementVNode("view", { class: "field half" }, [
-              vue.createElementVNode("text", { class: "label required" }, "时代"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $data.form.era = $event),
-                  class: "input",
-                  placeholder: "如：汉、唐宋",
-                  maxlength: "100"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $data.form.era]
-              ]),
-              $data.errors.era ? (vue.openBlock(), vue.createElementBlock(
-                "text",
-                {
-                  key: 0,
-                  class: "err"
-                },
-                vue.toDisplayString($data.errors.era),
-                1
-                /* TEXT */
-              )) : vue.createCommentVNode("v-if", true)
-            ]),
-            vue.createElementVNode("view", { class: "field half" }, [
-              vue.createElementVNode("text", { class: "label required" }, "文物类别"),
-              vue.createElementVNode("picker", {
-                range: $options.categoryLabels,
-                value: $options.categoryIndex,
-                onChange: _cache[6] || (_cache[6] = (...args) => $options.onCategoryChange && $options.onCategoryChange(...args))
-              }, [
-                vue.createElementVNode("view", { class: "picker-view" }, [
-                  vue.createElementVNode(
-                    "text",
-                    {
-                      class: vue.normalizeClass($data.form.category ? "picker-val" : "picker-ph")
-                    },
-                    vue.toDisplayString($data.form.category ? $options.categoryLabels[$options.categoryIndex] : "请选择"),
-                    3
-                    /* TEXT, CLASS */
-                  ),
-                  vue.createElementVNode("text", { class: "picker-arrow" }, "›")
-                ])
-              ], 40, ["range", "value"]),
-              $data.errors.category ? (vue.openBlock(), vue.createElementBlock(
-                "text",
-                {
-                  key: 0,
-                  class: "err"
-                },
-                vue.toDisplayString($data.errors.category),
-                1
-                /* TEXT */
-              )) : vue.createCommentVNode("v-if", true)
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "field" }, [
-            vue.createElementVNode("text", { class: "label" }, "文物简介"),
-            vue.withDirectives(vue.createElementVNode(
-              "textarea",
-              {
-                "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $data.form.description = $event),
-                class: "textarea",
-                placeholder: "对文物的历史背景、形制特征及现状进行描述",
-                maxlength: "2000"
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            ), [
-              [vue.vModelText, $data.form.description]
-            ])
-          ]),
-          vue.createElementVNode("button", {
-            class: "btn-next",
-            onClick: _cache[8] || (_cache[8] = ($event) => $options.goStep(1))
-          }, "下一步：地理位置 →")
-        ])) : vue.createCommentVNode("v-if", true),
-        $data.step === 1 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 1,
-          class: "section"
-        }, [
-          vue.createElementVNode("view", { class: "section-head" }, [
-            vue.createElementVNode("view", { class: "section-dot green" }),
-            vue.createElementVNode("text", { class: "section-title" }, "地理位置")
-          ]),
-          vue.createElementVNode("view", { class: "gps-card" }, [
-            vue.createElementVNode("view", { class: "gps-row" }, [
-              vue.createElementVNode("button", {
-                class: vue.normalizeClass(["btn-gps", $data.locating ? "loading" : ""]),
-                onClick: _cache[9] || (_cache[9] = (...args) => $options.getLocation && $options.getLocation(...args)),
-                disabled: $data.locating
-              }, [
-                vue.createElementVNode("text", { class: "gps-icon" }, "📍"),
-                vue.createElementVNode(
-                  "text",
-                  null,
-                  vue.toDisplayString($data.locating ? "定位中…" : $data.form.longitude ? "重新定位" : "获取当前位置"),
-                  1
-                  /* TEXT */
-                )
-              ], 10, ["disabled"]),
-              vue.createElementVNode(
-                "view",
-                {
-                  class: vue.normalizeClass(["gps-badge", $options.gpsBadgeClass])
-                },
-                vue.toDisplayString($options.gpsBadgeText),
-                3
-                /* TEXT, CLASS */
-              )
-            ]),
-            $data.errors.location ? (vue.openBlock(), vue.createElementBlock(
-              "text",
-              {
-                key: 0,
-                class: "err",
-                style: { "margin-top": "4rpx" }
-              },
-              vue.toDisplayString($data.errors.location),
-              1
-              /* TEXT */
-            )) : vue.createCommentVNode("v-if", true),
-            $data.form.longitude ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 1,
-              class: "coord-display"
-            }, [
-              vue.createElementVNode("view", { class: "coord-item" }, [
-                vue.createElementVNode("text", { class: "coord-label" }, "经度"),
-                vue.createElementVNode(
-                  "text",
-                  { class: "coord-val" },
-                  vue.toDisplayString($data.form.longitude),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "coord-item" }, [
-                vue.createElementVNode("text", { class: "coord-label" }, "纬度"),
-                vue.createElementVNode(
-                  "text",
-                  { class: "coord-val" },
-                  vue.toDisplayString($data.form.latitude),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              $data.locationAccuracy ? (vue.openBlock(), vue.createElementBlock("view", {
-                key: 0,
-                class: "coord-item"
-              }, [
-                vue.createElementVNode("text", { class: "coord-label" }, "精度"),
-                vue.createElementVNode(
-                  "text",
-                  { class: "coord-val" },
-                  "±" + vue.toDisplayString($data.locationAccuracy) + "m",
-                  1
-                  /* TEXT */
-                )
-              ])) : vue.createCommentVNode("v-if", true),
-              $data.form.altitude ? (vue.openBlock(), vue.createElementBlock("view", {
-                key: 1,
-                class: "coord-item"
-              }, [
-                vue.createElementVNode("text", { class: "coord-label" }, "海拔"),
-                vue.createElementVNode(
-                  "text",
-                  { class: "coord-val" },
-                  vue.toDisplayString($data.form.altitude) + "m",
-                  1
-                  /* TEXT */
-                )
-              ])) : vue.createCommentVNode("v-if", true)
-            ])) : vue.createCommentVNode("v-if", true)
-          ]),
-          vue.createElementVNode("view", { class: "field" }, [
-            vue.createVNode(_component_AltitudeCollect, {
-              modelValue: $data.form.altitude,
-              "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $data.form.altitude = $event),
-              onCollectDone: $options.onAltitudeCollectDone
-            }, null, 8, ["modelValue", "onCollectDone"])
-          ]),
-          vue.createElementVNode("view", { class: "field-row" }, [
-            vue.createElementVNode("view", { class: "field third" }, [
-              vue.createElementVNode("text", { class: "label" }, "省/自治区"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[11] || (_cache[11] = ($event) => $data.form.province = $event),
-                  class: "input",
-                  placeholder: "省级"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $data.form.province]
-              ])
-            ]),
-            vue.createElementVNode("view", { class: "field third" }, [
-              vue.createElementVNode("text", { class: "label" }, "市/州"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => $data.form.city = $event),
-                  class: "input",
-                  placeholder: "市级"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $data.form.city]
-              ])
-            ]),
-            vue.createElementVNode("view", { class: "field third" }, [
-              vue.createElementVNode("text", { class: "label" }, "县/区"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[13] || (_cache[13] = ($event) => $data.form.county = $event),
-                  class: "input",
-                  placeholder: "县级"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $data.form.county]
-              ])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "field-row" }, [
-            vue.createElementVNode("view", { class: "field half" }, [
-              vue.createElementVNode("text", { class: "label" }, "乡镇/街道"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[14] || (_cache[14] = ($event) => $data.form.township = $event),
-                  class: "input",
-                  placeholder: "（选填）"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $data.form.township]
-              ])
-            ]),
-            vue.createElementVNode("view", { class: "field half" }, [
-              vue.createElementVNode("text", { class: "label" }, "村/社区"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  "onUpdate:modelValue": _cache[15] || (_cache[15] = ($event) => $data.form.village = $event),
-                  class: "input",
-                  placeholder: "（选填）"
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $data.form.village]
-              ])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "field" }, [
-            vue.createElementVNode("text", { class: "label" }, "详细地址"),
-            vue.withDirectives(vue.createElementVNode(
-              "input",
-              {
-                "onUpdate:modelValue": _cache[16] || (_cache[16] = ($event) => $data.form.address = $event),
-                class: "input",
-                placeholder: "精确到自然地标或门牌号",
-                maxlength: "500"
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            ), [
-              [vue.vModelText, $data.form.address]
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "btn-row" }, [
-            vue.createElementVNode("button", {
-              class: "btn-back",
-              onClick: _cache[17] || (_cache[17] = ($event) => $data.step = 0)
-            }, "← 上一步"),
-            vue.createElementVNode("button", {
-              class: "btn-next half",
-              onClick: _cache[18] || (_cache[18] = ($event) => $options.goStep(2))
-            }, "下一步：状态权属 →")
-          ])
-        ])) : vue.createCommentVNode("v-if", true),
-        $data.step === 2 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 2,
-          class: "section"
-        }, [
-          vue.createElementVNode("view", { class: "section-head" }, [
-            vue.createElementVNode("view", { class: "section-dot amber" }),
-            vue.createElementVNode("text", { class: "section-title" }, "保存状况与权属")
-          ]),
-          vue.createElementVNode("view", { class: "field-row" }, [
-            vue.createElementVNode("view", { class: "field half" }, [
-              vue.createElementVNode("text", { class: "label" }, "保存现状"),
-              vue.createElementVNode("picker", {
-                range: $options.preservationLabels,
-                value: $options.preservationIndex,
-                onChange: _cache[19] || (_cache[19] = (...args) => $options.onPreservationChange && $options.onPreservationChange(...args))
-              }, [
-                vue.createElementVNode("view", { class: "picker-view" }, [
-                  vue.createElementVNode(
-                    "text",
-                    { class: "picker-val" },
-                    vue.toDisplayString($options.preservationLabels[$options.preservationIndex]),
-                    1
-                    /* TEXT */
-                  ),
-                  vue.createElementVNode("text", { class: "picker-arrow" }, "›")
-                ])
-              ], 40, ["range", "value"])
-            ]),
-            vue.createElementVNode("view", { class: "field half" }, [
-              vue.createElementVNode("text", { class: "label" }, "权属"),
-              vue.createElementVNode("picker", {
-                range: $options.ownershipLabels,
-                value: $options.ownershipIndex,
-                onChange: _cache[20] || (_cache[20] = (...args) => $options.onOwnershipChange && $options.onOwnershipChange(...args))
-              }, [
-                vue.createElementVNode("view", { class: "picker-view" }, [
-                  vue.createElementVNode(
-                    "text",
-                    { class: "picker-val" },
-                    vue.toDisplayString($options.ownershipLabels[$options.ownershipIndex]),
-                    1
-                    /* TEXT */
-                  ),
-                  vue.createElementVNode("text", { class: "picker-arrow" }, "›")
-                ])
-              ], 40, ["range", "value"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "field" }, [
-            vue.createElementVNode("text", { class: "label" }, "保护级别"),
-            vue.createElementVNode("picker", {
-              range: $options.protectionLabels,
-              value: $options.protectionIndex,
-              onChange: _cache[21] || (_cache[21] = (...args) => $options.onProtectionChange && $options.onProtectionChange(...args))
-            }, [
-              vue.createElementVNode("view", { class: "picker-view" }, [
-                vue.createElementVNode(
-                  "text",
-                  { class: "picker-val" },
-                  vue.toDisplayString($options.protectionLabels[$options.protectionIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("text", { class: "picker-arrow" }, "›")
-              ])
-            ], 40, ["range", "value"])
-          ]),
-          vue.createElementVNode("view", { class: "btn-row" }, [
-            vue.createElementVNode("button", {
-              class: "btn-back",
-              onClick: _cache[22] || (_cache[22] = ($event) => $data.step = 1)
-            }, "← 上一步"),
-            vue.createElementVNode("button", {
-              class: "btn-next half",
-              onClick: _cache[23] || (_cache[23] = ($event) => $options.goStep(3))
-            }, "下一步：现场照片 →")
-          ])
-        ])) : vue.createCommentVNode("v-if", true),
-        $data.step === 3 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 3,
-          class: "section"
-        }, [
-          vue.createElementVNode("view", { class: "section-head" }, [
-            vue.createElementVNode("view", { class: "section-dot rose" }),
-            vue.createElementVNode("text", { class: "section-title" }, "现场照片"),
-            vue.createElementVNode("text", { class: "section-hint" }, "最多 10 张，服务端自动加水印")
-          ]),
-          vue.createElementVNode("view", { class: "photo-grid" }, [
-            (vue.openBlock(true), vue.createElementBlock(
-              vue.Fragment,
-              null,
-              vue.renderList($data.photos, (p, i) => {
-                return vue.openBlock(), vue.createElementBlock("view", {
-                  key: i,
-                  class: "photo-thumb"
-                }, [
-                  vue.createElementVNode("image", {
-                    src: p.path,
-                    mode: "aspectFill",
-                    class: "thumb-img"
-                  }, null, 8, ["src"]),
-                  i === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-                    key: 0,
-                    class: "cover-badge"
-                  }, "封面")) : vue.createCommentVNode("v-if", true),
-                  vue.createElementVNode("view", {
-                    class: "remove-btn",
-                    onClick: ($event) => $options.removePhoto(i)
-                  }, "×", 8, ["onClick"])
-                ]);
-              }),
-              128
-              /* KEYED_FRAGMENT */
-            )),
-            $data.photos.length < 10 ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 0,
-              class: "photo-add",
-              onClick: _cache[24] || (_cache[24] = (...args) => $options.choosePhoto && $options.choosePhoto(...args))
-            }, [
-              vue.createElementVNode("text", { class: "add-icon" }, "📷"),
-              vue.createElementVNode("text", { class: "add-text" }, "拍照/相册")
-            ])) : vue.createCommentVNode("v-if", true)
-          ]),
-          vue.createElementVNode(
-            "text",
-            { class: "photo-count" },
-            "已选 " + vue.toDisplayString($data.photos.length) + " 张",
-            1
-            /* TEXT */
-          ),
-          vue.createElementVNode("view", { class: "tip-box" }, [
-            vue.createElementVNode("text", { class: "tip-text" }, "💡 第一张将作为封面图。选择照片后会先在 App 端按巡查上报同款样式合成水印："),
-            vue.createElementVNode(
-              "text",
-              { class: "tip-text" },
-              "文物名称 · 经纬度(度分秒) · 采集时间 · " + vue.toDisplayString($data.collectUnit),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "btn-row" }, [
-            vue.createElementVNode("button", {
-              class: "btn-back",
-              onClick: _cache[25] || (_cache[25] = ($event) => $data.step = 2)
-            }, "← 上一步"),
-            vue.createElementVNode("button", {
-              class: "btn-next half",
-              onClick: _cache[26] || (_cache[26] = (...args) => $options.submitAll && $options.submitAll(...args)),
-              disabled: $data.submitting
-            }, vue.toDisplayString($data.submitting ? "提交中…" : "提交采集数据 ✓"), 9, ["disabled"])
-          ])
-        ])) : vue.createCommentVNode("v-if", true),
-        $data.step === 4 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 4,
-          class: "section"
-        }, [
-          vue.createElementVNode("view", { class: "progress-card" }, [
-            vue.createElementVNode(
-              "view",
-              {
-                class: vue.normalizeClass(["progress-icon", $data.submitDone ? "done" : "loading"])
-              },
-              [
-                $data.submitDone ? (vue.openBlock(), vue.createElementBlock("text", { key: 0 }, "✓")) : (vue.openBlock(), vue.createElementBlock("text", {
-                  key: 1,
-                  class: "spin"
-                }, "⟳"))
-              ],
-              2
-              /* CLASS */
-            ),
-            vue.createElementVNode(
-              "text",
-              { class: "progress-title" },
-              vue.toDisplayString($data.submitDone ? "采集成功！" : "正在提交…"),
-              1
-              /* TEXT */
-            ),
-            $data.submitDone && $data.generatedSurveyCode ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 0,
-              class: "survey-code-result"
-            }, [
-              vue.createElementVNode("text", { class: "survey-code-label" }, "采集编号"),
-              vue.createElementVNode(
-                "text",
-                { class: "survey-code-value" },
-                vue.toDisplayString($data.generatedSurveyCode),
-                1
-                /* TEXT */
-              )
-            ])) : vue.createCommentVNode("v-if", true),
-            vue.createElementVNode(
-              "text",
-              { class: "progress-msg" },
-              vue.toDisplayString($data.progressMsg),
-              1
-              /* TEXT */
-            ),
-            $data.photos.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 1,
-              class: "photo-progress"
-            }, [
-              (vue.openBlock(true), vue.createElementBlock(
-                vue.Fragment,
-                null,
-                vue.renderList($data.photos, (p, i) => {
-                  return vue.openBlock(), vue.createElementBlock("view", {
-                    key: i,
-                    class: "photo-progress-item"
-                  }, [
-                    vue.createElementVNode(
-                      "view",
-                      {
-                        class: vue.normalizeClass(["progress-dot", p.status])
-                      },
-                      null,
-                      2
-                      /* CLASS */
-                    ),
-                    vue.createElementVNode(
-                      "text",
-                      { class: "progress-photo-name" },
-                      "照片 " + vue.toDisplayString(i + 1),
-                      1
-                      /* TEXT */
-                    ),
-                    vue.createElementVNode(
-                      "text",
-                      { class: "progress-photo-status" },
-                      vue.toDisplayString($options.photoStatusText(p.status)),
-                      1
-                      /* TEXT */
-                    )
-                  ]);
-                }),
-                128
-                /* KEYED_FRAGMENT */
-              ))
-            ])) : vue.createCommentVNode("v-if", true),
-            $data.submitDone ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 2,
-              class: "done-actions"
-            }, [
-              vue.createElementVNode("button", {
-                class: "btn-back",
-                onClick: _cache[27] || (_cache[27] = (...args) => $options.resetForm && $options.resetForm(...args))
-              }, "继续采集"),
-              vue.createElementVNode("button", {
-                class: "btn-next half",
-                onClick: _cache[28] || (_cache[28] = (...args) => $options.goMyRecords && $options.goMyRecords(...args))
-              }, "查看我的采集")
-            ])) : vue.createCommentVNode("v-if", true)
-          ])
-        ])) : vue.createCommentVNode("v-if", true)
-      ]),
-      vue.createElementVNode("canvas", {
-        "canvas-id": "watermarkCanvas",
-        width: $data.watermarkCanvas.width,
-        height: $data.watermarkCanvas.height,
-        style: vue.normalizeStyle(`position:absolute;left:-9999px;top:-9999px;width:${$data.watermarkCanvas.width}px;height:${$data.watermarkCanvas.height}px;pointer-events:none;`)
-      }, null, 12, ["width", "height"])
+    return vue.openBlock(), vue.createElementBlock("view", { class: "page-wrap" }, [
+      vue.createVNode($setup["HeritageCollectRefactor"], {
+        ref: "collectRef",
+        loading: $setup.submitting,
+        meta: $setup.formMeta,
+        onCollectCoordinate: $setup.handleCollectCoordinate,
+        onCalibrateAltitude: $setup.handleCalibrateAltitude,
+        onOpenWatermarkCamera: $setup.handleOpenWatermarkCamera,
+        onSubmit: $setup.handleSubmit
+      }, null, 8, ["loading", "meta"]),
+      vue.createElementVNode("view", {
+        class: "hidden-altitude-collector",
+        "aria-hidden": "true"
+      }, [
+        vue.createVNode($setup["AltitudeCollect"], {
+          ref: "altitudeRef",
+          modelValue: $setup.shadowAltitude,
+          "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.shadowAltitude = $event),
+          onCollectDone: $setup.handleAltitudeCollected
+        }, null, 8, ["modelValue"])
+      ])
     ]);
   }
   const PagesCollectCollect = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-b24c290b"], ["__file", "C:/Users/14434/uniapp/pages/collect/collect.vue"]]);

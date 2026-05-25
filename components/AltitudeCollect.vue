@@ -680,6 +680,10 @@ async function startCollect() {
 		collecting.value = false;
 	}
 }
+
+defineExpose({
+	startCollect,
+});
 </script>
 
 <style scoped>
