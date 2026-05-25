@@ -186,6 +186,14 @@
 	color: #dc2626;
 }
 
+/* 警告（可继续人工处理） */
+.alt-status--warn[data-v-76fd7a0e] {
+	background: #fff7ed;
+}
+.alt-status--warn .alt-status-text[data-v-76fd7a0e] {
+	color: #c2410c;
+}
+
 /* ── 技术详情（灰色小字，供专业人员核查原始数据） ── */
 .alt-detail[data-v-76fd7a0e] {
 	margin-top: 0.3125rem;

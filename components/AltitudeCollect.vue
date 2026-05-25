@@ -69,8 +69,14 @@
 
 import { ref, watch } from 'vue';
 import config from '../common/js/config.js';
-const DEM_TIMEOUT_MS = 8000;
+const DEM_TIMEOUT_MS = 15000;
 const GPS_TIMEOUT_MS = 12000;
+const BARO_TIMEOUT_MS = 3000;
+const STD_PRESSURE_HPA = 1013.25;
+const BARO_PRESSURE_MIN_HPA = 300;
+const BARO_PRESSURE_MAX_HPA = 1100;
+const ALTITUDE_MIN_M = -500;
+const ALTITUDE_MAX_M = 9000;
 
 const props = defineProps({
 	modelValue: {
@@ -118,11 +124,29 @@ function _toValidHardwareAltitude(value) {
 	if (!Number.isFinite(n)) return null;
 	// 按需求：0 视为无效海拔，必须进入 C 场景。
 	if (Math.abs(n) < 1e-6) return null;
+	if (n < ALTITUDE_MIN_M || n > ALTITUDE_MAX_M) return null;
 	return n;
+}
+
+function _toValidPressureHpa(value) {
+	const p = Number(value);
+	if (!Number.isFinite(p)) return null;
+	if (p < BARO_PRESSURE_MIN_HPA || p > BARO_PRESSURE_MAX_HPA) return null;
+	return p;
 }
 
 function _toFixed2(value) {
 	return Number(value).toFixed(2);
+}
+
+function pressureToAltitude(pressureHpa, refPressureHpa = STD_PRESSURE_HPA) {
+	return 44330 * (1 - Math.pow(pressureHpa / refPressureHpa, 1 / 5.255));
+}
+
+function fuseHardwareAltitude(gpsAlt, baroAlt, accuracy) {
+	const acc = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 999;
+	const gpsW = acc <= 5 ? 0.6 : acc <= 15 ? 0.5 : acc <= 50 ? 0.4 : 0.3;
+	return gpsAlt * gpsW + baroAlt * (1 - gpsW);
 }
 
 function _mapGpsError(err) {
@@ -193,40 +217,194 @@ function getNativeGpsPosition() {
 	});
 }
 
+function getBarometerPressureByPlus() {
+	return new Promise((resolve) => {
+		let done = false;
+		const finish = (val) => {
+			if (done) return;
+			done = true;
+			resolve(val);
+		};
+
+		const timer = setTimeout(() => finish(null), BARO_TIMEOUT_MS);
+
+		// #ifdef APP-PLUS
+		try {
+			if (typeof plus !== 'undefined' && plus.sensors && typeof plus.sensors.startBarometer === 'function') {
+				plus.sensors.startBarometer(
+					{ frequency: 'fastest' },
+					(event) => {
+						try {
+							plus.sensors.stopBarometer();
+						} catch (_) {}
+						clearTimeout(timer);
+						const raw = event && (event.pressure ?? (event.value && event.value[0]));
+						if (raw == null) {
+							finish(null);
+							return;
+						}
+						const num = Number(raw);
+						if (!Number.isFinite(num)) {
+							finish(null);
+							return;
+						}
+						// 部分设备返回 Pa（>50000），统一转换为 hPa。
+						finish(num > 50000 ? num / 100 : num);
+					},
+					() => {
+						clearTimeout(timer);
+						finish(null);
+					}
+				);
+				return;
+			}
+		} catch (_) {
+			clearTimeout(timer);
+			finish(null);
+			return;
+		}
+		clearTimeout(timer);
+		finish(null);
+		// #endif
+
+		// #ifndef APP-PLUS
+		clearTimeout(timer);
+		finish(null);
+		// #endif
+	});
+}
+
+async function buildHardwareAltitude(gps) {
+	const gpsAlt = _toValidHardwareAltitude(gps && gps.altitude);
+	const pressure = await getBarometerPressureByPlus();
+
+	let baroAlt = null;
+	if (Number.isFinite(Number(pressure))) {
+		const validPressure = _toValidPressureHpa(pressure);
+		if (validPressure == null) {
+			return {
+				altitude: gpsAlt,
+				source: gpsAlt != null ? 'gps-only' : 'none',
+				detail: gpsAlt != null
+					? `硬件来源: GPS ${gpsAlt.toFixed(2)}m（气压值异常已忽略）`
+					: '硬件来源: 气压值异常且GPS海拔无效',
+			};
+		}
+
+		if (gpsAlt != null) {
+			// 使用 GPS 绝对高程反推当前海平面参考气压，降低天气漂移误差。
+			const refPressure = STD_PRESSURE_HPA * Math.pow(1 - gpsAlt / 44330, 5.255);
+			baroAlt = _toValidHardwareAltitude(pressureToAltitude(validPressure, refPressure));
+		} else {
+			baroAlt = _toValidHardwareAltitude(pressureToAltitude(validPressure, STD_PRESSURE_HPA));
+		}
+	}
+
+	if (gpsAlt != null && baroAlt != null) {
+		const fused = _toValidHardwareAltitude(fuseHardwareAltitude(gpsAlt, baroAlt, gps && gps.accuracy));
+		if (fused != null) {
+			return {
+				altitude: fused,
+				source: 'gps+barometer',
+				detail: `硬件融合: GPS ${gpsAlt.toFixed(2)}m + 气压推算 ${baroAlt.toFixed(2)}m`,
+			};
+		}
+	}
+
+	if (gpsAlt != null) {
+		return {
+			altitude: gpsAlt,
+			source: 'gps-only',
+			detail: `硬件来源: GPS ${gpsAlt.toFixed(2)}m（设备无气压计或读数不可用）`,
+		};
+	}
+
+	if (baroAlt != null) {
+		return {
+			altitude: baroAlt,
+			source: 'barometer-only',
+			detail: `硬件来源: 气压计 ${baroAlt.toFixed(2)}m（GPS海拔无效，已通过范围校验）`,
+		};
+	}
+
+	return {
+		altitude: null,
+		source: 'none',
+		detail: '硬件来源: GPS海拔无效且设备未返回可用气压值',
+	};
+}
+
 function requestDemAltitude(longitude, latitude) {
 	return new Promise((resolve, reject) => {
-		uni.request({
-			url: props.demApiUrl,
-			method: 'POST',
-			timeout: DEM_TIMEOUT_MS,
-			header: {
-				'Content-Type': 'application/json',
-			},
-			data: {
-				longitude,
-				latitude,
-			},
+		const fallbackDirectUrl = `${config.WEB_BASE_URL}/api/dem-elevation-lookup/`;
+		const fallbackAppApiUrl = `${config.WEB_BASE_URL}/app-api/api/dem-elevation-lookup/`;
+		const fallbackByReplace = `${String(config.API_BASE_URL || '').replace(/\/app-api\/?$/, '')}/api/dem-elevation-lookup/`;
+		const urlCandidates = Array.from(
+			new Set([props.demApiUrl, fallbackDirectUrl, fallbackAppApiUrl, fallbackByReplace].filter(Boolean))
+		);
+		let attemptIndex = 0;
+
+		const tryNext = (lastError) => {
+			if (attemptIndex >= urlCandidates.length) {
+				reject(lastError || new Error('DEM 请求失败'));
+				return;
+			}
+
+			const targetUrl = urlCandidates[attemptIndex++];
+			uni.request({
+				url: targetUrl,
+				method: 'POST',
+				timeout: DEM_TIMEOUT_MS,
+				sslVerify: false,
+				header: {
+					'Content-Type': 'application/json',
+				},
+				data: {
+					longitude,
+					latitude,
+				},
+				success: (res) => {
+					const data = res && res.data ? res.data : {};
+					if (res.statusCode !== 200) {
+						tryNext(new Error(`DEM HTTP ${res.statusCode || 'ERR'} @ ${targetUrl}`));
+						return;
+					}
+
+					// 兼容多种后端格式：
+					// 1) { code: 200, altitude: 421.50 }
+					// 2) { success: true, elevation: 421.50 }
+					// 3) { data: { altitude: 421.50 } }
+					const demOk = data.code === 200 || data.success === true || data.status === 'success';
+					const demAltitude = data.altitude ?? data.elevation ?? (data.data && (data.data.altitude ?? data.data.elevation));
+					if (!demOk || demAltitude === null || demAltitude === undefined || Number.isNaN(Number(demAltitude))) {
+						tryNext(new Error(`DEM 返回无有效高程 @ ${targetUrl}`));
+						return;
+					}
+
+					resolve(Number(demAltitude));
+				},
+				fail: (err) => {
+					tryNext(new Error(`DEM 请求失败: ${(err && err.errMsg) || 'network fail'} @ ${targetUrl}`));
+				},
+			});
+		};
+
+		tryNext();
+	});
+}
+
+function requestHardwareAltitudeFallback() {
+	return new Promise((resolve) => {
+		uni.getLocation({
+			type: 'wgs84',
+			isHighAccuracy: true,
+			altitude: true,
+			highAccuracyExpireTime: 6000,
 			success: (res) => {
-				const data = res && res.data ? res.data : {};
-				if (res.statusCode !== 200) {
-					reject(new Error(`DEM HTTP ${res.statusCode || 'ERR'}`));
-					return;
-				}
-
-				// 兼容两种后端格式：
-				// 1) { code: 200, altitude: 421.50 }
-				// 2) { success: true, elevation: 421.50 }
-				const demOk = data.code === 200 || data.success === true;
-				const demAltitude = data.altitude ?? data.elevation;
-				if (!demOk || demAltitude === null || demAltitude === undefined || Number.isNaN(Number(demAltitude))) {
-					reject(new Error('DEM 返回无有效高程')); 
-					return;
-				}
-
-				resolve(Number(demAltitude));
+				resolve(_toValidHardwareAltitude(res && res.altitude));
 			},
-			fail: (err) => {
-				reject(new Error(`DEM 请求失败: ${(err && err.errMsg) || 'network fail'}`));
+			fail: () => {
+				resolve(null);
 			},
 		});
 	});
@@ -247,11 +425,18 @@ async function startCollect() {
 		const gps = await getNativeGpsPosition();
 		const longitude = Number(gps.longitude);
 		const latitude = Number(gps.latitude);
-		const hardwareAltitude = _toValidHardwareAltitude(gps.altitude);
+		const hardware = await buildHardwareAltitude(gps);
+		let hardwareAltitude = hardware.altitude;
 		const accuracy = Number.isFinite(Number(gps.accuracy)) ? Number(gps.accuracy) : null;
 
 		if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
 			throw new Error('GPS 返回经纬度无效');
+		}
+
+		// 某些机型 plus.geolocation 能返回经纬度，但 altitude 先返回 0/null。
+		// 此处追加一次 uni.getLocation 的海拔兜底读取，尽量避免误触发红色告警。
+		if (hardwareAltitude == null) {
+			hardwareAltitude = await requestHardwareAltitudeFallback();
 		}
 
 		let chosenAltitude = null;
@@ -259,6 +444,7 @@ async function startCollect() {
 		let chosenBadgeClass = '';
 		let chosenStatus = '';
 		let chosenStatusClass = '';
+		let demFailureReason = '';
 
 		// 第二步：优先尝试 DEM 反查。
 		try {
@@ -268,7 +454,8 @@ async function startCollect() {
 			chosenBadgeClass = 'badge--dem';
 			chosenStatus = '后端 DEM 反查成功，已使用国家高程校准值';
 			chosenStatusClass = 'alt-status--success';
-		} catch (_demErr) {
+		} catch (demErr) {
+			demFailureReason = (demErr && demErr.message) || 'DEM 请求失败';
 			// B/C 降级：网络失败或后端不可用时，绝不阻塞采集流程。
 			if (hardwareAltitude != null) {
 				chosenAltitude = hardwareAltitude;
@@ -281,7 +468,7 @@ async function startCollect() {
 				chosenLabel = '🔴 信号断绝，请手动输入RTK手簿数据';
 				chosenBadgeClass = 'badge--critical';
 				chosenStatus = '网络中断且硬件海拔无效，已填充 0.00，请立即手动录入 RTK 数据';
-				chosenStatusClass = 'alt-status--error';
+				chosenStatusClass = 'alt-status--warn';
 			}
 		}
 
@@ -291,7 +478,7 @@ async function startCollect() {
 		statusMsg.value = chosenStatus;
 		statusClass.value = chosenStatusClass;
 
-		detailText.value = `经度 ${longitude.toFixed(8)} ｜ 纬度 ${latitude.toFixed(8)} ｜ 硬件海拔 ${gps.altitude != null ? Number(gps.altitude).toFixed(2) : 'null'} ｜ 精度 ${accuracy != null ? `±${Math.round(accuracy)}m` : '未知'}`;
+		detailText.value = `经度 ${longitude.toFixed(8)} ｜ 纬度 ${latitude.toFixed(8)} ｜ ${hardware.detail} ｜ 精度 ${accuracy != null ? `±${Math.round(accuracy)}m` : '未知'}${demFailureReason ? ` ｜ DEM失败: ${demFailureReason}` : ''}`;
 
 		emit('update:modelValue', altitude.value);
 		emit('collect-done', {
@@ -300,6 +487,7 @@ async function startCollect() {
 			accuracy,
 			altitude: Number(altitude.value),
 			hardwareAltitude,
+			hardwareSource: hardware.source,
 			source: chosenLabel,
 		});
 
@@ -510,6 +698,14 @@ async function startCollect() {
 }
 .alt-status--error .alt-status-text {
 	color: #dc2626;
+}
+
+/* 警告（可继续人工处理） */
+.alt-status--warn {
+	background: #fff7ed;
+}
+.alt-status--warn .alt-status-text {
+	color: #c2410c;
 }
 
 /* ── 技术详情（灰色小字，供专业人员核查原始数据） ── */

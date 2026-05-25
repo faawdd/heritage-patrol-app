@@ -3038,8 +3038,14 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
     ]);
   }
   const PagesKmlKml = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__file", "C:/Users/14434/uniapp/pages/kml/kml.vue"]]);
-  const DEM_TIMEOUT_MS = 8e3;
+  const DEM_TIMEOUT_MS = 15e3;
   const GPS_TIMEOUT_MS = 12e3;
+  const BARO_TIMEOUT_MS = 3e3;
+  const STD_PRESSURE_HPA = 1013.25;
+  const BARO_PRESSURE_MIN_HPA = 300;
+  const BARO_PRESSURE_MAX_HPA = 1100;
+  const ALTITUDE_MIN_M = -500;
+  const ALTITUDE_MAX_M = 9e3;
   const _sfc_main$3 = {
     __name: "AltitudeCollect",
     props: {
@@ -3088,10 +3094,28 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           return null;
         if (Math.abs(n) < 1e-6)
           return null;
+        if (n < ALTITUDE_MIN_M || n > ALTITUDE_MAX_M)
+          return null;
         return n;
+      }
+      function _toValidPressureHpa(value) {
+        const p = Number(value);
+        if (!Number.isFinite(p))
+          return null;
+        if (p < BARO_PRESSURE_MIN_HPA || p > BARO_PRESSURE_MAX_HPA)
+          return null;
+        return p;
       }
       function _toFixed2(value) {
         return Number(value).toFixed(2);
+      }
+      function pressureToAltitude(pressureHpa, refPressureHpa = STD_PRESSURE_HPA) {
+        return 44330 * (1 - Math.pow(pressureHpa / refPressureHpa, 1 / 5.255));
+      }
+      function fuseHardwareAltitude(gpsAlt, baroAlt, accuracy) {
+        const acc = Number.isFinite(Number(accuracy)) ? Number(accuracy) : 999;
+        const gpsW = acc <= 5 ? 0.6 : acc <= 15 ? 0.5 : acc <= 50 ? 0.4 : 0.3;
+        return gpsAlt * gpsW + baroAlt * (1 - gpsW);
       }
       function _mapGpsError(err) {
         const raw = String(err && (err.message || err.errMsg) || err || "");
@@ -3137,35 +3161,165 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           }
         });
       }
+      function getBarometerPressureByPlus() {
+        return new Promise((resolve) => {
+          let done = false;
+          const finish = (val) => {
+            if (done)
+              return;
+            done = true;
+            resolve(val);
+          };
+          const timer = setTimeout(() => finish(null), BARO_TIMEOUT_MS);
+          try {
+            if (typeof plus !== "undefined" && plus.sensors && typeof plus.sensors.startBarometer === "function") {
+              plus.sensors.startBarometer(
+                { frequency: "fastest" },
+                (event) => {
+                  try {
+                    plus.sensors.stopBarometer();
+                  } catch (_) {
+                  }
+                  clearTimeout(timer);
+                  const raw = event && (event.pressure ?? (event.value && event.value[0]));
+                  if (raw == null) {
+                    finish(null);
+                    return;
+                  }
+                  const num = Number(raw);
+                  if (!Number.isFinite(num)) {
+                    finish(null);
+                    return;
+                  }
+                  finish(num > 5e4 ? num / 100 : num);
+                },
+                () => {
+                  clearTimeout(timer);
+                  finish(null);
+                }
+              );
+              return;
+            }
+          } catch (_) {
+            clearTimeout(timer);
+            finish(null);
+            return;
+          }
+          clearTimeout(timer);
+          finish(null);
+        });
+      }
+      async function buildHardwareAltitude(gps) {
+        const gpsAlt = _toValidHardwareAltitude(gps && gps.altitude);
+        const pressure = await getBarometerPressureByPlus();
+        let baroAlt = null;
+        if (Number.isFinite(Number(pressure))) {
+          const validPressure = _toValidPressureHpa(pressure);
+          if (validPressure == null) {
+            return {
+              altitude: gpsAlt,
+              source: gpsAlt != null ? "gps-only" : "none",
+              detail: gpsAlt != null ? `硬件来源: GPS ${gpsAlt.toFixed(2)}m（气压值异常已忽略）` : "硬件来源: 气压值异常且GPS海拔无效"
+            };
+          }
+          if (gpsAlt != null) {
+            const refPressure = STD_PRESSURE_HPA * Math.pow(1 - gpsAlt / 44330, 5.255);
+            baroAlt = _toValidHardwareAltitude(pressureToAltitude(validPressure, refPressure));
+          } else {
+            baroAlt = _toValidHardwareAltitude(pressureToAltitude(validPressure, STD_PRESSURE_HPA));
+          }
+        }
+        if (gpsAlt != null && baroAlt != null) {
+          const fused = _toValidHardwareAltitude(fuseHardwareAltitude(gpsAlt, baroAlt, gps && gps.accuracy));
+          if (fused != null) {
+            return {
+              altitude: fused,
+              source: "gps+barometer",
+              detail: `硬件融合: GPS ${gpsAlt.toFixed(2)}m + 气压推算 ${baroAlt.toFixed(2)}m`
+            };
+          }
+        }
+        if (gpsAlt != null) {
+          return {
+            altitude: gpsAlt,
+            source: "gps-only",
+            detail: `硬件来源: GPS ${gpsAlt.toFixed(2)}m（设备无气压计或读数不可用）`
+          };
+        }
+        if (baroAlt != null) {
+          return {
+            altitude: baroAlt,
+            source: "barometer-only",
+            detail: `硬件来源: 气压计 ${baroAlt.toFixed(2)}m（GPS海拔无效，已通过范围校验）`
+          };
+        }
+        return {
+          altitude: null,
+          source: "none",
+          detail: "硬件来源: GPS海拔无效且设备未返回可用气压值"
+        };
+      }
       function requestDemAltitude(longitude, latitude) {
         return new Promise((resolve, reject) => {
-          uni.request({
-            url: props.demApiUrl,
-            method: "POST",
-            timeout: DEM_TIMEOUT_MS,
-            header: {
-              "Content-Type": "application/json"
-            },
-            data: {
-              longitude,
-              latitude
-            },
+          const fallbackDirectUrl = `${config.WEB_BASE_URL}/api/dem-elevation-lookup/`;
+          const fallbackAppApiUrl = `${config.WEB_BASE_URL}/app-api/api/dem-elevation-lookup/`;
+          const fallbackByReplace = `${String(config.API_BASE_URL || "").replace(/\/app-api\/?$/, "")}/api/dem-elevation-lookup/`;
+          const urlCandidates = Array.from(
+            new Set([props.demApiUrl, fallbackDirectUrl, fallbackAppApiUrl, fallbackByReplace].filter(Boolean))
+          );
+          let attemptIndex = 0;
+          const tryNext = (lastError) => {
+            if (attemptIndex >= urlCandidates.length) {
+              reject(lastError || new Error("DEM 请求失败"));
+              return;
+            }
+            const targetUrl = urlCandidates[attemptIndex++];
+            uni.request({
+              url: targetUrl,
+              method: "POST",
+              timeout: DEM_TIMEOUT_MS,
+              sslVerify: false,
+              header: {
+                "Content-Type": "application/json"
+              },
+              data: {
+                longitude,
+                latitude
+              },
+              success: (res) => {
+                const data = res && res.data ? res.data : {};
+                if (res.statusCode !== 200) {
+                  tryNext(new Error(`DEM HTTP ${res.statusCode || "ERR"} @ ${targetUrl}`));
+                  return;
+                }
+                const demOk = data.code === 200 || data.success === true || data.status === "success";
+                const demAltitude = data.altitude ?? data.elevation ?? (data.data && (data.data.altitude ?? data.data.elevation));
+                if (!demOk || demAltitude === null || demAltitude === void 0 || Number.isNaN(Number(demAltitude))) {
+                  tryNext(new Error(`DEM 返回无有效高程 @ ${targetUrl}`));
+                  return;
+                }
+                resolve(Number(demAltitude));
+              },
+              fail: (err) => {
+                tryNext(new Error(`DEM 请求失败: ${err && err.errMsg || "network fail"} @ ${targetUrl}`));
+              }
+            });
+          };
+          tryNext();
+        });
+      }
+      function requestHardwareAltitudeFallback() {
+        return new Promise((resolve) => {
+          uni.getLocation({
+            type: "wgs84",
+            isHighAccuracy: true,
+            altitude: true,
+            highAccuracyExpireTime: 6e3,
             success: (res) => {
-              const data = res && res.data ? res.data : {};
-              if (res.statusCode !== 200) {
-                reject(new Error(`DEM HTTP ${res.statusCode || "ERR"}`));
-                return;
-              }
-              const demOk = data.code === 200 || data.success === true;
-              const demAltitude = data.altitude ?? data.elevation;
-              if (!demOk || demAltitude === null || demAltitude === void 0 || Number.isNaN(Number(demAltitude))) {
-                reject(new Error("DEM 返回无有效高程"));
-                return;
-              }
-              resolve(Number(demAltitude));
+              resolve(_toValidHardwareAltitude(res && res.altitude));
             },
-            fail: (err) => {
-              reject(new Error(`DEM 请求失败: ${err && err.errMsg || "network fail"}`));
+            fail: () => {
+              resolve(null);
             }
           });
         });
@@ -3183,16 +3337,21 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           const gps = await getNativeGpsPosition();
           const longitude = Number(gps.longitude);
           const latitude = Number(gps.latitude);
-          const hardwareAltitude = _toValidHardwareAltitude(gps.altitude);
+          const hardware = await buildHardwareAltitude(gps);
+          let hardwareAltitude = hardware.altitude;
           const accuracy = Number.isFinite(Number(gps.accuracy)) ? Number(gps.accuracy) : null;
           if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) {
             throw new Error("GPS 返回经纬度无效");
+          }
+          if (hardwareAltitude == null) {
+            hardwareAltitude = await requestHardwareAltitudeFallback();
           }
           let chosenAltitude = null;
           let chosenLabel = "";
           let chosenBadgeClass = "";
           let chosenStatus = "";
           let chosenStatusClass = "";
+          let demFailureReason = "";
           try {
             const demAltitude = await requestDemAltitude(longitude, latitude);
             chosenAltitude = demAltitude;
@@ -3200,7 +3359,8 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
             chosenBadgeClass = "badge--dem";
             chosenStatus = "后端 DEM 反查成功，已使用国家高程校准值";
             chosenStatusClass = "alt-status--success";
-          } catch (_demErr) {
+          } catch (demErr) {
+            demFailureReason = demErr && demErr.message || "DEM 请求失败";
             if (hardwareAltitude != null) {
               chosenAltitude = hardwareAltitude;
               chosenLabel = "🟡 手机硬件高程(无网保底)";
@@ -3212,7 +3372,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
               chosenLabel = "🔴 信号断绝，请手动输入RTK手簿数据";
               chosenBadgeClass = "badge--critical";
               chosenStatus = "网络中断且硬件海拔无效，已填充 0.00，请立即手动录入 RTK 数据";
-              chosenStatusClass = "alt-status--error";
+              chosenStatusClass = "alt-status--warn";
             }
           }
           altitude.value = _toFixed2(chosenAltitude);
@@ -3220,7 +3380,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           sourceBadgeClass.value = chosenBadgeClass;
           statusMsg.value = chosenStatus;
           statusClass.value = chosenStatusClass;
-          detailText.value = `经度 ${longitude.toFixed(8)} ｜ 纬度 ${latitude.toFixed(8)} ｜ 硬件海拔 ${gps.altitude != null ? Number(gps.altitude).toFixed(2) : "null"} ｜ 精度 ${accuracy != null ? `±${Math.round(accuracy)}m` : "未知"}`;
+          detailText.value = `经度 ${longitude.toFixed(8)} ｜ 纬度 ${latitude.toFixed(8)} ｜ ${hardware.detail} ｜ 精度 ${accuracy != null ? `±${Math.round(accuracy)}m` : "未知"}${demFailureReason ? ` ｜ DEM失败: ${demFailureReason}` : ""}`;
           emit("update:modelValue", altitude.value);
           emit("collect-done", {
             longitude,
@@ -3228,6 +3388,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
             accuracy,
             altitude: Number(altitude.value),
             hardwareAltitude,
+            hardwareSource: hardware.source,
             source: chosenLabel
           });
           uni.showToast({
@@ -3246,7 +3407,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           collecting.value = false;
         }
       }
-      const __returned__ = { DEM_TIMEOUT_MS, GPS_TIMEOUT_MS, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, _toValidHardwareAltitude, _toFixed2, _mapGpsError, getNativeGpsPosition, requestDemAltitude, startCollect, ref: vue.ref, watch: vue.watch, get config() {
+      const __returned__ = { DEM_TIMEOUT_MS, GPS_TIMEOUT_MS, BARO_TIMEOUT_MS, STD_PRESSURE_HPA, BARO_PRESSURE_MIN_HPA, BARO_PRESSURE_MAX_HPA, ALTITUDE_MIN_M, ALTITUDE_MAX_M, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, _toValidHardwareAltitude, _toValidPressureHpa, _toFixed2, pressureToAltitude, fuseHardwareAltitude, _mapGpsError, getNativeGpsPosition, getBarometerPressureByPlus, buildHardwareAltitude, requestDemAltitude, requestHardwareAltitudeFallback, startCollect, ref: vue.ref, watch: vue.watch, get config() {
         return config;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
