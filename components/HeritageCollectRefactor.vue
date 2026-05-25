@@ -547,11 +547,40 @@ function getSelectedSiteName() {
   return form.name || '未命名文物';
 }
 
-function buildWatermarkText(time) {
-  const longitude = Number(form.longitude || 0).toFixed(6);
-  const latitude = Number(form.latitude || 0).toFixed(6);
+function formatCoordinateForWatermark(value, fallback = '--') {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed.toFixed(6) : fallback;
+}
 
-  return `用户: ${getWatermarkUserName()}\n文物点: ${getSelectedSiteName()}\n时间: ${time}\n经纬度: ${longitude}, ${latitude}`;
+function buildWatermarkText(snapshot) {
+  const longitude = formatCoordinateForWatermark(snapshot.longitude);
+  const latitude = formatCoordinateForWatermark(snapshot.latitude);
+
+  return `用户: ${getWatermarkUserName()}\n文物点: ${getSelectedSiteName()}\n时间: ${snapshot.time}\n经纬度: ${longitude}, ${latitude}`;
+}
+
+async function resolveWatermarkSnapshot() {
+  const now = new Date();
+  const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+  try {
+    const gps = await getNativeGpsPosition();
+    if (Number.isFinite(Number(gps.longitude)) && Number.isFinite(Number(gps.latitude))) {
+      return {
+        time,
+        longitude: Number(gps.longitude),
+        latitude: Number(gps.latitude),
+      };
+    }
+  } catch (_) {
+    // GPS 获取失败时回退到表单中的最新经纬度，保证拍照流程不中断。
+  }
+
+  return {
+    time,
+    longitude: Number(form.longitude),
+    latitude: Number(form.latitude),
+  };
 }
 
 function normalizeHardwareAltitude(rawAltitude) {
@@ -809,9 +838,8 @@ function pickPhoto() {
 
       for (let index = 0; index < tempFilePaths.length; index += 1) {
         const path = tempFilePaths[index];
-        const now = new Date();
-        const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-        const watermarkText = buildWatermarkText(time);
+        const snapshot = await resolveWatermarkSnapshot();
+        const watermarkText = buildWatermarkText(snapshot);
 
         try {
           await nextTick();

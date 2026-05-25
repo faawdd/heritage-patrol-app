@@ -156,6 +156,12 @@ const pointThemes = [
   { bg: '#F9F0FF', border: '#D3ADF7' },
   { bg: '#FFF1F0', border: '#FFA39E' },
   { bg: '#FCFFE6', border: '#D3F261' },
+  { bg: '#E6FFFB', border: '#87E8DE' },
+  { bg: '#F0F5FF', border: '#ADC6FF' },
+  { bg: '#FFF7E6', border: '#FFD591' },
+  { bg: '#F4FFB8', border: '#D3F261' },
+  { bg: '#FFF0F6', border: '#FFADD2' },
+  { bg: '#E6F4FF', border: '#69B1FF' },
 ];
 let uidSeed = 0;
 
@@ -226,10 +232,25 @@ function emitModel() {
 }
 
 function pointThemeStyle(index) {
-  const theme = pointThemes[index % pointThemes.length];
+  const theme = getPointTheme(index);
   return {
     background: theme.bg,
     borderColor: theme.border,
+  };
+}
+
+function getPointTheme(index) {
+  if (index < pointThemes.length) return pointThemes[index];
+
+  // 超出预置色后，按黄金角生成色相，减少相邻点位重复感。
+  const generatedIndex = index - pointThemes.length;
+  const hue = Math.round((generatedIndex * 137.508) % 360);
+  const saturation = 70 + (generatedIndex % 3) * 4;
+  const bgLightness = 95 - (generatedIndex % 2) * 2;
+  const borderLightness = 78 - (generatedIndex % 3) * 3;
+  return {
+    bg: `hsl(${hue}, ${saturation}%, ${bgLightness}%)`,
+    border: `hsl(${hue}, ${Math.min(90, saturation + 2)}%, ${borderLightness}%)`,
   };
 }
 

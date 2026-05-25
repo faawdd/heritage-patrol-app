@@ -3136,7 +3136,13 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         { bg: "#E6F7FF", border: "#91D5FF" },
         { bg: "#F9F0FF", border: "#D3ADF7" },
         { bg: "#FFF1F0", border: "#FFA39E" },
-        { bg: "#FCFFE6", border: "#D3F261" }
+        { bg: "#FCFFE6", border: "#D3F261" },
+        { bg: "#E6FFFB", border: "#87E8DE" },
+        { bg: "#F0F5FF", border: "#ADC6FF" },
+        { bg: "#FFF7E6", border: "#FFD591" },
+        { bg: "#F4FFB8", border: "#D3F261" },
+        { bg: "#FFF0F6", border: "#FFADD2" },
+        { bg: "#E6F4FF", border: "#69B1FF" }
       ];
       let uidSeed = 0;
       function nextId() {
@@ -3198,10 +3204,23 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         emit("update:modelValue", payload);
       }
       function pointThemeStyle(index) {
-        const theme = pointThemes[index % pointThemes.length];
+        const theme = getPointTheme(index);
         return {
           background: theme.bg,
           borderColor: theme.border
+        };
+      }
+      function getPointTheme(index) {
+        if (index < pointThemes.length)
+          return pointThemes[index];
+        const generatedIndex = index - pointThemes.length;
+        const hue = Math.round(generatedIndex * 137.508 % 360);
+        const saturation = 70 + generatedIndex % 3 * 4;
+        const bgLightness = 95 - generatedIndex % 2 * 2;
+        const borderLightness = 78 - generatedIndex % 3 * 3;
+        return {
+          bg: `hsl(${hue}, ${saturation}%, ${bgLightness}%)`,
+          border: `hsl(${hue}, ${Math.min(90, saturation + 2)}%, ${borderLightness}%)`
         };
       }
       const activePointIndex = vue.computed(() => {
@@ -3346,7 +3365,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         return uidSeed;
       }, set uidSeed(v) {
         uidSeed = v;
-      }, nextId, buildBoundaryDefaultDescription, normalizePoint, syncFromModelValue, emitModel, pointThemeStyle, activePointIndex, activePoint, openPointWindow, closePointWindow, addPoint, removePoint, onTypeChange, onFieldInput, onDescriptionInput, getTypePickerIndex, setLoading, isPointLoading, grabPoint, boundaryCount, validateBeforeSubmit, getCoordPayload, computed: vue.computed, reactive: vue.reactive, ref: vue.ref, watch: vue.watch };
+      }, nextId, buildBoundaryDefaultDescription, normalizePoint, syncFromModelValue, emitModel, pointThemeStyle, getPointTheme, activePointIndex, activePoint, openPointWindow, closePointWindow, addPoint, removePoint, onTypeChange, onFieldInput, onDescriptionInput, getTypePickerIndex, setLoading, isPointLoading, grabPoint, boundaryCount, validateBeforeSubmit, getCoordPayload, computed: vue.computed, reactive: vue.reactive, ref: vue.ref, watch: vue.watch };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -3875,13 +3894,37 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
       function getSelectedSiteName() {
         return form.name || "未命名文物";
       }
-      function buildWatermarkText(time) {
-        const longitude = Number(form.longitude || 0).toFixed(6);
-        const latitude = Number(form.latitude || 0).toFixed(6);
+      function formatCoordinateForWatermark(value, fallback = "--") {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed.toFixed(6) : fallback;
+      }
+      function buildWatermarkText(snapshot) {
+        const longitude = formatCoordinateForWatermark(snapshot.longitude);
+        const latitude = formatCoordinateForWatermark(snapshot.latitude);
         return `用户: ${getWatermarkUserName()}
 文物点: ${getSelectedSiteName()}
-时间: ${time}
+时间: ${snapshot.time}
 经纬度: ${longitude}, ${latitude}`;
+      }
+      async function resolveWatermarkSnapshot() {
+        const now = /* @__PURE__ */ new Date();
+        const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+        try {
+          const gps = await getNativeGpsPosition();
+          if (Number.isFinite(Number(gps.longitude)) && Number.isFinite(Number(gps.latitude))) {
+            return {
+              time,
+              longitude: Number(gps.longitude),
+              latitude: Number(gps.latitude)
+            };
+          }
+        } catch (_) {
+        }
+        return {
+          time,
+          longitude: Number(form.longitude),
+          latitude: Number(form.latitude)
+        };
       }
       function normalizeHardwareAltitude(rawAltitude) {
         const altitude = Number(rawAltitude);
@@ -4108,9 +4151,8 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
             const selected = [];
             for (let index = 0; index < tempFilePaths.length; index += 1) {
               const path = tempFilePaths[index];
-              const now = /* @__PURE__ */ new Date();
-              const time = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
-              const watermarkText = buildWatermarkText(time);
+              const snapshot = await resolveWatermarkSnapshot();
+              const watermarkText = buildWatermarkText(snapshot);
               try {
                 await vue.nextTick();
                 const watermarkedPath = await addWatermark(path, watermarkText, instance.proxy);
@@ -4208,7 +4250,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         resolveAltitude,
         capturePointData
       });
-      const __returned__ = { DEM_TIMEOUT_MS, ALTITUDE_MIN_M, ALTITUDE_MAX_M, ALTITUDE_ZERO_EPS, GPS_TIMEOUT_MS, props, emitting, currentStep, stepDefs, stepNodeClass, altitudeMode, photos, signStatus, watermarkCanvas, coordRef, coordList, instance, form, altitudeSource, badgeClassMap, categoryLabels, protectionLabels, ownershipLabels, preservationLabels, categoryIndex, protectionIndex, ownershipIndex, preservationIndex, categoryText, protectionText, ownershipText, preservationText, provinceOptions, cityOptions, countyOptions, provinceIndex, cityIndex, countyIndex, altitudeSourceLabel, boundaryPointCount, goPrevStep, goStep1ToStep2, goStep2ToStep3, onModeChange, onCategoryChange, onProtectionChange, onOwnershipChange, onPreservationChange, ensureRegionChain, applyDefaultRegion, onProvinceChange, onCityChange, onCountyChange, isInChoices, isInList, collectSignature, setMainAltitude, getWatermarkUserName, getSelectedSiteName, buildWatermarkText, normalizeHardwareAltitude, requestDemAltitude, resolveAltitude, getNativeGpsPosition, capturePointData, handleCollectCoordinate, handleCollectAltitude, pickPhoto, removePhoto, validateForm, handleSubmit, computed: vue.computed, getCurrentInstance: vue.getCurrentInstance, nextTick: vue.nextTick, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get config() {
+      const __returned__ = { DEM_TIMEOUT_MS, ALTITUDE_MIN_M, ALTITUDE_MAX_M, ALTITUDE_ZERO_EPS, GPS_TIMEOUT_MS, props, emitting, currentStep, stepDefs, stepNodeClass, altitudeMode, photos, signStatus, watermarkCanvas, coordRef, coordList, instance, form, altitudeSource, badgeClassMap, categoryLabels, protectionLabels, ownershipLabels, preservationLabels, categoryIndex, protectionIndex, ownershipIndex, preservationIndex, categoryText, protectionText, ownershipText, preservationText, provinceOptions, cityOptions, countyOptions, provinceIndex, cityIndex, countyIndex, altitudeSourceLabel, boundaryPointCount, goPrevStep, goStep1ToStep2, goStep2ToStep3, onModeChange, onCategoryChange, onProtectionChange, onOwnershipChange, onPreservationChange, ensureRegionChain, applyDefaultRegion, onProvinceChange, onCityChange, onCountyChange, isInChoices, isInList, collectSignature, setMainAltitude, getWatermarkUserName, getSelectedSiteName, formatCoordinateForWatermark, buildWatermarkText, resolveWatermarkSnapshot, normalizeHardwareAltitude, requestDemAltitude, resolveAltitude, getNativeGpsPosition, capturePointData, handleCollectCoordinate, handleCollectAltitude, pickPhoto, removePhoto, validateForm, handleSubmit, computed: vue.computed, getCurrentInstance: vue.getCurrentInstance, nextTick: vue.nextTick, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get config() {
         return config;
       }, get CHINA_REGION_TREE() {
         return CHINA_REGION_TREE;
