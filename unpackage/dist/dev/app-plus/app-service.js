@@ -3131,33 +3131,185 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
         }
         return "获取原生 GPS 失败，请重试";
       }
-      function getNativeGpsPosition() {
+      function getAndroidNativeGpsPosition() {
         return new Promise((resolve, reject) => {
           try {
-            plus.geolocation.getCurrentPosition(
-              (position) => {
-                const coords = position && position.coords ? position.coords : {};
-                resolve({
-                  longitude: Number(coords.longitude),
-                  latitude: Number(coords.latitude),
-                  altitude: coords.altitude != null ? Number(coords.altitude) : null,
-                  accuracy: coords.accuracy != null ? Number(coords.accuracy) : null
-                });
-              },
-              (err) => {
-                reject(new Error(_mapGpsError(err)));
-              },
-              {
-                provider: "gps",
-                enableHighAccuracy: true,
-                coordsType: "wgs84",
-                timeout: GPS_TIMEOUT_MS,
-                maximumAge: 0,
-                geocode: false
+            if (typeof plus === "undefined" || !plus.android || !plus.os || String(plus.os.name || "").toLowerCase() !== "android") {
+              resolve(null);
+              return;
+            }
+            plus.android.importClass("android.location.LocationManager");
+            const activity = plus.android.runtimeMainActivity();
+            const locationManager = plus.android.invoke(activity, "getSystemService", "location");
+            const provider = "gps";
+            if (!locationManager) {
+              reject(new Error("location manager unavailable"));
+              return;
+            }
+            const enabled = plus.android.invoke(locationManager, "isProviderEnabled", provider);
+            if (!enabled) {
+              reject(new Error("provider disabled"));
+              return;
+            }
+            let done = false;
+            let timer = null;
+            let listener = null;
+            const parseLocation = (loc) => {
+              if (!loc)
+                return null;
+              const longitude = Number(plus.android.invoke(loc, "getLongitude"));
+              const latitude = Number(plus.android.invoke(loc, "getLatitude"));
+              if (!Number.isFinite(longitude) || !Number.isFinite(latitude))
+                return null;
+              const hasAltitude = !!plus.android.invoke(loc, "hasAltitude");
+              const hasAccuracy = !!plus.android.invoke(loc, "hasAccuracy");
+              const altitude2 = hasAltitude ? Number(plus.android.invoke(loc, "getAltitude")) : null;
+              const accuracy = hasAccuracy ? Number(plus.android.invoke(loc, "getAccuracy")) : null;
+              return {
+                longitude,
+                latitude,
+                altitude: Number.isFinite(altitude2) ? altitude2 : null,
+                accuracy: Number.isFinite(accuracy) ? accuracy : null
+              };
+            };
+            const finish = (payload, err) => {
+              if (done)
+                return;
+              done = true;
+              if (timer)
+                clearTimeout(timer);
+              try {
+                if (listener)
+                  plus.android.invoke(locationManager, "removeUpdates", listener);
+              } catch (_) {
               }
-            );
+              if (err)
+                reject(err);
+              else
+                resolve(payload);
+            };
+            listener = plus.android.implements("android.location.LocationListener", {
+              onLocationChanged: (location) => {
+                const parsed = parseLocation(location);
+                if (!parsed)
+                  return;
+                finish(parsed, null);
+              },
+              onStatusChanged: () => {
+              },
+              onProviderEnabled: () => {
+              },
+              onProviderDisabled: () => {
+              }
+            });
+            const lastKnown = plus.android.invoke(locationManager, "getLastKnownLocation", provider);
+            const lastParsed = parseLocation(lastKnown);
+            if (lastParsed && (lastParsed.altitude != null || lastParsed.longitude != null && lastParsed.latitude != null)) {
+              finish(lastParsed, null);
+              return;
+            }
+            plus.android.invoke(locationManager, "requestLocationUpdates", provider, 0, 0, listener);
+            timer = setTimeout(() => finish(null, new Error("timeout")), GPS_TIMEOUT_MS + 6e3);
           } catch (e) {
-            reject(new Error(_mapGpsError(e)));
+            reject(new Error(String(e && e.message || e || "android native gps error")));
+          }
+        });
+      }
+      function getNativeGpsPosition() {
+        return new Promise((resolve, reject) => {
+          (async () => {
+            try {
+              let nativeGps = null;
+              try {
+                nativeGps = await getAndroidNativeGpsPosition();
+              } catch (_) {
+                nativeGps = null;
+              }
+              if (nativeGps && Number.isFinite(nativeGps.longitude) && Number.isFinite(nativeGps.latitude)) {
+                resolve(nativeGps);
+                return;
+              }
+              plus.geolocation.getCurrentPosition(
+                (position) => {
+                  const coords = position && position.coords ? position.coords : {};
+                  resolve({
+                    longitude: Number(coords.longitude),
+                    latitude: Number(coords.latitude),
+                    altitude: coords.altitude != null ? Number(coords.altitude) : null,
+                    accuracy: coords.accuracy != null ? Number(coords.accuracy) : null
+                  });
+                },
+                (err) => {
+                  reject(new Error(_mapGpsError(err)));
+                },
+                {
+                  provider: "gps",
+                  enableHighAccuracy: true,
+                  coordsType: "wgs84",
+                  timeout: GPS_TIMEOUT_MS,
+                  maximumAge: 0,
+                  geocode: false
+                }
+              );
+            } catch (e) {
+              reject(new Error(_mapGpsError(e)));
+            }
+          })();
+        });
+      }
+      function getAndroidBarometerPressureBySensorManager() {
+        return new Promise((resolve) => {
+          try {
+            if (typeof plus === "undefined" || !plus.android || !plus.os || String(plus.os.name || "").toLowerCase() !== "android") {
+              resolve(null);
+              return;
+            }
+            plus.android.importClass("android.hardware.SensorManager");
+            plus.android.importClass("android.hardware.Sensor");
+            const activity = plus.android.runtimeMainActivity();
+            const sensorManager = plus.android.invoke(activity, "getSystemService", "sensor");
+            const pressureSensor = plus.android.invoke(sensorManager, "getDefaultSensor", 6);
+            if (!pressureSensor) {
+              resolve(null);
+              return;
+            }
+            let done = false;
+            let timer = null;
+            let listener = null;
+            const finish = (v) => {
+              if (done)
+                return;
+              done = true;
+              if (timer)
+                clearTimeout(timer);
+              try {
+                if (listener)
+                  plus.android.invoke(sensorManager, "unregisterListener", listener);
+              } catch (_) {
+              }
+              resolve(v);
+            };
+            listener = plus.android.implements("android.hardware.SensorEventListener", {
+              onSensorChanged: (sensorEvent) => {
+                try {
+                  const values = plus.android.getAttribute(sensorEvent, "values");
+                  const raw = values ? Number(values[0]) : null;
+                  if (!Number.isFinite(raw)) {
+                    finish(null);
+                    return;
+                  }
+                  finish(raw > 5e4 ? raw / 100 : raw);
+                } catch (_) {
+                  finish(null);
+                }
+              },
+              onAccuracyChanged: () => {
+              }
+            });
+            plus.android.invoke(sensorManager, "registerListener", listener, pressureSensor, 0);
+            timer = setTimeout(() => finish(null), BARO_TIMEOUT_MS);
+          } catch (_) {
+            resolve(null);
           }
         });
       }
@@ -3171,42 +3323,48 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
             resolve(val);
           };
           const timer = setTimeout(() => finish(null), BARO_TIMEOUT_MS);
-          try {
-            if (typeof plus !== "undefined" && plus.sensors && typeof plus.sensors.startBarometer === "function") {
-              plus.sensors.startBarometer(
-                { frequency: "fastest" },
-                (event) => {
-                  try {
-                    plus.sensors.stopBarometer();
-                  } catch (_) {
+          (async () => {
+            try {
+              if (typeof plus !== "undefined" && plus.sensors && typeof plus.sensors.startBarometer === "function") {
+                plus.sensors.startBarometer(
+                  { frequency: "fastest" },
+                  async (event) => {
+                    try {
+                      plus.sensors.stopBarometer();
+                    } catch (_) {
+                    }
+                    clearTimeout(timer);
+                    const raw = event && (event.pressure ?? (event.value && event.value[0]));
+                    if (raw == null) {
+                      const androidHpa2 = await getAndroidBarometerPressureBySensorManager();
+                      finish(androidHpa2);
+                      return;
+                    }
+                    const num = Number(raw);
+                    if (!Number.isFinite(num)) {
+                      const androidHpa2 = await getAndroidBarometerPressureBySensorManager();
+                      finish(androidHpa2);
+                      return;
+                    }
+                    finish(num > 5e4 ? num / 100 : num);
+                  },
+                  async () => {
+                    clearTimeout(timer);
+                    const androidHpa2 = await getAndroidBarometerPressureBySensorManager();
+                    finish(androidHpa2);
                   }
-                  clearTimeout(timer);
-                  const raw = event && (event.pressure ?? (event.value && event.value[0]));
-                  if (raw == null) {
-                    finish(null);
-                    return;
-                  }
-                  const num = Number(raw);
-                  if (!Number.isFinite(num)) {
-                    finish(null);
-                    return;
-                  }
-                  finish(num > 5e4 ? num / 100 : num);
-                },
-                () => {
-                  clearTimeout(timer);
-                  finish(null);
-                }
-              );
-              return;
+                );
+                return;
+              }
+              clearTimeout(timer);
+              const androidHpa = await getAndroidBarometerPressureBySensorManager();
+              finish(androidHpa);
+            } catch (_) {
+              clearTimeout(timer);
+              const androidHpa = await getAndroidBarometerPressureBySensorManager();
+              finish(androidHpa);
             }
-          } catch (_) {
-            clearTimeout(timer);
-            finish(null);
-            return;
-          }
-          clearTimeout(timer);
-          finish(null);
+          })();
         });
       }
       async function buildHardwareAltitude(gps) {
@@ -3407,7 +3565,7 @@ ${this.t("patrol.watermarkCoord")}: ${longitude}, ${latitude}`;
           collecting.value = false;
         }
       }
-      const __returned__ = { DEM_TIMEOUT_MS, GPS_TIMEOUT_MS, BARO_TIMEOUT_MS, STD_PRESSURE_HPA, BARO_PRESSURE_MIN_HPA, BARO_PRESSURE_MAX_HPA, ALTITUDE_MIN_M, ALTITUDE_MAX_M, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, _toValidHardwareAltitude, _toValidPressureHpa, _toFixed2, pressureToAltitude, fuseHardwareAltitude, _mapGpsError, getNativeGpsPosition, getBarometerPressureByPlus, buildHardwareAltitude, requestDemAltitude, requestHardwareAltitudeFallback, startCollect, ref: vue.ref, watch: vue.watch, get config() {
+      const __returned__ = { DEM_TIMEOUT_MS, GPS_TIMEOUT_MS, BARO_TIMEOUT_MS, STD_PRESSURE_HPA, BARO_PRESSURE_MIN_HPA, BARO_PRESSURE_MAX_HPA, ALTITUDE_MIN_M, ALTITUDE_MAX_M, props, emit, altitude, collecting, statusMsg, statusClass, detailText, sourceLabel, sourceBadgeClass, onManualInput, _toValidHardwareAltitude, _toValidPressureHpa, _toFixed2, pressureToAltitude, fuseHardwareAltitude, _mapGpsError, getAndroidNativeGpsPosition, getNativeGpsPosition, getAndroidBarometerPressureBySensorManager, getBarometerPressureByPlus, buildHardwareAltitude, requestDemAltitude, requestHardwareAltitudeFallback, startCollect, ref: vue.ref, watch: vue.watch, get config() {
         return config;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
