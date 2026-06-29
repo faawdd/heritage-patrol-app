@@ -271,6 +271,11 @@ const messages = {
 		heroLabel: '空间工具',
 		title: 'KML 叠加检查',
 		subtitle: '已切换为更简洁的工具页样式。页面将复用现有 Django 网页能力，并优先使用 App 的桥接登录。',
+		showCurrentLocation: '显示当前位置',
+		locating: '定位中',
+		locationUpdated: '已刷新当前定位',
+		locationFailed: '定位失败，请检查定位权限和GPS',
+		currentLocationPrefix: '当前位置',
 	},
 };
 
