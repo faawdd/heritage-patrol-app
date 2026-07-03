@@ -1,9 +1,33 @@
 const TOKEN_KEY = 'heritage_app_token';
+const REFRESH_TOKEN_KEY = 'heritage_app_refresh_token';
 const USER_KEY = 'heritage_app_user';
 
-export function setSession(token, user) {
-	uni.setStorageSync(TOKEN_KEY, token);
-	uni.setStorageSync(USER_KEY, JSON.stringify(user || {}));
+export function setSession(sessionOrToken, user) {
+	if (typeof sessionOrToken === 'string') {
+		uni.setStorageSync(TOKEN_KEY, sessionOrToken);
+		uni.removeStorageSync(REFRESH_TOKEN_KEY);
+		uni.setStorageSync(USER_KEY, JSON.stringify(user || {}));
+		return;
+	}
+
+	const payload = sessionOrToken || {};
+	const accessToken = payload.access_token || payload.token || '';
+	const refreshToken = payload.refresh_token || payload.refresh || '';
+	const userPayload = payload.user || user || {};
+
+	if (accessToken) {
+		uni.setStorageSync(TOKEN_KEY, accessToken);
+	} else {
+		uni.removeStorageSync(TOKEN_KEY);
+	}
+
+	if (refreshToken) {
+		uni.setStorageSync(REFRESH_TOKEN_KEY, refreshToken);
+	} else {
+		uni.removeStorageSync(REFRESH_TOKEN_KEY);
+	}
+
+	uni.setStorageSync(USER_KEY, JSON.stringify(userPayload));
 }
 
 export function getToken() {
@@ -22,8 +46,13 @@ export function getUser() {
 	}
 }
 
+export function getRefreshToken() {
+	return uni.getStorageSync(REFRESH_TOKEN_KEY) || '';
+}
+
 export function clearSession() {
 	uni.removeStorageSync(TOKEN_KEY);
+	uni.removeStorageSync(REFRESH_TOKEN_KEY);
 	uni.removeStorageSync(USER_KEY);
 }
 

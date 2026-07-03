@@ -87,37 +87,62 @@ export default {
 		}
 	},
 	methods: {
-		handleLogin() {
+			handleLogin() {
 			if (!this.form.username || !this.form.password) {
 				uni.showToast({ title: this.t('login.missingCredentials'), icon: 'none' });
 				return;
 			}
 			this.loading = true;
-			uni.request({
-				url: `${config.API_BASE_URL}/api/auth/login`,
-				method: 'POST',
-				data: this.form,
-				header: {
-					'Content-Type': 'application/json',
-				},
-				success: (res) => {
-					if (res.statusCode === 200 && res.data && res.data.token) {
-						setSession(res.data.token, res.data.user);
-						uni.showToast({ title: this.t('login.success'), icon: 'success' });
-						setTimeout(() => {
-							uni.reLaunch({ url: '/pages/home/home' });
-						}, 300);
-						return;
-					}
-					uni.showToast({ title: (res.data && res.data.detail) || this.t('login.failed'), icon: 'none' });
-				},
-				fail: () => {
-					uni.showToast({ title: this.t('login.serverUnavailable'), icon: 'none' });
-				},
-				complete: () => {
-					this.loading = false;
-				},
-			});
+
+				const onLoginSuccess = (sessionData, fallbackUser) => {
+					setSession(sessionData, fallbackUser);
+					uni.showToast({ title: this.t('login.success'), icon: 'success' });
+					setTimeout(() => {
+						uni.reLaunch({ url: '/pages/home/home' });
+					}, 300);
+				};
+
+				uni.request({
+					url: `${config.API_BASE_URL}/api/v1/system/login/`,
+					method: 'POST',
+					data: this.form,
+					header: {
+						'Content-Type': 'application/json',
+					},
+					success: (res) => {
+						if (res.statusCode === 200 && res.data && res.data.success && res.data.data && (res.data.data.access_token || res.data.data.token)) {
+							onLoginSuccess(res.data.data, res.data.data.user || null);
+							return;
+						}
+
+						// 兼容旧版 app-api 认证接口
+						uni.request({
+							url: `${config.API_BASE_URL}/api/auth/login`,
+							method: 'POST',
+							data: this.form,
+							header: {
+								'Content-Type': 'application/json',
+							},
+							success: (legacyRes) => {
+								if (legacyRes.statusCode === 200 && legacyRes.data && (legacyRes.data.token || legacyRes.data.access_token)) {
+									onLoginSuccess(legacyRes.data, legacyRes.data.user || null);
+									return;
+								}
+								uni.showToast({ title: (legacyRes.data && (legacyRes.data.detail || legacyRes.data.message)) || this.t('login.failed'), icon: 'none' });
+							},
+							fail: () => {
+								uni.showToast({ title: this.t('login.serverUnavailable'), icon: 'none' });
+							},
+							complete: () => {
+								this.loading = false;
+							},
+						});
+					},
+					fail: () => {
+						uni.showToast({ title: this.t('login.serverUnavailable'), icon: 'none' });
+						this.loading = false;
+					},
+				});
 		},
 		handleForgotPassword() {
 			uni.showModal({

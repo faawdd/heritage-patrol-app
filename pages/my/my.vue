@@ -88,18 +88,32 @@
 					uni.showLoading({ title: this.t('my.loadMe') });
 				}
 				uni.request({
-					url: `${config.API_BASE_URL}/api/auth/me`,
+					url: `${config.API_BASE_URL}/api/v1/system/profile/`,
 					method: 'GET',
 					header: getAuthHeader(),
 					success: (res) => {
-						if (res.statusCode === 200 && res.data && res.data.user) {
-							this.user = res.data.user;
-							setSession(getToken(), this.user);
+						if (res.statusCode === 200 && res.data && res.data.success && res.data.data) {
+							this.user = res.data.data;
+							setSession({ token: getToken(), user: this.user });
 							return;
 						}
-						if (res.statusCode === 401) {
-							this.logout(false);
-						}
+
+						// 兼容旧版接口
+						uni.request({
+							url: `${config.API_BASE_URL}/api/auth/me`,
+							method: 'GET',
+							header: getAuthHeader(),
+							success: (legacyRes) => {
+								if (legacyRes.statusCode === 200 && legacyRes.data && legacyRes.data.user) {
+									this.user = legacyRes.data.user;
+									setSession({ token: getToken(), user: this.user });
+									return;
+								}
+								if (legacyRes.statusCode === 401) {
+									this.logout(false);
+								}
+							},
+						});
 					},
 					complete: () => {
 						if (showLoading) {
@@ -124,25 +138,54 @@
 				}
 				this.saving = true;
 				uni.request({
-					url: `${config.API_BASE_URL}/api/auth/change-password`,
+					url: `${config.API_BASE_URL}/api/v1/system/profile/change-password/`,
 					method: 'POST',
 					header: {
 						'Content-Type': 'application/json',
 						...getAuthHeader(),
 					},
 					data: {
-						current_password: form.current_password,
+						old_password: form.current_password,
 						new_password: form.new_password,
 					},
 					success: (res) => {
-						if (res.statusCode === 200) {
+						if (res.statusCode === 200 && res.data && res.data.success) {
 							this.passwordForm.current_password = '';
 							this.passwordForm.new_password = '';
 							this.passwordForm.confirm_password = '';
 							uni.showToast({ title: this.t('my.passwordSuccess'), icon: 'success' });
 							return;
 						}
-						uni.showToast({ title: (res.data && res.data.detail) || this.t('my.passwordFailed'), icon: 'none' });
+
+						// 兼容旧版接口
+						uni.request({
+							url: `${config.API_BASE_URL}/api/auth/change-password`,
+							method: 'POST',
+							header: {
+								'Content-Type': 'application/json',
+								...getAuthHeader(),
+							},
+							data: {
+								current_password: form.current_password,
+								new_password: form.new_password,
+							},
+							success: (legacyRes) => {
+								if (legacyRes.statusCode === 200) {
+									this.passwordForm.current_password = '';
+									this.passwordForm.new_password = '';
+									this.passwordForm.confirm_password = '';
+									uni.showToast({ title: this.t('my.passwordSuccess'), icon: 'success' });
+									return;
+								}
+								uni.showToast({ title: (legacyRes.data && legacyRes.data.detail) || this.t('my.passwordFailed'), icon: 'none' });
+							},
+							fail: () => {
+								uni.showToast({ title: this.t('my.passwordFailed'), icon: 'none' });
+							},
+							complete: () => {
+								this.saving = false;
+							},
+						});
 					},
 					fail: () => {
 						uni.showToast({ title: this.t('my.passwordFailed'), icon: 'none' });
