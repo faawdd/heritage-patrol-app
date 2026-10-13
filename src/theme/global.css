@@ -1,0 +1,452 @@
+/* 全局设计系统：大字号、高对比、大按钮，适合户外与老年用户（由原 uni-app App.vue 迁移，1rpx = 0.5px） */
+/* ==========  全局设计系统：大字号、高对比、大按钮，适合户外与老年用户  ========== */
+:root {
+	--c-primary: #1E5AA8;
+	--c-primary-dark: #0F2F5C;
+	--c-primary-light: #E8F0FB;
+	--c-gold: #D99A1E;
+	--c-success: #15803D;
+	--c-success-bg: #E7F6EC;
+	--c-danger: #C62828;
+	--c-danger-bg: #FDECEC;
+	--c-warning: #B45309;
+	--c-warning-bg: #FEF3E2;
+	--c-bg: #F1F4F9;
+	--c-surface: #FFFFFF;
+	--c-text: #0F172A;
+	--c-text-2: #334155;
+	--c-text-3: #64748B;
+	--c-line: #E2E8F0;
+	--r-card: 14px;
+	--r-btn: 12px;
+	--shadow-card: 0 4px 14px rgba(15, 47, 92, 0.08);
+	--shadow-btn: 0 6px 14px rgba(30, 90, 168, 0.28);
+
+	/* 兼容管理端页面使用的旧变量名 */
+	--bg-primary: #F1F4F9;
+	--bg-secondary: #E8F0FB;
+	--surface: #FFFFFF;
+	--surface-strong: #FFFFFF;
+	--surface-dark: #0F2F5C;
+	--line-soft: #E2E8F0;
+	--line-strong: #CBD5E1;
+	--text-primary: #0F172A;
+	--text-secondary: #475569;
+	--text-contrast: #FFFFFF;
+	--accent: #1E5AA8;
+	--accent-soft: rgba(30, 90, 168, 0.12);
+	--accent-strong: #174B8F;
+	--accent-glow: rgba(30, 90, 168, 0.28);
+	--success: #15803D;
+	--shadow-soft: 0 4px 12px rgba(15, 47, 92, 0.06);
+	--shadow-strong: 0 6px 16px rgba(15, 47, 92, 0.1);
+	--input-bg: #F1F5FB;
+	--danger: #C62828;
+	--danger-soft: rgba(198, 40, 40, 0.1);
+	--focus-ring: rgba(30, 90, 168, 0.24);
+	--transition-fast: all 160ms ease;
+	--radius-card: 14px;
+	--radius-pill: 499.5px;
+	--topbar-min-height: 88px;
+	--card-padding: 14px;
+	--title-xl: 22px;
+	--title-lg: 19px;
+	--title-md: 17px;
+}
+
+body {
+	background: var(--c-bg);
+	color: var(--c-text);
+	font-size: 16px;
+	line-height: 1.5;
+	font-family: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
+}
+
+button::after {
+	border: none;
+}
+
+button {
+	border: none;
+	transition: var(--transition-fast);
+}
+
+button[disabled] {
+	opacity: 0.5;
+}
+
+/* ---------- 新版通用组件类（u- 前缀） ---------- */
+.u-page {
+	min-height: 100%;
+	background: var(--c-bg);
+	box-sizing: border-box;
+}
+
+.u-page.has-tabbar {
+	padding-bottom: 24px;
+}
+
+.u-body {
+	padding: 0 14px;
+}
+
+.u-card {
+	background: var(--c-surface);
+	border-radius: var(--r-card);
+	padding: 16px;
+	box-shadow: var(--shadow-card);
+	margin-bottom: 14px;
+	box-sizing: border-box;
+}
+
+.u-section-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--c-text);
+	margin: 6px 2px 10px;
+}
+
+.u-section-title .u-link {
+	font-size: 15px;
+	font-weight: 500;
+	color: var(--c-primary);
+}
+
+.u-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 54px;
+	padding: 0 18px;
+	margin: 0;
+	border-radius: var(--r-btn);
+	font-size: 18px;
+	font-weight: 700;
+	line-height: 1;
+	color: var(--c-primary);
+	background: var(--c-primary-light);
+	box-sizing: border-box;
+}
+
+.u-btn::after {
+	display: none;
+	border: none;
+}
+
+.u-btn:active {
+	transform: scale(0.98);
+	opacity: 0.9;
+}
+
+.u-btn.primary {
+	color: #FFFFFF;
+	background: linear-gradient(135deg, #2A6BC2 0%, #1E5AA8 55%, #174B8F 100%);
+	box-shadow: var(--shadow-btn);
+}
+
+.u-btn.success {
+	color: #FFFFFF;
+	background: linear-gradient(135deg, #1C9A4C 0%, #15803D 100%);
+	box-shadow: 0 6px 14px rgba(21, 128, 61, 0.28);
+}
+
+.u-btn.danger {
+	color: #FFFFFF;
+	background: linear-gradient(135deg, #DC3B3B 0%, #C62828 100%);
+	box-shadow: 0 6px 14px rgba(198, 40, 40, 0.26);
+}
+
+.u-btn.ghost {
+	color: var(--c-primary);
+	background: #FFFFFF;
+	border: 1.5px solid var(--c-primary);
+}
+
+.u-btn.plain {
+	color: var(--c-text-2);
+	background: #FFFFFF;
+	border: 1px solid var(--c-line);
+}
+
+.u-btn.danger-ghost {
+	color: var(--c-danger);
+	background: #FFFFFF;
+	border: 1.5px solid #F3C2C2;
+}
+
+.u-btn.xl {
+	height: 64px;
+	font-size: 20px;
+	border-radius: 16px;
+}
+
+.u-btn.sm {
+	height: 40px;
+	font-size: 15px;
+	padding: 0 14px;
+	border-radius: 10px;
+}
+
+.u-btn.block {
+	width: 100%;
+}
+
+.u-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 10px;
+	border-radius: 499.5px;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.u-badge.ok {
+	color: var(--c-success);
+	background: var(--c-success-bg);
+}
+
+.u-badge.bad {
+	color: var(--c-danger);
+	background: var(--c-danger-bg);
+}
+
+.u-badge.info {
+	color: var(--c-primary);
+	background: var(--c-primary-light);
+}
+
+.u-badge.warn {
+	color: var(--c-warning);
+	background: var(--c-warning-bg);
+}
+
+.u-input {
+	height: 56px;
+	padding: 0 14px;
+	border-radius: 12px;
+	background: #F5F7FB;
+	border: 1.5px solid var(--c-line);
+	font-size: 17px;
+	color: var(--c-text);
+	box-sizing: border-box;
+}
+
+.u-input-focus {
+	border-color: var(--c-primary);
+	background: #FFFFFF;
+}
+
+.u-placeholder {
+	color: #94A3B8;
+	font-size: 16px;
+}
+
+.u-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 32px 12px;
+	color: var(--c-text-3);
+	font-size: 16px;
+	text-align: center;
+	gap: 10px;
+}
+
+.u-row {
+	display: flex;
+	align-items: center;
+}
+
+.u-muted {
+	color: var(--c-text-3);
+}
+
+.u-fade-in {
+	animation: uFadeIn 260ms ease both;
+}
+
+@keyframes uFadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ---------- 旧页面（管理端）保留的通用样式 ---------- */
+input:focus,
+textarea:focus {
+	box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.card,
+.record-card,
+.empty-card,
+.summary-card,
+.section,
+.location-section,
+.heritage-section,
+.action-section,
+.preview-section,
+.manual-section,
+.form-card {
+	padding: var(--card-padding);
+}
+
+.header-title,
+.hero-title,
+.title {
+	font-size: var(--title-xl);
+}
+
+.card-title,
+.section-title,
+.record-site,
+.editor-title,
+.empty-title {
+	font-size: var(--title-lg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.u-fade-in {
+		animation: none;
+	}
+}
+
+/* ---------- Ionic 集成 ---------- */
+ion-content {
+	--background: var(--c-bg);
+	--color: var(--c-text);
+	font-size: 16px;
+}
+
+ion-content.no-safe-top::part(scroll) {
+	padding-top: 0;
+}
+
+/* 标准导航栏（非自定义头部页面） */
+ion-toolbar.app-toolbar {
+	--background: #1E5AA8;
+	--color: #FFFFFF;
+	--border-width: 0;
+	--min-height: 52px;
+}
+
+ion-toolbar.app-toolbar ion-title {
+	font-size: 18px;
+	font-weight: 700;
+}
+
+ion-toolbar.app-toolbar ion-back-button,
+ion-toolbar.app-toolbar ion-button {
+	--color: #FFFFFF;
+}
+
+/* 原生按钮重置（页面中保留 <button class="u-btn"> 写法） */
+button {
+	font-family: inherit;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
+	outline: none;
+}
+
+button.u-btn {
+	border: none;
+}
+
+input,
+textarea {
+	font-family: inherit;
+	outline: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+input.u-input {
+	width: 100%;
+	display: block;
+}
+
+img {
+	-webkit-user-drag: none;
+}
+
+/* Overlay 主题 */
+ion-toast.app-toast {
+	--background: rgba(15, 23, 42, 0.88);
+	--color: #FFFFFF;
+	--border-radius: 14px;
+	--max-width: 80%;
+	--min-width: auto;
+	font-size: 16px;
+	text-align: center;
+}
+
+ion-alert.app-alert {
+	--max-width: 86%;
+	--width: 86%;
+}
+
+ion-alert.app-alert .alert-title {
+	font-size: 19px;
+	font-weight: 800;
+}
+
+ion-alert.app-alert .alert-message {
+	font-size: 16px;
+	color: var(--c-text-2);
+	white-space: pre-line;
+}
+
+ion-alert.app-alert .alert-button {
+	font-size: 17px;
+	font-weight: 700;
+}
+
+ion-alert.app-alert .alert-btn-danger {
+	color: var(--c-danger);
+}
+
+ion-alert.app-alert .alert-btn-primary {
+	color: var(--c-primary);
+}
+
+ion-loading {
+	--spinner-color: var(--c-primary);
+}
+
+ion-refresher ion-refresher-content {
+	--color: var(--c-text-3);
+}
+
+/* ---------- 由原 uni.scss 迁移的全局类 ---------- */
+.card-body {
+	padding: 12px;
+}
+
+.elev-soft {
+	box-shadow: 0 5px 12px rgba(0, 0, 0, 0.04);
+}
+
+.elev-strong {
+	box-shadow: 0 7px 15px rgba(0, 0, 0, 0.06);
+}
+
+.floating-window,
+.header-card,
+.hero,
+.hero-card,
+.notice {
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}

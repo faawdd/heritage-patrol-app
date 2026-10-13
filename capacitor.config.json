@@ -1,0 +1,23 @@
+{
+  "appId": "top.beichenhome.heritage",
+  "appName": "鄯善文保",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    },
+    "SplashScreen": {
+      "launchShowDuration": 800,
+      "backgroundColor": "#1E5AA8",
+      "showSpinner": false
+    },
+    "StatusBar": {
+      "overlaysWebView": false,
+      "style": "DARK",
+      "backgroundColor": "#1E5AA8"
+    }
+  }
+}
