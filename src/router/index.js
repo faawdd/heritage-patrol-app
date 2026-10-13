@@ -13,6 +13,7 @@ const routes = [
 			{ path: '', redirect: '/tabs/home' },
 			{ path: 'home', component: () => import('@/views/HomePage.vue') },
 			{ path: 'records', component: () => import('@/views/RecordsPage.vue') },
+			{ path: 'tasks', component: () => import('@/views/TasksPage.vue') },
 			{ path: 'patrol', component: () => import('@/views/PatrolPage.vue') },
 			{ path: 'admin', component: () => import('@/views/AdminPage.vue'), meta: { admin: true } },
 			{ path: 'my', component: () => import('@/views/MyPage.vue') },

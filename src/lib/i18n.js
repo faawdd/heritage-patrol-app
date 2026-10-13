@@ -256,6 +256,8 @@ const messages = {
 		startCollect: '开始采集',
 		onlineTools: '在线系统',
 		collectManageTitle: '采集数据管理',
+		patrolManageTitle: '巡查管理',
+		patrolManageDesc: '批量分配乡镇与文物点、设置巡查周期、查看到期任务（需联网）',
 		collectManageDesc: '在线查看、审核与导出采集登记表',
 		projectOnlineTitle: '用地项目办理',
 		projectOnlineDesc: '新建项目、上传材料、办理审批流程',
@@ -395,4 +397,3 @@ export function getWorkflowLabel(status) {
 	}
 	return status || '';
 }
-

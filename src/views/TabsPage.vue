@@ -47,11 +47,15 @@
 			navItems() {
 				const items = [
 					{ key: 'home', name: '首页', icon: 'home', url: '/tabs/home' },
-					{ key: 'records', name: '记录', icon: 'records', url: '/tabs/records' },
+					isAdminUser(this.user)
+						? { key: 'records', name: '记录', icon: 'records', url: '/tabs/records' }
+						: { key: 'tasks', name: '任务', icon: 'clock', url: '/tabs/tasks' },
 					{ key: 'patrol', name: '巡查上报', icon: 'camera', url: '/tabs/patrol', main: true },
 				];
 				if (isAdminUser(this.user)) {
 					items.push({ key: 'admin', name: '管理', icon: 'grid', url: '/tabs/admin' });
+				} else {
+					items.push({ key: 'records', name: '记录', icon: 'records', url: '/tabs/records' });
 				}
 				items.push({ key: 'my', name: '我的', icon: 'user', url: '/tabs/my' });
 				return items;

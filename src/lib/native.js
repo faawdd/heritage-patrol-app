@@ -160,6 +160,7 @@ export async function previewImage(urls, current) {
 		cssClass: 'image-preview-modal',
 	});
 	await modal.present();
+	return modal;
 }
 
 export function makePhoneCall(phoneNumber) {

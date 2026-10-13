@@ -21,6 +21,17 @@
 				</div>
 
 				<div class="u-body">
+					<div v-if="pending.length" class="u-card">
+						<h3>待同步巡查（{{ pending.length }}）</h3>
+						<p>照片已保存到本机，上传成功后才移除。不要清除应用数据或卸载。</p>
+						<button class="u-btn primary block" :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</button>
+						<div v-for="item in pending" :key="item.key">
+							<p>{{ item.site_name }} · {{ new Date(item.inspect_time).toLocaleString() }} · {{ item.photos.length }} 张照片</p>
+							<p v-if="item.error" style="color: #C62828">{{ item.error }}</p>
+							<button class="u-btn sm" @click="previewPending(item)">查看本地照片</button>
+						</div>
+					</div>
+					<p v-if="cached">正在显示本机缓存记录，联网后可刷新。</p>
 					<div v-if="loading && !records.length" class="u-empty">
 						<AppIcon name="clock" :size="88" color="#94A3B8" />
 						<span>正在加载…</span>
@@ -68,8 +79,9 @@
 								:src="item.photo_url"
 								loading="lazy"
 								alt=""
-								@click="preview(item.photo_url)"
+								@click="preview(item)"
 							/>
+							<span v-if="item.photo_urls?.length > 1">共 {{ item.photo_urls.length }} 张（点击查看）</span>
 						</div>
 					</div>
 				</div>
@@ -82,7 +94,7 @@
 	import { IonContent, IonPage, IonRefresher, IonRefresherContent } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
-	import { apiRequest } from '@/lib/request.js';
+	import { loadPatrolRecords, PATROL_CHANGED, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
 	import { friendlyTime, todayKey } from '@/lib/format.js';
 	import { previewImage } from '@/lib/native.js';
 	import { switchTab } from '@/lib/nav.js';
@@ -95,6 +107,9 @@
 				loading: false,
 				loadError: false,
 				records: [],
+				pending: [],
+				syncing: false,
+				cached: false,
 				filter: 'all',
 				filters: [
 					{ key: 'all', name: '全部' },
@@ -130,20 +145,48 @@
 		ionViewWillEnter() {
 			this.load();
 		},
+		mounted() {
+			window.addEventListener(PATROL_CHANGED, this.loadPending);
+		},
+		beforeUnmount() {
+			window.removeEventListener(PATROL_CHANGED, this.loadPending);
+		},
 		methods: {
+			async loadPending() {
+				try { this.pending = await pendingPatrols(); }
+				catch (error) { toast(error.message || '本地记录读取失败'); }
+			},
+			async syncPending() {
+				this.syncing = true;
+				try {
+					const result = await syncPatrols();
+					toast(result.uploaded ? `已上传 ${result.uploaded} 条` : '没有上传成功的记录，请检查网络、登录状态或失败说明');
+					await this.load();
+				} catch (error) {
+					toast(error.message || '同步失败');
+				} finally { this.syncing = false; }
+			},
+			async previewPending(item) {
+				const urls = item.photos.map(photo => URL.createObjectURL(photo));
+				try {
+					const modal = await previewImage(urls);
+					await modal.onDidDismiss();
+				}
+				finally {
+					urls.forEach(url => URL.revokeObjectURL(url));
+				}
+			},
 			onRefresh(event) {
 				this.load().finally(() => event.target.complete());
 			},
 			load() {
+				this.loadPending();
 				this.loading = true;
 				this.loadError = false;
-				return apiRequest({ url: '/api/inspections/mine' })
-					.then((res) => {
-						if (res.statusCode === 200 && res.data) {
-							this.records = res.data.items || [];
-						} else {
-							this.loadError = true;
-						}
+				return loadPatrolRecords()
+					.then((result) => {
+						this.records = result.items;
+						this.cached = !!result.cached;
 					})
 					.catch(() => {
 						this.loadError = true;
@@ -165,9 +208,9 @@
 				if (value === null || value === undefined || value === '') return '-';
 				return Number(value).toFixed(5);
 			},
-			preview(url) {
-				const urls = this.visible.map((r) => r.photo_url).filter(Boolean);
-				previewImage(urls, url);
+			preview(item) {
+				const urls = item.photo_urls?.length ? item.photo_urls : [item.photo_url];
+				previewImage(urls);
 			},
 			goPatrol() {
 				switchTab('/tabs/patrol');

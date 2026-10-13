@@ -3,6 +3,8 @@
 		<ion-content ref="content" :fullscreen="true">
 			<div class="u-page">
 				<AppHeader title="巡查上报" subtitle="按照下面 3 步完成上报" />
+				<div class="u-card" v-if="taskNotice">{{ taskNotice }}</div>
+				<div class="u-card" v-if="draftError" style="color: #C62828">{{ draftError }}</div>
 
 				<div class="u-body steps">
 					<!-- 第 1 步：文物点 -->
@@ -22,6 +24,7 @@
 								<span class="site-name">{{ site.name }}</span>
 								<span v-if="site.address" class="site-addr">{{ site.address }}</span>
 								<div class="site-tags">
+									<span v-if="site.due_at" class="u-badge" :class="site.overdue ? 'warn' : 'ok'">到期：{{ new Date(site.due_at).toLocaleString() }}</span>
 									<span v-if="site.manual" class="u-badge info">手动选择</span>
 									<span v-else-if="distanceText" class="u-badge" :class="isFar ? 'warn' : 'ok'">距离约 {{ distanceText }}</span>
 									<span v-if="!locationOk" class="u-badge warn">未获取到定位</span>
@@ -53,12 +56,12 @@
 					</div>
 
 					<!-- 第 2 步：拍照 -->
-					<div class="u-card step" :class="{ finished: !!photo, disabled: !site }">
+					<div class="u-card step" :class="{ finished: !!photos.length, disabled: !site }">
 						<div class="step-head">
-							<div class="step-no">{{ photo ? '✓' : '2' }}</div>
+							<div class="step-no">{{ photos.length ? '✓' : '2' }}</div>
 							<span class="step-title">拍摄现场照片</span>
 						</div>
-						<div v-if="!photo" class="shoot" @click="takePhoto">
+						<div v-if="!photos.length" class="shoot" @click="takePhoto">
 							<div class="shoot-icon">
 								<AppIcon name="camera" :size="68" color="#FFFFFF" />
 							</div>
@@ -66,16 +69,20 @@
 							<span class="shoot-sub">照片会自动加上时间、地点水印</span>
 						</div>
 						<div v-else class="photo">
-							<img class="photo-img" :src="photo" alt="" @click="preview" />
+							<div v-for="(photo, index) in photos" :key="photo.url">
+								<img class="photo-img" :src="photo.url" alt="" @click="preview(index)" />
+								<button type="button" class="u-btn sm" @click="removePhoto(index)">删除这张照片</button>
+							</div>
 							<button type="button" class="u-btn plain block" @click="takePhoto">
 								<AppIcon name="camera" :size="44" color="#334155" />
-								<span>重新拍照</span>
+								<span>继续拍照（{{ photos.length }}/20）</span>
 							</button>
 						</div>
+						<button type="button" class="u-btn plain block" :disabled="processing || !site" @click="pickAlbum">从相册批量添加</button>
 					</div>
 
 					<!-- 第 3 步：情况 -->
-					<div class="u-card step" :class="{ finished: status === 'normal' || (status === 'problem' && issueText), disabled: !photo }">
+					<div class="u-card step" :class="{ finished: status === 'normal' || (status === 'problem' && issueText), disabled: !photos.length }">
 						<div class="step-head">
 							<div class="step-no">3</div>
 							<span class="step-title">文物点情况</span>
@@ -165,7 +172,8 @@
 					<div class="success-icon">
 						<AppIcon name="check" :size="120" color="#FFFFFF" :stroke="3" />
 					</div>
-					<span class="success-title">上报成功</span>
+					<span class="success-title">{{ success.pending ? '已保存到本机' : '上报成功' }}</span>
+					<span v-if="success.pending" class="success-sub">记录与照片已离线保存，联网后自动上传；可在记录页查看同步状态。</span>
 					<span class="success-sub">{{ success.site }} · {{ success.normal ? '情况正常' : '已上报问题' }}</span>
 					<button type="button" class="u-btn primary xl block" @click="again">继续巡查</button>
 					<button type="button" class="u-btn ghost block" style="margin-top: 12px" @click="goRecords">查看我的记录</button>
@@ -181,7 +189,9 @@
 	import AppIcon from '@/components/AppIcon.vue';
 	import { addWatermark } from '@/lib/watermark.js';
 	import { getUser } from '@/lib/auth.js';
-	import { apiRequest, apiUpload, extractError } from '@/lib/request.js';
+	import { enqueuePatrol, loadTasks, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
+	import { readCache, removeCache, saveCache } from '@/lib/patrolStore.js';
+	import { Camera } from '@capacitor/camera';
 	import { formatDistance, pad } from '@/lib/format.js';
 	import { chooseImage, getLocation, previewImage, vibrateLong } from '@/lib/native.js';
 	import { switchTab } from '@/lib/nav.js';
@@ -204,7 +214,12 @@
 				sites: [],
 				searching: false,
 				searchTimer: null,
-				photo: '',
+				photos: [],
+				tasks: [],
+				taskNotice: '',
+				draftError: '',
+				draftSaving: Promise.resolve(),
+				capturedAt: '',
 				processing: false,
 				status: '',
 				chips: [],
@@ -230,19 +245,50 @@
 				return tags || note;
 			},
 			canSubmit() {
-				return !!(this.site && this.photo && (this.status === 'normal' || (this.status === 'problem' && this.issueText)));
+				return !!(this.site && this.photos.length && !this.processing && (this.status === 'normal' || (this.status === 'problem' && this.issueText)));
 			},
 			submitHint() {
 				if (!this.site) return '请先确认文物点';
-				if (!this.photo) return '请拍摄现场照片';
+				if (!this.photos.length) return '请拍摄现场照片';
+				if (this.processing) return '请等待照片处理完成';
 				if (!this.status) return '请选择「正常」或「有问题」';
 				if (this.status === 'problem' && !this.issueText) return '请选择或填写发现的问题';
 				return '信息已填好，请点击提交';
 			},
 		},
-		ionViewWillEnter() {
+		async ionViewWillEnter() {
+			const previousId = this.user.id;
 			this.user = getUser() || {};
+			if (previousId !== this.user.id) {
+				this.resetForm();
+				this.tasks = [];
+				this.sites = [];
+				this.locationOk = false;
+				this.location = { latitude: 0, longitude: 0 };
+				try {
+					const cached = await readCache(this.user.id, 'draft');
+					if (cached?.value) {
+						const draft = cached.value;
+						this.site = draft.site;
+						this.location = draft.location;
+						this.locationOk = draft.locationOk;
+						this.status = draft.status;
+						this.chips = draft.chips;
+						this.issueNote = draft.issueNote;
+						this.capturedAt = draft.capturedAt || '';
+						this.photos = draft.photos.map(file => ({ file, url: URL.createObjectURL(file) }));
+					}
+				} catch (error) {
+					toast(error.message || '本地巡查草稿读取失败');
+				}
+			}
+			await this.refreshTasks();
 			this.locate();
+		},
+		watch: {
+			status() { this.persistDraft(); },
+			chips: { deep: true, handler() { this.persistDraft(); } },
+			issueNote() { this.persistDraft(); },
 		},
 		ionViewWillLeave() {
 			this.pickerOpen = false;
@@ -252,6 +298,39 @@
 			this.revokePhoto();
 		},
 		methods: {
+			persistDraft() {
+				if (!this.user.id || !this.photos.length || this.success) return this.draftSaving;
+				const userId = this.user.id;
+				const draft = {
+					site: { ...this.site }, location: { ...this.location }, locationOk: this.locationOk,
+					status: this.status, chips: [...this.chips], issueNote: this.issueNote,
+					capturedAt: this.capturedAt,
+					photos: this.photos.map(photo => photo.file),
+				};
+				this.draftSaving = this.draftSaving.then(async () => {
+					await saveCache(userId, 'draft', draft);
+					this.draftError = '';
+				}).catch(error => {
+					this.draftError = error.message || '草稿保存失败，请检查本机剩余空间';
+					toast(this.draftError);
+				});
+				return this.draftSaving;
+			},
+			async refreshTasks() {
+				try {
+					const result = await loadTasks();
+					this.tasks = result.items || [];
+					this.taskNotice = result.cached ? `离线任务清单（${new Date(result.savedAt).toLocaleString()}），联网后更新分配与期限。` : '';
+					if (!this.tasks.length) this.taskNotice = '请联系管理员分配巡查文物点';
+					if (this.site && !this.tasks.some(item => item.id === this.site.id)) {
+						this.taskNotice += ' 当前草稿文物点已不在分配范围，请联系管理员；照片仍保留。';
+					}
+					this.searchSites();
+				} catch (error) {
+					this.taskNotice = error.message || error.errMsg || '下载巡查任务失败';
+					toast(this.taskNotice);
+				}
+			},
 			locate() {
 				this.locating = true;
 				this.locateError = '';
@@ -259,23 +338,21 @@
 					.then((loc) => {
 						this.locationOk = true;
 						this.location = { latitude: loc.latitude, longitude: loc.longitude };
-						return apiRequest({ url: '/api/heritages/nearby', data: this.location });
-					})
-					.then((res) => {
-						if (res.statusCode === 200 && res.data && res.data.id) {
-							// 手动选择后再次定位时，不覆盖用户的选择
-							if (!this.site || !this.site.manual) {
-								this.site = { ...res.data, manual: false };
-							}
-						} else if (!this.site) {
-							this.locateError = '附近没有找到文物点，请手动选择';
-						}
+						const radians = value => value * Math.PI / 180;
+						const nearby = this.tasks.filter(item => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude)))
+							.map(item => {
+								const lat1 = radians(loc.latitude), lat2 = radians(Number(item.latitude));
+								const a = Math.sin((lat2 - lat1) / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(radians(Number(item.longitude) - loc.longitude) / 2) ** 2;
+								return { ...item, distance: 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) };
+							}).sort((a, b) => a.distance - b.distance);
+						if (!this.photos.length && (!this.site || !this.site.manual) && nearby.length) this.site = { ...nearby[0], manual: false };
+						if (!this.site) this.locateError = this.taskNotice || '没有已分配文物点，请联系管理员';
 					})
 					.catch((err) => {
 						if (!this.locationOk) {
 							this.locateError = `${(err && err.errMsg) || '定位失败'}，也可手动选择文物点`;
 						} else if (!this.site) {
-							this.locateError = '网络不好，查找文物点失败，请重试';
+							this.locateError = '查找已分配文物点失败，请重试';
 						}
 					})
 					.finally(() => {
@@ -293,26 +370,15 @@
 				this.searchTimer = setTimeout(() => this.searchSites(), 400);
 			},
 			searchSites() {
-				this.searching = true;
-				apiRequest({ url: '/api/heritages/search', data: { q: this.keyword || '', limit: 50 } })
-					.then((res) => {
-						this.sites = res.statusCode === 200 && res.data ? res.data.items || [] : [];
-					})
-					.catch(() => {
-						this.sites = [];
-						toast('网络不好，请重试', { icon: 'none' });
-					})
-					.finally(() => {
-						this.searching = false;
-					});
+				this.sites = this.tasks.filter(item => !this.keyword || [item.name, item.address, item.sip_code].join(' ').includes(this.keyword));
 			},
 			chooseSite(item) {
+				if (this.photos.length && this.site?.id !== item.id) {
+					toast('请先删除已拍照片，再切换文物点，避免照片水印与任务不一致');
+					return;
+				}
 				this.site = {
-					id: item.id,
-					name: item.name,
-					address: item.address,
-					latitude: item.latitude,
-					longitude: item.longitude,
+					...item,
 					manual: true,
 				};
 				if (!this.locationOk) {
@@ -321,13 +387,46 @@
 				this.pickerOpen = false;
 			},
 			revokePhoto() {
-				if (this.photo && this.photo.indexOf('blob:') === 0) {
-					URL.revokeObjectURL(this.photo);
+				this.photos.forEach(photo => { if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url); });
+				this.photos = [];
+			},
+			async removePhoto(index) {
+				const [photo] = this.photos.splice(index, 1);
+				if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);
+				if (this.photos.length) await this.persistDraft();
+				else {
+					this.capturedAt = '';
+					try {
+						await this.draftSaving;
+						await removeCache(this.user.id, 'draft');
+					} catch (error) { toast(error.message || '草稿清理失败'); }
 				}
-				this.photo = '';
-				this.photoFile = null;
+			},
+			async addPhoto(path) {
+				const marked = await addWatermark(path, this.watermarkText());
+				if (marked.blob.size > 10 * 1024 * 1024) {
+					URL.revokeObjectURL(marked.url);
+					throw new Error('照片超过 10 MB，请降低分辨率');
+				}
+				this.photos.push({ url: marked.url, file: marked.blob });
+				if (!this.capturedAt) this.capturedAt = new Date().toISOString();
+				await this.persistDraft();
+			},
+			async pickAlbum() {
+				if (!this.site || this.processing || this.submitting) return;
+				if (this.photos.length >= 20) { toast('最多添加 20 张照片'); return; }
+				this.processing = true;
+				try {
+					const picked = await Camera.pickImages({ quality: 85, width: 2400, limit: 20 - this.photos.length });
+					for (const photo of picked.photos.slice(0, 20 - this.photos.length)) await this.addPhoto(photo.webPath);
+				} catch (error) {
+					if (!/cancel/i.test(error.message || '')) toast(error.message || '相册照片添加失败，请检查权限');
+				} finally {
+					this.processing = false;
+				}
 			},
 			async takePhoto() {
+				if (this.submitting) return;
 				if (!this.site) {
 					toast('请先确认文物点', { icon: 'none' });
 					return;
@@ -335,6 +434,7 @@
 				if (this.processing) {
 					return;
 				}
+				if (this.photos.length >= 20) { toast('最多添加 20 张照片'); return; }
 				let picked;
 				try {
 					picked = await chooseImage({ source: 'camera' });
@@ -348,15 +448,9 @@
 				const path = picked.webPath;
 				this.processing = true;
 				try {
-					const marked = await addWatermark(path, this.watermarkText());
-					this.revokePhoto();
-					this.photo = marked.url;
-					this.photoFile = marked.blob;
+					await this.addPhoto(path);
 				} catch (e) {
-					this.revokePhoto();
-					this.photo = path;
-					this.photoFile = path;
-					toast('水印添加失败，已使用原图', { icon: 'none' });
+					toast(e.message || '水印添加失败，请重试', { icon: 'none' });
 				} finally {
 					this.processing = false;
 				}
@@ -369,8 +463,8 @@
 				const lat = Number(this.location.latitude || 0).toFixed(6);
 				return `巡查人: ${name}\n文物点: ${this.site ? this.site.name : '-'}\n时间: ${time}\n坐标: ${lng}, ${lat}`;
 			},
-			preview() {
-				previewImage([this.photo]);
+			preview(index) {
+				previewImage(this.photos.map(photo => photo.url), index);
 			},
 			setStatus(value) {
 				this.status = value;
@@ -408,31 +502,28 @@
 				this.submitting = true;
 				showLoading('正在上报');
 				try {
-					const res = await apiUpload({
-						url: '/api/inspections/upload',
-						file: this.photoFile || this.photo,
-						fileName: 'photo.jpg',
-						name: 'photo',
-						formData: {
+					await this.draftSaving;
+					const row = await enqueuePatrol({
 							site_id: this.site.id,
+							site_name: this.site.name,
 							latitude: this.location.latitude,
 							longitude: this.location.longitude,
 							is_normal: this.status === 'normal',
 							issue_details: this.status === 'problem' ? this.issueText : '',
-						},
-					});
+							inspect_time: this.capturedAt || new Date().toISOString(),
+					}, this.photos.map(photo => photo.file));
+					this.success = { site: this.site.name, normal: this.status === 'normal', pending: true, client_id: row.client_id };
 					hideLoading();
-					if (res.statusCode === 201 || res.statusCode === 200) {
-						this.success = { site: this.site.name, normal: this.status === 'normal' };
-						vibrateLong();
-					} else {
-						showModal({ title: '上报失败', content: extractError(res, '上报失败，请稍后重试'), showCancel: false });
-					}
+					vibrateLong();
+					syncPatrols().then(async () => {
+						const pending = (await pendingPatrols()).some(item => item.key === row.key);
+						if (this.success?.client_id === row.client_id) this.success.pending = pending;
+					}).catch(error => toast(error.message || '记录已保存，同步失败，请在记录页重试'));
 				} catch (e) {
 					hideLoading();
 					showModal({
-						title: '网络不好',
-						content: '照片没有传上去，请到信号好的地方再点「提交巡查」。已拍的照片和填写的内容会保留。',
+						title: this.success ? '同步未完成' : '本地保存失败',
+						content: e.message || e.errMsg || '本地存储空间不足或不可用，请保留页面并重试',
 						showCancel: false,
 						confirmText: '知道了',
 					});
@@ -442,6 +533,7 @@
 			},
 			resetForm() {
 				this.success = null;
+				this.capturedAt = '';
 				this.revokePhoto();
 				this.status = '';
 				this.chips = [];

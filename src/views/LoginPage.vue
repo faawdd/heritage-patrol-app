@@ -112,6 +112,8 @@
 							<span class="link" @click="handleForgotPassword">忘记密码？</span>
 							<span v-if="hasQuick" class="link strong" @click="backToQuick">使用{{ quickName }}登录</span>
 						</div>
+						<button v-if="offlineAvailable && !hasQuick" type="button" class="u-btn ghost block" @click="enterOffline">使用本机已登录账号离线巡查</button>
+						<p>首次登录必须联网。离线任务需在联网登录后下载。</p>
 					</div>
 				</div>
 
@@ -130,7 +132,8 @@
 	import { reLaunch } from '@/lib/nav.js';
 	import { getAppVersion, makePhoneCall, vibrateLong } from '@/lib/native.js';
 	import { hideLoading, showLoading, showModal, toast } from '@/lib/ui.js';
-	import { getLastUsername, isTokenFresh, setSession } from '@/lib/auth.js';
+	import { canUseOfflinePatrol, unlockOfflinePatrol, getLastUsername, isTokenFresh, setSession } from '@/lib/auth.js';
+	import { loadTasks, syncPatrols } from '@/lib/patrol.js';
 	import { extractError, request } from '@/lib/request.js';
 	import {
 		authenticateBiometric,
@@ -167,6 +170,9 @@
 			};
 		},
 		computed: {
+			offlineAvailable() {
+				return canUseOfflinePatrol();
+			},
 			hasQuick() {
 				return hasQuickLogin(this.quick);
 			},
@@ -218,6 +224,14 @@
 			}
 		},
 		methods: {
+			enterOffline() {
+				try {
+					unlockOfflinePatrol();
+					reLaunch('/tabs/patrol');
+				} catch (error) {
+					toast(error.message);
+				}
+			},
 			setTip(text, error = false) {
 				this.tip = text;
 				this.tipError = error;
@@ -287,9 +301,10 @@
 				this.busy = true;
 				showLoading('正在登录');
 				resumeSession()
-					.then(() => {
+					.then((session) => {
 						hideLoading();
-						reLaunch('/tabs/home');
+						if (session.offline) reLaunch('/tabs/patrol');
+						else this.finishLogin();
 					})
 					.catch((err) => {
 						hideLoading();
@@ -343,7 +358,13 @@
 					// 换了账号：旧账号的快捷登录不再适用
 					clearQuickLogin();
 				}
-				setSession(data);
+				try {
+					setSession(data);
+				} catch (error) {
+					this.busy = false;
+					toast(error.message || '本地登录信息保存失败，请检查存储空间');
+					return;
+				}
 				this.loggedUser = user;
 				this.form.password = '';
 				this.busy = false;
@@ -392,6 +413,8 @@
 				});
 			},
 			finishLogin() {
+				loadTasks().catch(error => toast(error.message || error.errMsg || '巡查任务下载失败，请在巡查页面重试'));
+				syncPatrols().catch(error => toast(error.message || '离线记录同步失败'));
 				reLaunch('/tabs/home');
 			},
 			async handleForgotPassword() {

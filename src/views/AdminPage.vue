@@ -136,6 +136,16 @@
 						</div>
 
 						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.onlineTools') }}</span></div>
+						<div class="u-card adm-tool tappable" @click="openInspectionManagement">
+							<div class="adm-tool-main">
+								<div class="adm-tool-icon" style="background:#E8F0FB"><AppIcon name="clock" :size="48" color="#1E5AA8" /></div>
+								<div class="adm-tool-text">
+									<span class="adm-tool-title">{{ t('admin.patrolManageTitle') }}</span>
+									<span class="adm-tool-desc">{{ t('admin.patrolManageDesc') }}</span>
+								</div>
+								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+							</div>
+						</div>
 						<div class="u-card adm-tool tappable" @click="openKmlTool">
 							<div class="adm-tool-main">
 								<div class="adm-tool-icon" style="background:#E0F4F8"><AppIcon name="grid" :size="48" color="#0E7490" /></div>
@@ -391,6 +401,9 @@
 			},
 			openDjangoCollectTool() {
 				return this.openEntryTool('/api/admin/collect-entry');
+			},
+			openInspectionManagement() {
+				return this.openEntryTool('/api/admin/inspection-management-entry');
 			},
 			goCollect() {
 				navigateTo('/collect');
