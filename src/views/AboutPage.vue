@@ -13,6 +13,10 @@
 					</div>
 
 					<div class="u-card list">
+						<div v-if="updateSupported" class="row" @click="checkUpdate">
+							<span class="row-label">检查更新</span>
+							<span class="row-value" :class="{ link: !checking }">{{ checking ? '正在检查…' : updateHint }}</span>
+						</div>
 						<div class="row">
 							<span class="row-label">作者</span>
 							<span class="row-value">北辰</span>
@@ -42,11 +46,18 @@
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { getAppVersion, makePhoneCall } from '@/lib/native.js';
+	import { checkForUpdate, isUpdateSupported } from '@/lib/updater.js';
+	import { toast } from '@/lib/ui.js';
 
 	export default {
 		components: { IonContent, IonPage, AppHeader, AppIcon },
 		data() {
-			return { version: '1.0.0' };
+			return {
+				version: '1.0.0',
+				updateSupported: isUpdateSupported(),
+				checking: false,
+				updateHint: '点击检查',
+			};
 		},
 		async mounted() {
 			try {
@@ -58,6 +69,23 @@
 		methods: {
 			call() {
 				makePhoneCall('13899665458');
+			},
+			async checkUpdate() {
+				if (this.checking) {
+					return;
+				}
+				this.checking = true;
+				const result = await checkForUpdate({ manual: true });
+				this.checking = false;
+				if (result.status === 'update') {
+					this.updateHint = `发现新版本 v${result.info.version}`;
+				} else if (result.status === 'latest') {
+					this.updateHint = '已是最新版本';
+					toast('当前已是最新版本', { icon: 'none' });
+				} else if (result.status === 'error') {
+					this.updateHint = '点击重试';
+					toast('检查更新失败，请检查网络后重试', { icon: 'none' });
+				}
 			},
 		},
 	};

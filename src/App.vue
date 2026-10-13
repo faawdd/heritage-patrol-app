@@ -1,6 +1,7 @@
 <template>
 	<ion-app>
 		<ion-router-outlet />
+		<UpdateDialog />
 	</ion-app>
 </template>
 
@@ -13,6 +14,8 @@
 	import { SplashScreen } from '@capacitor/splash-screen';
 	import { StatusBar, Style } from '@capacitor/status-bar';
 	import { setIonRouter } from '@/lib/nav.js';
+	import { initAutoUpdate } from '@/lib/updater.js';
+	import UpdateDialog from '@/components/UpdateDialog.vue';
 
 	const ionRouter = useIonRouter();
 	setIonRouter(ionRouter);
@@ -34,5 +37,6 @@
 		StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
 		StatusBar.setBackgroundColor({ color: '#1E5AA8' }).catch(() => {});
 		SplashScreen.hide().catch(() => {});
+		initAutoUpdate();
 	});
 </script>
