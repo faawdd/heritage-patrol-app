@@ -127,7 +127,7 @@
 	import AppIcon from '@/components/AppIcon.vue';
 	import { getUser, isAdminUser, setUser } from '@/lib/auth.js';
 	import { getRoleLabel } from '@/lib/i18n.js';
-	import { apiRequest } from '@/lib/request.js';
+	import { apiRequest, extractError } from '@/lib/request.js';
 	import { navigateTo, switchTab } from '@/lib/nav.js';
 	import { dateLabel, formatDistance, friendlyTime, getLocation, greeting, monthKey, todayKey } from '@/lib/format.js';
 
@@ -230,7 +230,7 @@
 							this.siteState = 'ok';
 						} else {
 							this.siteState = 'error';
-							this.siteError = '附近没有找到文物点';
+							this.siteError = extractError(res, '附近没有找到文物点');
 						}
 					})
 					.catch((err) => {
