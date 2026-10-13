@@ -271,9 +271,9 @@
 							this.locateError = '附近没有找到文物点，请手动选择';
 						}
 					})
-					.catch(() => {
+					.catch((err) => {
 						if (!this.locationOk) {
-							this.locateError = '定位失败，请打开手机定位(GPS)后重试，或手动选择文物点';
+							this.locateError = `${(err && err.errMsg) || '定位失败'}，也可手动选择文物点`;
 						} else if (!this.site) {
 							this.locateError = '网络不好，查找文物点失败，请重试';
 						}

@@ -1,5 +1,5 @@
 // 原生能力封装（替代 uni.getLocation / chooseImage / previewImage / makePhoneCall / openLocation 等）。
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Clipboard } from '@capacitor/clipboard';
@@ -46,38 +46,73 @@ export async function ensureLocationPermission() {
 
 function normalizeLocationError(error) {
 	const message = String((error && (error.message || error.errorMessage)) || error || '');
+	const code = String((error && error.code) || '');
 	let errMsg = '定位失败，请稍后重试';
-	if (/denied|permission/i.test(message) || (error && error.code === 1)) {
-		errMsg = '定位权限被拒绝，请在系统设置中允许定位';
-	} else if (/disabled|services|provider/i.test(message)) {
-		errMsg = '系统定位服务未开启，请先打开 GPS';
-	} else if (/timeout/i.test(message) || (error && error.code === 3)) {
-		errMsg = '定位超时，请到开阔处重试';
+	if (code === 'PERMISSION_DENIED' || /denied|permission/i.test(message) || code === '1') {
+		errMsg = '定位权限被拒绝，请在系统设置中允许本应用使用位置信息';
+	} else if (code === 'LOCATION_DISABLED' || /disabled|not enabled|turned off|services|provider/i.test(message)) {
+		errMsg = '手机定位(GPS)未开启，请在下拉菜单中打开"位置信息"';
+	} else if (code === 'TIMEOUT' || /timeout|timed out|in time/i.test(message) || code === '3') {
+		errMsg = '定位超时，请到室外或窗边开阔处重试';
 	}
-	return { errMsg, message, raw: error };
+	return { errMsg, code, message, raw: error, isLocationError: true };
+}
+
+export const NativeSensors = registerPlugin('NativeSensors');
+
+function toLocationResult(c, timestamp, extra = {}) {
+	return {
+		latitude: Number(c.latitude),
+		longitude: Number(c.longitude),
+		altitude: c.altitude != null ? Number(c.altitude) : null,
+		accuracy: c.accuracy != null ? Number(c.accuracy) : null,
+		altitudeAccuracy: c.altitudeAccuracy != null ? Number(c.altitudeAccuracy) : null,
+		speed: c.speed != null ? Number(c.speed) : null,
+		timestamp,
+		...extra,
+	};
+}
+
+async function getPluginLocation({ highAccuracy, timeout, maximumAge }) {
+	const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: highAccuracy, timeout, maximumAge });
+	return toLocationResult(pos.coords || {}, pos.timestamp);
 }
 
 /**
  * 获取当前位置（WGS84），返回与 uni.getLocation 相似的结构：
  * { latitude, longitude, altitude, accuracy, altitudeAccuracy, speed }
+ *
+ * Android 上优先使用自定义原生插件（同时监听 GPS 与系统网络定位，并利用缓存位置），
+ * 因为 @capacitor/geolocation 在装有 Google 服务的手机上只走 Google 融合定位，国内无法使用其网络定位，
+ * 室内基本只能等 GPS 而超时。原生插件失败（非权限/开关问题）时再回退到 @capacitor/geolocation。
  */
-export async function getLocation({ highAccuracy = true, timeout = 15000, maximumAge = 0 } = {}) {
+export async function getLocation({ highAccuracy = true, timeout = 20000, maximumAge = 30000 } = {}) {
 	const granted = await ensureLocationPermission();
 	if (!granted) {
-		throw { errMsg: '定位权限被拒绝，请在系统设置中允许定位' };
+		throw { errMsg: '定位权限被拒绝，请在系统设置中允许本应用使用位置信息', code: 'PERMISSION_DENIED', isLocationError: true };
+	}
+	if (isAndroid() && Capacitor.isPluginAvailable('NativeSensors')) {
+		try {
+			const res = await NativeSensors.getLocation({
+				timeout,
+				maximumAge,
+				desiredAccuracy: highAccuracy ? 50 : 500,
+			});
+			return toLocationResult(res, res.timestamp, { provider: res.provider, cached: !!res.cached, stale: !!res.stale });
+		} catch (error) {
+			const normalized = normalizeLocationError(error);
+			if (normalized.code === 'PERMISSION_DENIED' || normalized.code === 'LOCATION_DISABLED') {
+				throw normalized;
+			}
+			try {
+				return await getPluginLocation({ highAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 });
+			} catch (fallbackError) {
+				throw normalized;
+			}
+		}
 	}
 	try {
-		const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: highAccuracy, timeout, maximumAge });
-		const c = pos.coords || {};
-		return {
-			latitude: Number(c.latitude),
-			longitude: Number(c.longitude),
-			altitude: c.altitude != null ? Number(c.altitude) : null,
-			accuracy: c.accuracy != null ? Number(c.accuracy) : null,
-			altitudeAccuracy: c.altitudeAccuracy != null ? Number(c.altitudeAccuracy) : null,
-			speed: c.speed != null ? Number(c.speed) : null,
-			timestamp: pos.timestamp,
-		};
+		return await getPluginLocation({ highAccuracy, timeout, maximumAge });
 	} catch (error) {
 		throw normalizeLocationError(error);
 	}

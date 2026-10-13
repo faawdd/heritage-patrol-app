@@ -235,9 +235,9 @@
 					})
 					.catch((err) => {
 						this.siteState = 'error';
-						this.siteError = err && err.errMsg && /location|定位|auth/i.test(err.errMsg)
-							? '定位失败，请打开手机定位(GPS)'
-							: '定位失败，请检查定位和网络';
+						this.siteError = err && err.isLocationError
+							? err.errMsg
+							: '网络异常，查找附近文物点失败';
 					});
 			},
 			loadAdminData() {
