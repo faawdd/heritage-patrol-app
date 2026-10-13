@@ -1,0 +1,48 @@
+{
+  "name": "heritage-patrol-app",
+  "private": true,
+  "version": "1.0.0",
+  "description": "鄯善文保巡查 App —— 基于 Capacitor + Ionic Vue 的文物巡查移动端",
+  "license": "Apache-2.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "sync": "vite build && cap sync android",
+    "android": "vite build && cap sync android && cap open android",
+    "assets": "capacitor-assets generate --android --iconBackgroundColor '#1E5AA8' --splashBackgroundColor '#1E5AA8'",
+    "version:sync": "node scripts/sync-version.mjs"
+  },
+  "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^10.0.0",
+    "@capacitor-community/file-opener": "^8.0.1",
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/browser": "^8.0.5",
+    "@capacitor/camera": "^8.2.5",
+    "@capacitor/clipboard": "^8.0.1",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/filesystem": "^8.1.4",
+    "@capacitor/geolocation": "^8.2.3",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/screen-orientation": "^8.0.2",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4",
+    "@ionic/vue": "^9.0.7",
+    "@ionic/vue-router": "^9.0.7",
+    "ionicons": "^8.1.0",
+    "vue": "^3.5.44",
+    "vue-router": "^5.4.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3",
+    "@vitejs/plugin-vue": "^6.0.10",
+    "sass": "^1.105.1",
+    "vite": "^8.3.4"
+  }
+}
