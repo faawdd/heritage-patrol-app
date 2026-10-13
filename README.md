@@ -45,6 +45,15 @@ scripts/sync-version.mjs   版本号同步脚本
 - 需要先部署配套服务端并执行数据库迁移，再发布手机端；发布 Android 前执行 `npm run sync`，将 Web 资源同步到原生工程。
 - 离线回归测试：启动 `npm run dev`，在本地浏览器控制台执行 `(await import('/tests/patrol.browser.js')).runPatrolTests()`。测试使用合成账号、真实 IndexedDB 与模拟请求，结束后恢复登录存储并清理测试数据，不访问生产服务。
 
+## Android 巡查定位
+
+- Android 直接向系统申请位置权限并使用系统多提供者高精度定位，不依赖 Google 定位服务检查权限；默认最多等待 60 秒，收到满足精度的位置即返回。
+- 巡查需要高精度位置时，已有“模糊位置”权限也会申请升级为“精确位置”；用户仍选择模糊位置时继续尝试系统粗略定位，不伪造 GPS 结果。
+- 首次定位或长时间未使用后的 GPS 冷启动可能较慢。请开启手机“位置信息”，允许本应用“使用期间访问位置”，并开启“精确位置”；在室外开阔处保持 App 在前台等待。
+- 定位失败不会再切换到 Google 低精度定位。权限拒绝、定位开关关闭、提供者不可用和超时分别提示；仍可手动选择文物点，但不会伪造坐标。
+- 小米等手机上地图能定位不代表本应用已获精确位置权限。若仍超时，通过 `adb logcat -s NativeSensors` 查看实际启用的定位提供者和注册失败原因。
+- 定位封装回归测试：`node --experimental-vm-modules --test tests/location.test.js`。原生请求仍需在真机验证；修改 Java 后必须重新构建 APK，仅更新 Web 资源不生效。
+
 ## 开发
 
 需要 Node.js ≥ 22；构建 Android 还需要 JDK 21 和 Android SDK（推荐用 Android Studio）。

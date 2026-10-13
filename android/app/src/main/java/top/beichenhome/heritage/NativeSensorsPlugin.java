@@ -14,16 +14,19 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.location.LocationManagerCompat;
+import androidx.core.location.LocationRequestCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +36,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Raw GPS-provider location (with altitude) and barometer access, replacing the
  * plus.android LocationManager / SensorManager code of the legacy uni-app build.
  */
-@CapacitorPlugin(name = "NativeSensors")
+@CapacitorPlugin(name = "NativeSensors", permissions = {
+    @Permission(strings = { Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION }, alias = "location"),
+    @Permission(strings = { Manifest.permission.ACCESS_COARSE_LOCATION }, alias = "coarseLocation")
+})
 public class NativeSensorsPlugin extends Plugin {
 
     private static final long LAST_KNOWN_MAX_AGE_MS = 15_000;
@@ -129,7 +135,7 @@ public class NativeSensorsPlugin extends Plugin {
      */
     @PluginMethod
     public void getLocation(final PluginCall call) {
-        final int timeout = call.getInt("timeout", 20000);
+        final int timeout = call.getInt("timeout", 60000);
         final int maximumAge = call.getInt("maximumAge", 30000);
         final int staleMaxAge = call.getInt("staleMaxAge", 30 * 60 * 1000);
         final int settleMs = call.getInt("settleMs", 3000);
@@ -158,7 +164,7 @@ public class NativeSensorsPlugin extends Plugin {
         final List<String> providers = new ArrayList<>();
         try {
             for (String p : lm.getProviders(true)) {
-                if (!LocationManager.PASSIVE_PROVIDER.equals(p)) providers.add(p);
+                providers.add(p);
             }
         } catch (SecurityException e) {
             call.reject("location permission denied", "PERMISSION_DENIED");
@@ -190,6 +196,7 @@ public class NativeSensorsPlugin extends Plugin {
         final AtomicBoolean done = new AtomicBoolean(false);
         final Location[] best = new Location[1];
         final List<LocationListener> listeners = new ArrayList<>();
+        final List<String> activeProviders = new ArrayList<>();
         final Runnable[] finishRef = new Runnable[1];
 
         final Runnable finish = () -> {
@@ -204,12 +211,15 @@ public class NativeSensorsPlugin extends Plugin {
             if (fallback != null && ageMs(fallback) <= staleMaxAge) {
                 call.resolve(toLocationJs(fallback, true, true));
             } else {
-                call.reject("location timeout", "TIMEOUT");
+                String detail = "location timeout; active providers=" + activeProviders;
+                Log.w("NativeSensors", detail);
+                call.reject(detail, "TIMEOUT");
             }
         };
         finishRef[0] = finish;
 
         for (String provider : providers) {
+            if (done.get()) break;
             LocationListener listener = new LocationListener() {
                 @Override
                 public void onLocationChanged(@NonNull Location location) {
@@ -233,18 +243,29 @@ public class NativeSensorsPlugin extends Plugin {
                 public void onStatusChanged(String p, int status, Bundle extras) {}
             };
             try {
-                lm.requestLocationUpdates(provider, 1000L, 0f, listener, Looper.getMainLooper());
+                LocationRequestCompat request = new LocationRequestCompat.Builder(1000L)
+                        .setQuality(LocationRequestCompat.QUALITY_HIGH_ACCURACY)
+                        .setMinUpdateIntervalMillis(0L)
+                        .setMinUpdateDistanceMeters(0f)
+                        .build();
+                // 先记录监听器：缓存回调可能在注册时立即完成定位，需要一起清理。
                 listeners.add(listener);
-            } catch (SecurityException | IllegalArgumentException ignored) {
-                // 粗略定位权限下 GPS 提供者不可用等情况，跳过该提供者
+                LocationManagerCompat.requestLocationUpdates(lm, provider, request, listener, Looper.getMainLooper());
+                activeProviders.add(provider);
+                if (done.get()) safeRemove(lm, listener);
+            } catch (SecurityException | IllegalArgumentException e) {
+                listeners.remove(listener);
+                safeRemove(lm, listener);
+                Log.w("NativeSensors", "Cannot request location from " + provider, e);
             }
         }
+        if (done.get()) return;
         if (listeners.isEmpty()) {
             done.set(true);
             if (cached != null && ageMs(cached) <= staleMaxAge) {
                 call.resolve(toLocationJs(cached, true, true));
             } else {
-                call.reject("no usable location provider", "UNAVAILABLE");
+                call.reject("no usable location provider; enabled providers=" + providers, "UNAVAILABLE");
             }
             return;
         }

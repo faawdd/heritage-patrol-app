@@ -28,14 +28,15 @@ export async function getAppVersion() {
 	return typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '';
 }
 
-export async function ensureLocationPermission() {
+export async function ensureLocationPermission({ highAccuracy = false } = {}) {
 	if (!isNative()) {
 		return true;
 	}
 	try {
-		let status = await Geolocation.checkPermissions();
-		if (status.location !== 'granted' && status.coarseLocation !== 'granted') {
-			status = await Geolocation.requestPermissions({ permissions: ['location', 'coarseLocation'] });
+		const permissionPlugin = isAndroid() && Capacitor.isPluginAvailable('NativeSensors') ? NativeSensors : Geolocation;
+		let status = await permissionPlugin.checkPermissions();
+		if (status.location !== 'granted' && (highAccuracy || status.coarseLocation !== 'granted')) {
+			status = await permissionPlugin.requestPermissions({ permissions: ['location'] });
 		}
 		return status.location === 'granted' || status.coarseLocation === 'granted';
 	} catch (error) {
@@ -48,12 +49,14 @@ function normalizeLocationError(error) {
 	const message = String((error && (error.message || error.errorMessage)) || error || '');
 	const code = String((error && error.code) || '');
 	let errMsg = '定位失败，请稍后重试';
-	if (code === 'PERMISSION_DENIED' || /denied|permission/i.test(message) || code === '1') {
+	if (code === 'PERMISSION_DENIED' || code === 'OS-PLUG-GLOC-0003' || /denied|permission/i.test(message) || code === '1') {
 		errMsg = '定位权限被拒绝，请在系统设置中允许本应用使用位置信息';
-	} else if (code === 'LOCATION_DISABLED' || /disabled|not enabled|turned off|services|provider/i.test(message)) {
+	} else if (code === 'TIMEOUT' || code === 'OS-PLUG-GLOC-0010' || /timeout|timed out|in time/i.test(message) || code === '3') {
+		errMsg = '定位超时，请确认已允许精确位置，并到室外开阔处重试';
+	} else if (code === 'LOCATION_DISABLED' || code === 'PROVIDER_DISABLED' || code === 'OS-PLUG-GLOC-0007' || code === 'OS-PLUG-GLOC-0009' || /disabled|not enabled|turned off/i.test(message)) {
 		errMsg = '手机定位(GPS)未开启，请在下拉菜单中打开"位置信息"';
-	} else if (code === 'TIMEOUT' || /timeout|timed out|in time/i.test(message) || code === '3') {
-		errMsg = '定位超时，请到室外或窗边开阔处重试';
+	} else if (code === 'UNAVAILABLE') {
+		errMsg = '系统定位服务不可用，请检查定位设置后重试';
 	}
 	return { errMsg, code, message, raw: error, isLocationError: true };
 }
@@ -84,10 +87,11 @@ async function getPluginLocation({ highAccuracy, timeout, maximumAge }) {
  *
  * Android 上优先使用自定义原生插件（同时监听 GPS 与系统网络定位，并利用缓存位置），
  * 因为 @capacitor/geolocation 在装有 Google 服务的手机上只走 Google 融合定位，国内无法使用其网络定位，
- * 室内基本只能等 GPS 而超时。原生插件失败（非权限/开关问题）时再回退到 @capacitor/geolocation。
+ * 室内基本只能等 GPS 而超时。原生失败时直接报告原因，不再追加一次 Google 低精度定位。
+ * 默认为 GPS 冷启动预留 60 秒；浏览器和其他平台仍使用 @capacitor/geolocation。
  */
-export async function getLocation({ highAccuracy = true, timeout = 20000, maximumAge = 30000 } = {}) {
-	const granted = await ensureLocationPermission();
+export async function getLocation({ highAccuracy = true, timeout = isAndroid() ? 60000 : 20000, maximumAge = 30000 } = {}) {
+	const granted = await ensureLocationPermission({ highAccuracy });
 	if (!granted) {
 		throw { errMsg: '定位权限被拒绝，请在系统设置中允许本应用使用位置信息', code: 'PERMISSION_DENIED', isLocationError: true };
 	}
@@ -100,15 +104,8 @@ export async function getLocation({ highAccuracy = true, timeout = 20000, maximu
 			});
 			return toLocationResult(res, res.timestamp, { provider: res.provider, cached: !!res.cached, stale: !!res.stale });
 		} catch (error) {
-			const normalized = normalizeLocationError(error);
-			if (normalized.code === 'PERMISSION_DENIED' || normalized.code === 'LOCATION_DISABLED') {
-				throw normalized;
-			}
-			try {
-				return await getPluginLocation({ highAccuracy: false, timeout: 10000, maximumAge: 10 * 60 * 1000 });
-			} catch (fallbackError) {
-				throw normalized;
-			}
+			console.warn('Android location request failed', error);
+			throw normalizeLocationError(error);
 		}
 	}
 	try {
