@@ -60,7 +60,7 @@
 						</div>
 						<div v-if="!photo" class="shoot" @click="takePhoto">
 							<div class="shoot-icon">
-								<AppIcon name="camera" :size="88" color="#FFFFFF" />
+								<AppIcon name="camera" :size="68" color="#FFFFFF" />
 							</div>
 							<span class="shoot-text">{{ processing ? '正在处理照片…' : '点这里拍照' }}</span>
 							<span class="shoot-sub">照片会自动加上时间、地点水印</span>
@@ -588,7 +588,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding: 24px 12px;
+		padding: 16px 12px;
 		border-radius: 14px;
 		border: 2px dashed #9DB9E0;
 		background: #F5F8FD;
@@ -599,8 +599,8 @@
 	}
 
 	.shoot-icon {
-		width: 84px;
-		height: 84px;
+		width: 64px;
+		height: 64px;
 		border-radius: 50%;
 		background: linear-gradient(135deg, #2A6BC2, #174B8F);
 		display: flex;
@@ -610,8 +610,8 @@
 	}
 
 	.shoot-text {
-		margin-top: 12px;
-		font-size: 20px;
+		margin-top: 10px;
+		font-size: 18px;
 		font-weight: 800;
 		color: #1E5AA8;
 	}

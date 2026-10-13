@@ -336,7 +336,7 @@ ion-content.no-safe-top::part(scroll) {
 
 /* 标准导航栏（非自定义头部页面） */
 ion-toolbar.app-toolbar {
-	--background: #1E5AA8;
+	--background: linear-gradient(150deg, #2A6BC2 0%, #1E5AA8 45%, #0F2F5C 100%);
 	--color: #FFFFFF;
 	--border-width: 0;
 	--min-height: 52px;

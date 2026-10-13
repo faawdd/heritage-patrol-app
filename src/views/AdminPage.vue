@@ -1,140 +1,173 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar class="app-toolbar">
-				<ion-title>管理中心</ion-title>
-			</ion-toolbar>
-		</ion-header>
-		<ion-content :fullscreen="true">
-			<div class="page">
-				<div class="hero">
-					<div>
-						<span class="hero-kicker">{{ t('admin.heroLabel') }}</span>
-						<span class="hero-title">{{ t('admin.title') }}</span>
-						<span class="hero-subtitle">{{ t('admin.subtitle') }}</span>
-					</div>
+		<ion-content>
+			<div class="u-page">
+				<AppHeader :title="t('admin.title')" :subtitle="t('admin.headerSubtitle')" />
+
+				<div class="adm-seg-wrap">
+					<ion-segment class="adm-seg" :value="currentTab" mode="ios" @ionChange="onSegmentChange">
+						<ion-segment-button value="heritages"><ion-label>{{ t('admin.tabHeritages') }}</ion-label></ion-segment-button>
+						<ion-segment-button value="projects"><ion-label>{{ t('admin.tabProjects') }}</ion-label></ion-segment-button>
+						<ion-segment-button value="tools"><ion-label>{{ t('admin.tabTools') }}</ion-label></ion-segment-button>
+					</ion-segment>
 				</div>
 
-				<ion-segment class="admin-segment" :value="currentTab" @ionChange="onSegmentChange">
-					<ion-segment-button value="heritages"><ion-label>{{ t('admin.tabHeritages') }}</ion-label></ion-segment-button>
-					<ion-segment-button value="projects"><ion-label>{{ t('admin.tabProjects') }}</ion-label></ion-segment-button>
-					<ion-segment-button value="tools"><ion-label>{{ t('admin.tabTools') }}</ion-label></ion-segment-button>
-				</ion-segment>
-
-				<div v-if="currentTab === 'heritages'" class="section">
-					<div class="section-header">
-						<span class="section-title">{{ t('admin.allHeritages') }}</span>
-						<span class="section-count">{{ t('admin.recordCount', { count: heritageDisplayCount }) }}</span>
-					</div>
-					<div class="filters-card">
-						<div class="filters-row">
-							<input
-								v-model.trim="heritageSearchKeyword"
-								class="filter-input"
-								:placeholder="t('admin.searchHeritagePlaceholder')"
-								enterkeyhint="search"
-								@keyup.enter="applyHeritageFilters"
-							/>
-							<div class="filter-picker">
-								<select class="picker-select" :value="heritageCategoryIndex" @change="onHeritageCategoryChange({ detail: { value: Number($event.target.value) } })">
+				<div class="u-body adm-body">
+					<!-- 文物点数据 -->
+					<template v-if="currentTab === 'heritages'">
+						<div class="u-card adm-filter">
+							<div class="adm-search">
+								<AppIcon name="search" :size="36" color="#94A3B8" />
+								<input
+									v-model.trim="heritageSearchKeyword"
+									class="adm-search-input"
+									type="search"
+									:placeholder="t('admin.searchHeritagePlaceholder')"
+									enterkeyhint="search"
+									@keyup.enter="applyHeritageFilters"
+								/>
+							</div>
+							<div class="adm-filter-row">
+								<select class="adm-select" :value="heritageCategoryIndex" @change="onHeritageCategoryChange({ detail: { value: Number($event.target.value) } })">
 									<option v-for="(l, i) in heritageCategoryLabels" :key="i" :value="i">{{ l }}</option>
 								</select>
+								<button type="button" class="u-btn plain sm" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</button>
+								<button type="button" class="u-btn primary sm" @click="applyHeritageFilters">{{ t('common.search') }}</button>
 							</div>
 						</div>
-						<div class="filter-actions">
-							<button type="button" class="ghost-lite-btn" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</button>
-							<button type="button" class="primary-btn" @click="applyHeritageFilters">{{ t('common.search') }}</button>
-						</div>
-					</div>
-					<span v-if="showHeritageFilterSummary" class="filter-summary">{{ t('admin.filterResultSummary', { count: heritageTotal, page: heritagePage }) }}</span>
-					<div v-for="item in heritages" :key="item.id" class="card card-tappable" @click="openHeritageDetail(item)">
-						<div class="card-head">
-							<span class="card-title card-title-flex">{{ item.name }}</span>
-							<span class="card-link">{{ t('admin.viewHeritageDetail') }} ›</span>
-						</div>
-						<span class="card-text">{{ t('admin.sipCode', { value: item.sip_code || t('common.notAvailable') }) }}</span>
-						<span class="card-text">{{ t('admin.categoryLevel', { category: item.category || t('common.notAvailable'), level: item.level || t('common.notAvailable') }) }}</span>
-						<span class="card-text">{{ t('admin.address', { value: item.address || t('common.notAvailable') }) }}</span>
-						<span class="card-text">{{ t('admin.coordinates', { longitude: item.longitude || '-', latitude: item.latitude || '-' }) }}</span>
-					</div>
-					<div v-if="!heritages.length" class="card">
-						<span class="card-text">{{ t('admin.noHeritageMatched') }}</span>
-					</div>
-					<div v-if="heritageTotalPages > 1" class="pagination-bar">
-						<button type="button" class="ghost-lite-btn page-btn" :disabled="heritagePage <= 1" @click="changeHeritagePage(-1)">{{ t('admin.prevPage') }}</button>
-						<span class="page-text">{{ t('admin.pageInfo', { page: heritagePage, total: heritageTotalPages }) }}</span>
-						<button type="button" class="ghost-lite-btn page-btn" :disabled="heritagePage >= heritageTotalPages" @click="changeHeritagePage(1)">{{ t('admin.nextPage') }}</button>
-					</div>
-				</div>
 
-				<div v-if="currentTab === 'projects'" class="section">
-					<div class="section-header">
-						<span class="section-title">{{ t('admin.projectsTitle') }}</span>
-						<span class="section-count">{{ t('admin.recordCount', { count: projects.length }) }}</span>
-					</div>
-					<span v-if="projectSummary" class="filter-summary">{{ t('admin.projectSummary', {
-						total: projectSummary.total || 0,
-						inProgress: projectSummary.in_progress || 0,
-						archived: projectSummary.archived || 0,
-						overlap: projectSummary.overlap || 0,
-					}) }}</span>
-					<div class="filters-card">
-						<div class="filters-row">
-							<input
-								v-model.trim="projectKeyword"
-								class="filter-input"
-								:placeholder="t('admin.searchProjectPlaceholder')"
-								enterkeyhint="search"
-								@keyup.enter="loadProjects()"
-							/>
-							<div class="filter-picker">
-								<select class="picker-select" :value="projectStatusIndex" @change="onProjectStatusChange({ detail: { value: Number($event.target.value) } })">
+						<div class="adm-list-head">
+							<span class="adm-list-title">{{ t('admin.allHeritages') }}</span>
+							<span class="adm-list-count">{{ showHeritageFilterSummary ? t('admin.filterResultSummary', { count: heritageTotal, page: heritagePage }) : t('admin.recordCount', { count: heritageDisplayCount }) }}</span>
+						</div>
+
+						<div v-for="item in heritages" :key="item.id" class="u-card adm-item tappable" @click="openHeritageDetail(item)">
+							<div class="adm-item-head">
+								<span class="adm-item-title">{{ item.name }}</span>
+								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+							</div>
+							<div class="adm-badges">
+								<span v-if="item.category" class="u-badge info">{{ item.category }}</span>
+								<span v-if="item.level" class="u-badge warn">{{ item.level }}</span>
+							</div>
+							<div class="adm-kv"><span class="k">四普编号</span><span class="v mono">{{ item.sip_code || t('common.notAvailable') }}</span></div>
+							<div class="adm-kv"><span class="k">地址</span><span class="v">{{ item.address || t('common.notAvailable') }}</span></div>
+							<div v-if="item.longitude && item.latitude" class="adm-kv"><span class="k">坐标</span><span class="v mono">{{ item.longitude }}, {{ item.latitude }}</span></div>
+						</div>
+						<div v-if="!heritages.length" class="u-card u-empty">{{ t('admin.noHeritageMatched') }}</div>
+
+						<div v-if="heritageTotalPages > 1" class="adm-pager">
+							<button type="button" class="u-btn plain sm" :disabled="heritagePage <= 1" @click="changeHeritagePage(-1)">{{ t('admin.prevPage') }}</button>
+							<span class="adm-pager-text">{{ t('admin.pageInfo', { page: heritagePage, total: heritageTotalPages }) }}</span>
+							<button type="button" class="u-btn plain sm" :disabled="heritagePage >= heritageTotalPages" @click="changeHeritagePage(1)">{{ t('admin.nextPage') }}</button>
+						</div>
+					</template>
+
+					<!-- 项目管理 -->
+					<template v-if="currentTab === 'projects'">
+						<div v-if="projectSummary" class="u-card adm-summary">
+							<div class="adm-sum-cell"><span class="n">{{ projectSummary.total || 0 }}</span><span class="l">全部项目</span></div>
+							<div class="adm-sum-cell"><span class="n">{{ projectSummary.in_progress || 0 }}</span><span class="l">在办</span></div>
+							<div class="adm-sum-cell"><span class="n ok">{{ projectSummary.archived || 0 }}</span><span class="l">已归档</span></div>
+							<div class="adm-sum-cell"><span class="n warn">{{ projectSummary.overlap || 0 }}</span><span class="l">涉及文物</span></div>
+						</div>
+
+						<div class="u-card adm-filter">
+							<div class="adm-search">
+								<AppIcon name="search" :size="36" color="#94A3B8" />
+								<input
+									v-model.trim="projectKeyword"
+									class="adm-search-input"
+									type="search"
+									:placeholder="t('admin.searchProjectPlaceholder')"
+									enterkeyhint="search"
+									@keyup.enter="loadProjects()"
+								/>
+							</div>
+							<div class="adm-filter-row">
+								<select class="adm-select" :value="projectStatusIndex" @change="onProjectStatusChange({ detail: { value: Number($event.target.value) } })">
 									<option v-for="(l, i) in projectStatusLabels" :key="i" :value="i">{{ l }}</option>
 								</select>
+								<button type="button" class="u-btn primary sm" @click="loadProjects()">{{ t('common.search') }}</button>
 							</div>
 						</div>
-						<div class="filter-actions">
-							<button type="button" class="ghost-lite-btn" @click="openProjectListOnline">{{ t('admin.openProjectListOnline') }}</button>
-							<button type="button" class="primary-btn" @click="loadProjects()">{{ t('common.search') }}</button>
-						</div>
-					</div>
-					<div v-for="item in projects" :key="item.id" class="card">
-						<span class="card-title">{{ item.project_name }}</span>
-						<div class="badge-row">
-							<span :class="['badge', item.is_archived ? 'badge-muted' : '']">{{ item.status_label }}</span>
-							<span v-if="item.is_overlap_artifact" class="badge badge-warn">{{ t('admin.projectOverlapBadge', { count: item.overlap_count }) }}</span>
-						</div>
-						<span class="card-text">{{ t('admin.projectCompany', { value: item.company_name || t('common.notFilled') }) }}</span>
-						<span class="card-text">{{ t('admin.projectDates', { incoming: item.incoming_doc_date || '-', receive: item.receive_date || '-' }) }}</span>
-						<span class="card-text">{{ projectOverlapText(item) }}</span>
-						<span v-if="item.final_reply_to_company" class="card-text">{{ t('admin.projectReply', { value: item.final_reply_to_company }) }}</span>
-						<span v-if="item.updated_at" class="card-text card-text-minor">{{ t('admin.projectUpdatedAt', { value: item.updated_at }) }}</span>
-						<button type="button" class="primary-btn" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</button>
-					</div>
-					<div v-if="!projects.length" class="card">
-						<span class="card-text">{{ t('admin.noProjectMatched') }}</span>
-					</div>
-				</div>
 
-				<div v-if="currentTab === 'tools'" class="section">
-					<div class="card">
-						<span class="card-title">{{ t('admin.kmlTitle') }}</span>
-						<span class="card-text">{{ t('admin.kmlDesc') }}</span>
-						<button type="button" class="primary-btn" @click="openKmlTool">{{ t('admin.openKml') }}</button>
-					</div>
-					<div class="card" style="margin-top:10px;">
-						<span class="card-title">在线系统 · 不可移动文物采集</span>
-						<span class="card-text">进入在线系统采集页面，支持现场采集表单填写、照片上传与登记记录管理。</span>
-						<button type="button" class="primary-btn" @click="openDjangoCollectTool">打开采集管理页</button>
-					</div>
-					<div class="card" style="margin-top:10px;">
-						<span class="card-title">四普现场数据采集</span>
-						<span class="card-text">在现场对不可移动文物点进行登记采集，支持 GPS 定位、照片上传并自动加水印。</span>
-						<div style="display:flex;gap:8px;margin-top:8px;">
-							<button type="button" class="primary-btn" style="flex:2;" @click="goCollect">开始采集</button>
-							<button type="button" class="ghost-lite-btn" style="flex:1;" @click="goMyRecords">我的采集</button>
+						<div class="adm-list-head">
+							<span class="adm-list-title">{{ t('admin.projectsTitle') }}</span>
+							<span class="adm-list-link" @click="openProjectListOnline">{{ t('admin.openProjectListOnline') }} ›</span>
 						</div>
-					</div>
+
+						<div v-for="item in projects" :key="item.id" class="u-card adm-item">
+							<span class="adm-item-title">{{ item.project_name }}</span>
+							<div class="adm-badges">
+								<span :class="['u-badge', item.is_archived ? 'ok' : 'info']">{{ item.status_label }}</span>
+								<span v-if="item.is_overlap_artifact" class="u-badge bad">{{ t('admin.projectOverlapBadge', { count: item.overlap_count }) }}</span>
+								<span v-else-if="item.spatial_check_at" class="u-badge ok">{{ t('admin.projectNoOverlap') }}</span>
+								<span v-else class="u-badge warn">{{ t('admin.projectNotChecked') }}</span>
+							</div>
+							<div class="adm-kv"><span class="k">建设单位</span><span class="v">{{ item.company_name || t('common.notFilled') }}</span></div>
+							<div class="adm-kv"><span class="k">来函日期</span><span class="v">{{ item.incoming_doc_date || '-' }}</span></div>
+							<div class="adm-kv"><span class="k">收文日期</span><span class="v">{{ item.receive_date || '-' }}</span></div>
+							<div v-if="item.is_overlap_artifact" class="adm-kv"><span class="k">涉及文物</span><span class="v">{{ overlapNames(item) }}</span></div>
+							<div v-if="item.final_reply_to_company" class="adm-kv"><span class="k">复函号</span><span class="v">{{ item.final_reply_to_company }}</span></div>
+							<div class="adm-item-foot">
+								<span class="adm-minor">{{ item.updated_at ? t('admin.projectUpdatedAt', { value: item.updated_at }) : '' }}</span>
+								<button type="button" class="u-btn primary sm" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</button>
+							</div>
+						</div>
+						<div v-if="!projects.length" class="u-card u-empty">{{ t('admin.noProjectMatched') }}</div>
+					</template>
+
+					<!-- 工具入口 -->
+					<template v-if="currentTab === 'tools'">
+						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.fieldTools') }}</span></div>
+						<div class="u-card adm-tool">
+							<div class="adm-tool-main">
+								<div class="adm-tool-icon" style="background:#E7F6EC"><AppIcon name="map" :size="48" color="#15803D" /></div>
+								<div class="adm-tool-text">
+									<span class="adm-tool-title">{{ t('admin.collectTitle') }}</span>
+									<span class="adm-tool-desc">{{ t('admin.collectDesc') }}</span>
+								</div>
+							</div>
+							<div class="adm-tool-actions">
+								<button type="button" class="u-btn plain sm" @click="goMyRecords">{{ t('admin.myCollectRecords') }}</button>
+								<button type="button" class="u-btn primary sm" @click="goCollect">{{ t('admin.startCollect') }}</button>
+							</div>
+						</div>
+
+						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.onlineTools') }}</span></div>
+						<div class="u-card adm-tool tappable" @click="openKmlTool">
+							<div class="adm-tool-main">
+								<div class="adm-tool-icon" style="background:#E0F4F8"><AppIcon name="grid" :size="48" color="#0E7490" /></div>
+								<div class="adm-tool-text">
+									<span class="adm-tool-title">{{ t('admin.kmlTitle') }}</span>
+									<span class="adm-tool-desc">{{ t('admin.kmlDesc') }}</span>
+								</div>
+								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+							</div>
+						</div>
+						<div class="u-card adm-tool tappable" @click="openDjangoCollectTool">
+							<div class="adm-tool-main">
+								<div class="adm-tool-icon" style="background:#F1EAFE"><AppIcon name="records" :size="48" color="#7C3AED" /></div>
+								<div class="adm-tool-text">
+									<span class="adm-tool-title">{{ t('admin.collectManageTitle') }}</span>
+									<span class="adm-tool-desc">{{ t('admin.collectManageDesc') }}</span>
+								</div>
+								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+							</div>
+						</div>
+						<div class="u-card adm-tool tappable" @click="openProjectListOnline">
+							<div class="adm-tool-main">
+								<div class="adm-tool-icon" style="background:#FEF3E2"><AppIcon name="file" :size="48" color="#B45309" /></div>
+								<div class="adm-tool-text">
+									<span class="adm-tool-title">{{ t('admin.projectOnlineTitle') }}</span>
+									<span class="adm-tool-desc">{{ t('admin.projectOnlineDesc') }}</span>
+								</div>
+								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+							</div>
+						</div>
+						<span class="adm-tip">{{ t('admin.onlineTip') }}</span>
+					</template>
 				</div>
 			</div>
 		</ion-content>
@@ -142,16 +175,19 @@
 </template>
 
 <script>
-	import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue';
+	import { IonPage, IonContent, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue';
+	import AppHeader from '@/components/AppHeader.vue';
+	import AppIcon from '@/components/AppIcon.vue';
+	import { openApiEntry } from '@/lib/webview.js';
 	import config from '@/lib/config.js';
-	import { getAuthHeader, getUser, isAdminUser } from '@/lib/auth.js';
-	import { request } from '@/lib/request.js';
+	import { getUser, isAdminUser } from '@/lib/auth.js';
+	import { apiRequest } from '@/lib/request.js';
 	import { toast, showLoading, hideLoading } from '@/lib/ui.js';
 	import { navigateTo, switchTab } from '@/lib/nav.js';
 	import { t } from '@/lib/i18n.js';
 
 	export default {
-		components: { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonSegment, IonSegmentButton, IonLabel },
+		components: { IonPage, IonContent, IonSegment, IonSegmentButton, IonLabel, AppHeader, AppIcon },
 		data() {
 			return {
 				currentTab: 'heritages',
@@ -233,15 +269,7 @@
 				}
 			},
 			request(url, method = 'GET', data = null) {
-				return request({
-					url,
-					method,
-					data,
-					header: {
-						'Content-Type': 'application/json',
-						...getAuthHeader(),
-					},
-				});
+				return apiRequest({ url, method, data });
 			},
 			async loadData() {
 				showLoading(this.t('common.loading'));
@@ -341,52 +369,25 @@
 				this.projectStatus = selected ? selected.value : '';
 				this.loadProjects();
 			},
-			projectOverlapText(item) {
-				if (!item.spatial_check_at && !item.is_overlap_artifact) {
-					return this.t('admin.projectNotChecked');
-				}
-				if (!item.is_overlap_artifact) {
-					return this.t('admin.projectNoOverlap');
-				}
-				const names = (item.overlapped_relics || [])
+			overlapNames(item) {
+				return (item.overlapped_relics || [])
 					.map(row => (row.level ? `${row.name}（${row.level}）` : row.name))
 					.filter(Boolean)
-					.join('、');
-				return this.t('admin.projectOverlap', { count: item.overlap_count, names: names || '-' });
-			},
-			openWebPage(url, title) {
-				if (!url) {
-					toast(this.t('admin.toolAddressMissing'), { icon: 'none' });
-					return;
-				}
-				navigateTo(`/kml?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&locate=0`);
+					.join('、') || '-';
 			},
 			openProjectListOnline() {
-				this.openWebPage(this.projectListWebUrl, this.t('admin.projectsTitle'));
+				// 入口令牌有时效，打开前重新获取项目列表入口地址
+				return openApiEntry('/api/admin/land-projects', { pick: (data) => (data && data.web_url) || this.projectListWebUrl });
 			},
-			async openProjectOnline(item) {
-				try {
-					const response = await this.request(`${config.API_BASE_URL}/api/admin/land-projects/${item.id}/web-entry`);
-					this.openWebPage(response.data && response.data.url, item.project_name || this.t('admin.projectsTitle'));
-				} catch (error) {
-					toast(this.t('admin.openFailed'), { icon: 'none' });
-				}
+			openProjectOnline(item) {
+				return openApiEntry(`/api/admin/land-projects/${item.id}/web-entry`);
 			},
-			async openEntryTool(path) {
-				try {
-					const response = await this.request(`${config.API_BASE_URL}${path}`);
-					const url = response.data && response.data.url;
-					if (!url) {
-						toast(this.t('admin.toolAddressMissing'), { icon: 'none' });
-						return;
-					}
-					navigateTo(`/kml?url=${encodeURIComponent(url)}`);
-				} catch (error) {
-					toast(this.t('admin.openFailed'), { icon: 'none' });
-				}
+			openEntryTool(path) {
+				return openApiEntry(path);
 			},
 			openKmlTool() {
-				return this.openEntryTool('/api/admin/kml-overlay-entry');
+				// 先进入启动页获取当前定位，再在应用内浏览器打开 KML 叠加检查
+				navigateTo('/kml');
 			},
 			openDjangoCollectTool() {
 				return this.openEntryTool('/api/admin/collect-entry');
@@ -402,221 +403,299 @@
 </script>
 
 <style scoped>
-	.page {
-		min-height: 100%;
-		padding: 12px;
-		padding-bottom: 24px;
-		box-sizing: border-box;
-		background: var(--bg-primary);
+	.adm-seg-wrap {
+		position: sticky;
+		top: 0;
+		z-index: 5;
+		padding: 10px 14px;
+		background: var(--c-bg);
 	}
-	.hero {
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		min-height: var(--topbar-min-height);
-		width: 100%;
-		box-sizing: border-box;
-		padding: var(--card-padding);
-		border-radius: var(--radius-card);
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
-		margin-bottom: 12px;
-		box-shadow: var(--shadow-strong);
+
+	.adm-seg {
+		--background: #E2E8F0;
+		border-radius: 10px;
 	}
-	.hero-kicker {
-		display: block;
-		font-size: 10px;
-		letter-spacing: 1.5px;
-		text-transform: uppercase;
-		opacity: 0.72;
-		margin-bottom: 5px;
-	}
-	.hero-title {
-		display: block;
-		font-size: 20px;
+
+	.adm-seg ion-segment-button {
+		--indicator-color: #FFFFFF;
+		--color: #475569;
+		--color-checked: #1E5AA8;
+		min-height: 38px;
+		font-size: 15px;
 		font-weight: 700;
-		margin-bottom: 6px;
 	}
-	.hero-subtitle {
-		display: block;
-		font-size: 14px;
-		line-height: 1.6;
-		opacity: 0.88;
+
+	.adm-body {
+		padding-bottom: 20px;
 	}
-	.admin-segment {
-		margin-bottom: 12px;
-	}
-	.section {
-		padding-bottom: 12px;
-	}
-	.section-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 9px;
-	}
-	.section-title {
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--text-primary);
-	}
-	.section-count {
-		font-size: 14px;
-		color: var(--text-secondary);
-	}
-	.filters-card {
-		background: #fff;
-		border-radius: 9px;
-		border: 0.5px solid var(--line-soft);
-		padding: 9px;
+
+	.u-card {
 		margin-bottom: 10px;
-		box-shadow: var(--shadow-soft);
 	}
-	.filters-row {
+
+	.adm-filter {
+		padding: 12px;
 		display: flex;
-		gap: 6px;
-		align-items: center;
+		flex-direction: column;
+		gap: 10px;
 	}
-	.filter-input {
+
+	.adm-search {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		height: 44px;
+		padding: 0 12px;
+		border-radius: 10px;
+		background: #F5F7FB;
+		border: 1px solid var(--c-line);
+	}
+
+	.adm-search-input {
 		flex: 1;
 		min-width: 0;
-		height: 39px;
-		background: var(--input-bg);
-		border-radius: 7px;
-		border: 0.5px solid var(--line-soft);
-		padding: 0 10px;
-		box-sizing: border-box;
-		font-size: 14px;
-	}
-	.filter-picker {
-		flex: 0 0 125px;
-		height: 39px;
-		background: var(--input-bg);
-		border-radius: 7px;
-		border: 0.5px solid var(--line-soft);
-		padding: 0 8px;
-		box-sizing: border-box;
-		display: flex;
-		align-items: center;
-	}
-	.picker-select {
-		width: 100%;
+		height: 100%;
 		border: none;
 		background: transparent;
-		font-size: 14px;
-		color: var(--text-primary);
-		outline: none;
+		font-size: 15px;
+		color: var(--c-text);
 	}
-	.filter-actions {
+
+	.adm-search-input:focus {
+		box-shadow: none;
+	}
+
+	.adm-filter-row {
 		display: flex;
-		gap: 6px;
-		justify-content: flex-end;
-		margin-top: 7px;
+		gap: 8px;
 	}
-	.filter-summary {
-		display: block;
-		margin: -2px 2px 8px;
-		font-size: 12px;
-		color: var(--text-secondary);
+
+	.adm-filter-row .u-btn {
+		flex-shrink: 0;
 	}
-	.pagination-bar {
+
+	.adm-select {
+		flex: 1;
+		min-width: 0;
+		height: 40px;
+		padding: 0 30px 0 12px;
+		border-radius: 10px;
+		border: 1px solid var(--c-line);
+		background: #FFFFFF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+		font-size: 15px;
+		color: var(--c-text);
+		-webkit-appearance: none;
+		appearance: none;
+		font-family: inherit;
+	}
+
+	.adm-list-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 8px;
+		margin: 4px 2px 8px;
+	}
+
+	.adm-list-title {
+		font-size: 17px;
+		font-weight: 700;
+		color: var(--c-text);
+		white-space: nowrap;
+	}
+
+	.adm-list-count {
+		font-size: 13px;
+		color: var(--c-text-3);
+		text-align: right;
+	}
+
+	.adm-list-link {
+		font-size: 14px;
+		color: var(--c-primary);
+		font-weight: 600;
+		white-space: nowrap;
+	}
+
+	.adm-item {
+		padding: 12px 14px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+
+	.tappable:active {
+		transform: scale(0.99);
+		opacity: 0.92;
+	}
+
+	.adm-item-head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 6px;
-		margin-top: 4px;
-		margin-bottom: 10px;
-	}
-	.page-btn {
-		flex: 0 0 90px;
-		height: 37px;
-		line-height: 37px;
-		padding: 0;
-	}
-	.page-text {
-		flex: 1;
-		text-align: center;
-		font-size: 14px;
-		color: var(--text-secondary);
-	}
-	.card {
-		background: #fff;
-		border-radius: 9px;
-		border: 0.5px solid var(--line-soft);
-		padding: var(--card-padding);
-		margin-bottom: 10px;
-		box-shadow: var(--shadow-soft);
-	}
-	.card-tappable:active {
-		opacity: 0.85;
-	}
-	.card-head {
-		display: flex;
-		align-items: flex-start;
 		gap: 8px;
 	}
-	.card-title-flex {
-		flex: 1;
-		min-width: 0;
+
+	.adm-item-title {
+		font-size: 17px;
+		font-weight: 800;
+		color: var(--c-text);
+		line-height: 1.4;
+		word-break: break-all;
 	}
-	.card-link {
-		flex-shrink: 0;
-		font-size: 12px;
-		color: var(--accent-strong);
-		padding-top: 3px;
-	}
-	.card-title {
-		display: block;
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--text-primary);
-		margin-bottom: 7px;
-	}
-	.card-text {
-		display: block;
-		font-size: 14px;
-		line-height: 1.7;
-		color: var(--text-secondary);
-		margin-bottom: 4px;
-	}
-	.card-text-minor {
-		font-size: 12px;
-		opacity: 0.8;
-	}
-	.badge-row {
+
+	.adm-badges {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 6px;
+		margin: 2px 0 4px;
 	}
-	.badge {
-		display: inline-block;
-		padding: 4px 8px;
-		border-radius: var(--radius-pill);
-		background: var(--accent-soft);
-		color: var(--accent-strong);
-		font-size: 11px;
-		margin-bottom: 6px;
+
+	.adm-badges .u-badge {
+		font-size: 12px;
+		padding: 3px 8px;
 	}
-	.badge-muted {
-		background: #eef1f5;
-		color: #66707d;
+
+	.adm-kv {
+		display: flex;
+		gap: 10px;
+		font-size: 14px;
+		line-height: 1.5;
 	}
-	.badge-warn {
-		background: #fff1e6;
-		color: #c2410c;
+
+	.adm-kv .k {
+		flex: 0 0 60px;
+		color: var(--c-text-3);
 	}
-	.primary-btn, .ghost-lite-btn {
-		border-radius: var(--radius-pill);
-		font-size: 12.5px;
+
+	.adm-kv .v {
+		flex: 1;
+		min-width: 0;
+		color: var(--c-text-2);
+		word-break: break-all;
 	}
-	.primary-btn {
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
+
+	.adm-kv .mono {
+		font-variant-numeric: tabular-nums;
+	}
+
+	.adm-item-foot {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
 		margin-top: 6px;
+		padding-top: 10px;
+		border-top: 1px solid #EEF2F7;
 	}
-	.ghost-lite-btn {
-		background: rgba(9, 92, 219, 0.12);
-		color: var(--accent-strong);
-		border: 0.5px solid rgba(9, 92, 219, 0.26);
+
+	.adm-minor {
+		font-size: 12px;
+		color: #94A3B8;
+	}
+
+	.adm-pager {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		margin-top: 4px;
+	}
+
+	.adm-pager-text {
+		font-size: 14px;
+		color: var(--c-text-3);
+	}
+
+	.adm-summary {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		padding: 12px 6px;
+	}
+
+	.adm-sum-cell {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.adm-sum-cell + .adm-sum-cell {
+		border-left: 1px solid #EEF2F7;
+	}
+
+	.adm-sum-cell .n {
+		font-size: 20px;
+		font-weight: 800;
+		color: var(--c-primary);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.adm-sum-cell .n.ok {
+		color: var(--c-success);
+	}
+
+	.adm-sum-cell .n.warn {
+		color: var(--c-warning);
+	}
+
+	.adm-sum-cell .l {
+		font-size: 12px;
+		color: var(--c-text-3);
+	}
+
+	.adm-tool {
+		padding: 12px 14px;
+	}
+
+	.adm-tool-main {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.adm-tool-icon {
+		width: 44px;
+		height: 44px;
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.adm-tool-text {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.adm-tool-title {
+		font-size: 16px;
+		font-weight: 700;
+		color: var(--c-text);
+	}
+
+	.adm-tool-desc {
+		font-size: 13px;
+		line-height: 1.5;
+		color: var(--c-text-3);
+	}
+
+	.adm-tool-actions {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
+		margin-top: 12px;
+	}
+
+	.adm-tip {
+		display: block;
+		margin: 6px 4px 0;
+		font-size: 12px;
+		line-height: 1.6;
+		color: #94A3B8;
+		text-align: center;
 	}
 </style>

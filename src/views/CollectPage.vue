@@ -3,7 +3,7 @@
 		<ion-header>
 			<ion-toolbar class="app-toolbar">
 				<ion-buttons slot="start"><ion-back-button default-href="/tabs/admin" /></ion-buttons>
-				<ion-title>文物现场采集</ion-title>
+				<ion-title>不可移动文物现场采集</ion-title>
 			</ion-toolbar>
 		</ion-header>
 		<ion-content>

@@ -98,6 +98,13 @@
 	.app-tabbar ion-tab-button.main {
 		justify-content: flex-end;
 		--color: #1E5AA8;
+		--color-selected: #1E5AA8;
+		z-index: 2;
+	}
+
+	/* ion-tab-button 的 shadow 内部容器默认 overflow:hidden，会把上浮的圆形按钮裁掉 */
+	.app-tabbar ion-tab-button::part(native) {
+		overflow: visible;
 	}
 
 	.app-tabbar ion-tab-button.main ion-label {
@@ -106,9 +113,11 @@
 	}
 
 	.tab-main {
-		width: 58px;
-		height: 58px;
-		margin-top: -28px;
+		flex: 0 0 auto;
+		width: 56px;
+		height: 56px;
+		margin-top: -26px;
+		box-sizing: border-box;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;

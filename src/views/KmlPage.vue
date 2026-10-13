@@ -1,50 +1,60 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar class="app-toolbar">
-				<ion-buttons slot="start"><ion-back-button default-href="/tabs/admin" /></ion-buttons>
-				<ion-title>{{ pageTitle || t('kml.title') }}</ion-title>
-				<ion-buttons slot="end">
-					<ion-button @click="openInBrowser">在浏览器打开</ion-button>
-				</ion-buttons>
-			</ion-toolbar>
-		</ion-header>
-		<ion-content :scroll-y="false">
-			<div class="page">
-				<div class="notice">
-					<span class="kicker">{{ t('kml.heroLabel') }}</span>
-					<span class="title">{{ pageTitle || t('kml.title') }}</span>
-					<span class="desc">{{ pageTitle ? t('kml.webSubtitle') : t('kml.subtitle') }}</span>
-					<div v-if="enableLocation" class="action-row">
-						<button type="button" class="locate-btn" :disabled="locating" @click="showCurrentLocation()">
-							{{ locating ? t('kml.locating') : t('kml.showCurrentLocation') }}
-						</button>
-						<span v-if="lastLocationText" class="locate-text">{{ lastLocationText }}</span>
+		<ion-content>
+			<div class="u-page">
+				<AppHeader :title="pageTitle || t('kml.title')" :subtitle="t('kml.headerSubtitle')" back />
+				<div class="u-body kml-body">
+					<div class="u-card kml-intro">
+						<div class="kml-intro-icon"><AppIcon name="grid" :size="52" color="#0E7490" /></div>
+						<div class="kml-intro-text">
+							<span class="kml-intro-title">{{ t('kml.introTitle') }}</span>
+							<span class="kml-intro-desc">{{ t('kml.subtitle') }}</span>
+						</div>
 					</div>
+
+					<div v-if="enableLocation" class="u-card kml-loc">
+						<div class="kml-loc-head">
+							<span class="kml-loc-label">{{ t('kml.locationTitle') }}</span>
+							<span :class="['u-badge', location ? 'ok' : (locating ? 'info' : 'warn')]">
+								{{ location ? t('kml.locationReady') : (locating ? t('kml.locating') : t('kml.locationNone')) }}
+							</span>
+						</div>
+						<span class="kml-loc-value">{{ lastLocationText || t('kml.locationHint') }}</span>
+						<button type="button" class="u-btn plain sm kml-loc-btn" :disabled="locating" @click="showCurrentLocation()">
+							{{ locating ? t('kml.locating') : t('kml.refreshLocation') }}
+						</button>
+					</div>
+
+					<button type="button" class="u-btn primary block" :disabled="opening" @click="openTool">
+						{{ opening ? t('kml.opening') : t('kml.openButton') }}
+					</button>
+					<span class="kml-tip">{{ t('kml.openTip') }}</span>
 				</div>
-				<iframe v-if="url" :key="url" :src="url" class="web-frame"></iframe>
 			</div>
 		</ion-content>
 	</ion-page>
 </template>
 
 <script>
-	import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonButton } from '@ionic/vue';
-	import { Browser } from '@capacitor/browser';
-	import config from '@/lib/config.js';
+	import { IonPage, IonContent } from '@ionic/vue';
+	import AppHeader from '@/components/AppHeader.vue';
+	import AppIcon from '@/components/AppIcon.vue';
 	import { t } from '@/lib/i18n.js';
 	import { toast, showLoading, hideLoading } from '@/lib/ui.js';
 	import { getGpsLocation } from '@/lib/sensors.js';
+	import { openWebTool, openApiEntry } from '@/lib/webview.js';
 
+	// 在线系统页面禁止被 iframe 嵌入（X-Frame-Options: DENY），本页仅作为启动页：
+	// 获取定位后，申请短时令牌入口并在应用内浏览器中打开。
 	export default {
-		components: { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonButton },
+		components: { IonPage, IonContent, AppHeader, AppIcon },
 		data() {
 			return {
-				baseUrl: `${config.WEB_BASE_URL}/admin/kml-overlay-check/`,
-				url: `${config.WEB_BASE_URL}/admin/kml-overlay-check/`,
+				presetUrl: '',
+				location: null,
 				locating: false,
+				opening: false,
 				lastLocationText: '',
-				autoLocateTried: false,
 				pageTitle: '',
 				enableLocation: true,
 			};
@@ -52,8 +62,7 @@
 		created() {
 			const query = (this.$route && this.$route.query) || {};
 			if (query.url) {
-				this.baseUrl = String(query.url);
-				this.url = this.baseUrl;
+				this.presetUrl = String(query.url);
 			}
 			if (query.title) {
 				this.pageTitle = String(query.title);
@@ -62,58 +71,35 @@
 				this.enableLocation = false;
 				return;
 			}
-			this.tryAutoLocateOnEnter();
+			setTimeout(() => {
+				this.showCurrentLocation({ showLoading: false, showSuccessToast: false, showFailToast: false });
+			}, 80);
 		},
 		methods: {
 			t,
-			async openInBrowser() {
+			async openTool() {
+				if (this.opening) {
+					return;
+				}
+				this.opening = true;
 				try {
-					await Browser.open({ url: this.url });
+					const transform = (url) => (this.location ? this.buildUrlWithLocation(url, this.location) : url);
+					if (this.presetUrl) {
+						await openWebTool(transform(this.presetUrl));
+					} else {
+						await openApiEntry('/api/admin/kml-overlay-entry', { transform });
+					}
 				} catch (_) {
 					toast(this.t('admin.openFailed'), { icon: 'none' });
+				} finally {
+					this.opening = false;
 				}
-			},
-			hasLocationParams(rawUrl) {
-				if (!rawUrl) {
-					return false;
-				}
-				try {
-					const target = new URL(rawUrl);
-					const path = String(target.pathname || '');
-					if (path.includes('/mobile/kml-entry/')) {
-						const nextPath = target.searchParams.get('next') || '';
-						if (!nextPath) {
-							return false;
-						}
-						const nextTarget = new URL(nextPath, 'https://local.invalid');
-						return nextTarget.searchParams.has('app_loc_lon') && nextTarget.searchParams.has('app_loc_lat');
-					}
-					return target.searchParams.has('app_loc_lon') && target.searchParams.has('app_loc_lat');
-				} catch (_) {
-					return rawUrl.includes('app_loc_lon=') && rawUrl.includes('app_loc_lat=');
-				}
-			},
-			tryAutoLocateOnEnter() {
-				if (this.autoLocateTried) {
-					return;
-				}
-				this.autoLocateTried = true;
-				if (this.hasLocationParams(this.baseUrl)) {
-					return;
-				}
-				setTimeout(() => {
-					this.showCurrentLocation({
-						showLoading: false,
-						showSuccessToast: false,
-						showFailToast: false,
-					});
-				}, 80);
 			},
 			buildLocationText(location) {
 				const lon = Number(location.longitude).toFixed(6);
 				const lat = Number(location.latitude).toFixed(6);
 				const acc = Number.isFinite(Number(location.accuracy)) ? ` ±${Math.round(Number(location.accuracy))}m` : '';
-				return `${this.t('kml.currentLocationPrefix')} ${lon}, ${lat}${acc}`;
+				return `${lon}, ${lat}${acc}`;
 			},
 			appendLocationParams(searchParams, location) {
 				searchParams.set('app_loc_lon', String(location.longitude));
@@ -179,7 +165,7 @@
 						throw new Error('invalid location');
 					}
 					this.lastLocationText = this.buildLocationText(location);
-					this.url = this.buildUrlWithLocation(this.baseUrl, location);
+					this.location = location;
 					if (showSuccessToast) {
 						toast(this.t('kml.locationUpdated'), { icon: 'none' });
 					}
@@ -199,72 +185,70 @@
 </script>
 
 <style scoped>
-	.page {
-		height: 100%;
+	.kml-body {
+		padding-top: 14px;
+		padding-bottom: 24px;
+	}
+	.kml-intro {
 		display: flex;
-		flex-direction: column;
-		background: var(--bg-primary);
+		gap: 12px;
+		align-items: flex-start;
 	}
-	.notice {
-		flex: 0 0 auto;
-		width: 100%;
-		box-sizing: border-box;
-		padding: var(--card-padding);
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
-		box-shadow: var(--shadow-strong);
-	}
-	.web-frame {
-		flex: 1 1 auto;
-		width: 100%;
-		height: 100%;
-		min-height: 0;
-		border: 0;
-	}
-	.kicker {
-		display: block;
-		font-size: 10px;
-		letter-spacing: 1.5px;
-		text-transform: uppercase;
-		opacity: 0.72;
-		margin-bottom: 5px;
-	}
-	.title {
-		display: block;
-		font-size: var(--title-xl);
-		font-weight: 700;
-		margin-bottom: 5px;
-	}
-	.desc {
-		display: block;
-		font-size: 14px;
-		line-height: 1.6;
-		opacity: 0.9;
-	}
-	.action-row {
-		margin-top: 8px;
+	.kml-intro-icon {
+		flex: 0 0 44px;
+		height: 44px;
+		border-radius: 12px;
+		background: #E0F4F8;
 		display: flex;
 		align-items: center;
-		gap: 8px;
-		flex-wrap: wrap;
+		justify-content: center;
 	}
-	.locate-btn {
-		min-height: 32px;
-		line-height: 32px;
-		padding: 0 12px;
-		border-radius: 999px;
-		border: 0.5px solid rgba(255, 255, 255, 0.8);
-		background: rgba(255, 255, 255, 0.2);
-		color: #fff;
-		font-size: 12px;
+	.kml-intro-text {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-width: 0;
+	}
+	.kml-intro-title {
+		font-size: 17px;
 		font-weight: 700;
+		color: var(--c-text);
 	}
-	.locate-btn[disabled] {
-		opacity: 0.75;
+	.kml-intro-desc {
+		font-size: 14px;
+		line-height: 1.6;
+		color: var(--c-text-3);
 	}
-	.locate-text {
-		font-size: 11px;
-		line-height: 1.4;
-		opacity: 0.9;
+	.kml-loc {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.kml-loc-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.kml-loc-label {
+		font-size: 16px;
+		font-weight: 700;
+		color: var(--c-text);
+	}
+	.kml-loc-value {
+		font-size: 14px;
+		color: var(--c-text-2);
+		font-variant-numeric: tabular-nums;
+		word-break: break-all;
+	}
+	.kml-loc-btn {
+		align-self: flex-start;
+	}
+	.kml-tip {
+		display: block;
+		margin-top: 10px;
+		font-size: 13px;
+		line-height: 1.6;
+		color: var(--c-text-3);
+		text-align: center;
 	}
 </style>

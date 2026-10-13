@@ -1,10 +1,6 @@
 <template>
   <div class="wizard-page">
     <div class="wizard-header">
-      <div class="header-top">
-        <span class="page-title">不可移动文物现场数据采集</span>
-        <span class="page-subtitle">横向流程式录入</span>
-      </div>
       <div class="stepper-wrap">
         <div v-for="(step, idx) in stepDefs" :key="step.key" class="stepper-item">
           <div class="stepper-node" :class="stepNodeClass(idx)">
@@ -842,7 +838,7 @@ defineExpose({
 }
 
 .stepper-wrap {
-  padding: 4px 10px 8px;
+  padding: 10px 10px 8px;
   display: flex;
 }
 

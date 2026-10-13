@@ -41,7 +41,7 @@
 <style>
 	.app-header {
 		position: relative;
-		padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 18px;
+		padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 14px;
 		background: linear-gradient(150deg, #2A6BC2 0%, #1E5AA8 45%, #0F2F5C 100%);
 		color: #FFFFFF;
 		overflow: hidden;
@@ -60,7 +60,7 @@
 	}
 
 	.app-header.tall {
-		padding-bottom: 60px;
+		padding-bottom: 56px;
 	}
 
 	.app-header-bar {
@@ -68,7 +68,7 @@
 		z-index: 1;
 		display: flex;
 		align-items: center;
-		min-height: 48px;
+		min-height: 44px;
 		gap: 8px;
 	}
 
@@ -96,15 +96,18 @@
 	}
 
 	.app-header-title {
-		font-size: 22px;
+		font-size: 20px;
 		font-weight: 800;
-		letter-spacing: 1px;
+		letter-spacing: 0.5px;
 		line-height: 1.3;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 
 	.app-header-sub {
-		margin-top: 3px;
-		font-size: 14px;
+		margin-top: 2px;
+		font-size: 13px;
 		color: rgba(255, 255, 255, 0.82);
 	}
 

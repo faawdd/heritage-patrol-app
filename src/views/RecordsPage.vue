@@ -48,8 +48,12 @@
 								<div class="record-main">
 									<span class="record-name">{{ item.site_name || '未知文物点' }}</span>
 									<div class="record-time">
-										<AppIcon name="clock" :size="30" color="#64748B" />
+										<AppIcon name="clock" :size="28" color="#64748B" />
 										<span>{{ timeOf(item.inspect_time) }}</span>
+										<template v-if="item.latitude != null && item.longitude != null">
+											<AppIcon class="record-pin" name="pin" :size="28" color="#94A3B8" />
+											<span class="record-coord">{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</span>
+										</template>
 									</div>
 								</div>
 								<span class="u-badge big" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
@@ -66,10 +70,6 @@
 								alt=""
 								@click="preview(item.photo_url)"
 							/>
-							<div v-if="item.latitude != null && item.longitude != null" class="coord">
-								<AppIcon name="pin" :size="30" color="#94A3B8" />
-								<span>{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</span>
-							</div>
 						</div>
 					</div>
 				</div>
@@ -234,14 +234,16 @@
 
 	.group-title {
 		display: block;
-		margin: 4px 2px 9px;
-		font-size: 17px;
+		margin: 4px 2px 8px;
+		font-size: 14px;
 		font-weight: 800;
 		color: #334155;
 	}
 
 	.record {
-		border-left: 6px solid #15803D;
+		border-left: 5px solid #15803D;
+		padding: 12px 14px;
+		margin-bottom: 10px;
 	}
 
 	.record.bad {
@@ -261,10 +263,13 @@
 
 	.record-name {
 		display: block;
-		font-size: 19px;
+		font-size: 17px;
 		font-weight: 800;
 		color: #0F172A;
 		line-height: 1.3;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.record-time {
@@ -272,13 +277,26 @@
 		align-items: center;
 		gap: 4px;
 		margin-top: 4px;
-		font-size: 15px;
+		font-size: 13px;
 		color: #64748B;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	.record-pin {
+		margin-left: 8px;
+	}
+
+	.record-coord {
+		color: #94A3B8;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.u-badge.big {
-		font-size: 15px;
-		padding: 6px 12px;
+		font-size: 13px;
+		padding: 4px 10px;
+		flex-shrink: 0;
 	}
 
 	.issue {
@@ -296,19 +314,10 @@
 	.photo {
 		display: block;
 		width: 100%;
-		height: 190px;
+		height: 160px;
 		object-fit: cover;
 		margin-top: 10px;
 		border-radius: 10px;
 		background: #E2E8F0;
-	}
-
-	.coord {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		margin-top: 8px;
-		font-size: 13px;
-		color: #94A3B8;
 	}
 </style>

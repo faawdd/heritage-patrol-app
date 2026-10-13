@@ -1,13 +1,8 @@
 <template>
 	<ion-page>
-		<ion-header>
-			<ion-toolbar class="app-toolbar">
-				<ion-buttons slot="start"><ion-back-button default-href="/tabs/admin" /></ion-buttons>
-				<ion-title>文物点详情</ion-title>
-			</ion-toolbar>
-		</ion-header>
-		<ion-content :fullscreen="true">
+		<ion-content>
 			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)"><ion-refresher-content /></ion-refresher>
+			<AppHeader :title="t('nav.heritageDetail')" back />
 	<div class="page">
 		<div v-if="loading && !detail" class="state-box">
 			<span class="state-text">{{ t('heritageDetail.loading') }}</span>
@@ -122,17 +117,18 @@
 </template>
 
 <script>
-	import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonRefresher, IonRefresherContent } from '@ionic/vue';
+	import { IonPage, IonContent, IonRefresher, IonRefresherContent } from '@ionic/vue';
+	import AppHeader from '@/components/AppHeader.vue';
 	import config from '@/lib/config.js';
 	import { getAuthHeader } from '@/lib/auth.js';
 	import { request } from '@/lib/request.js';
 	import { t } from '@/lib/i18n.js';
 	import { toast } from '@/lib/ui.js';
-	import { navigateTo } from '@/lib/nav.js';
+	import { openApiEntry } from '@/lib/webview.js';
 	import { previewImage, setClipboard, openLocation } from '@/lib/native.js';
 
 	export default {
-		components: { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton, IonRefresher, IonRefresherContent },
+		components: { IonPage, IonContent, IonRefresher, IonRefresherContent, AppHeader },
 		data() {
 			return {
 				siteId: '',
@@ -230,8 +226,10 @@
 				});
 			},
 			openOnline() {
-				const title = this.detail.name || this.t('nav.heritageDetail');
-				navigateTo(`/kml?url=${encodeURIComponent(this.detail.web_url)}&title=${encodeURIComponent(title)}&locate=0`);
+				// 入口令牌仅 10 分钟有效，重新获取详情以拿到新的地址
+				return openApiEntry(`/api/admin/heritages/${encodeURIComponent(this.siteId)}/detail`, {
+					pick: (data) => (data && data.web_url) || this.detail.web_url,
+				});
 			},
 		},
 	};
