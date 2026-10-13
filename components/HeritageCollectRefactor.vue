@@ -30,14 +30,14 @@
             </view>
             <radio-group class="strategy-group" @change="onModeChange">
               <label class="strategy-item">
-                <radio value="dem" :checked="altitudeMode === 'dem'" color="#1890FF" />
+                <radio value="dem" :checked="altitudeMode === 'dem'" color="#1E5AA8" />
                 <view class="strategy-copy">
                   <text class="strategy-copy-title">DEM 优先模式（推荐）</text>
                   <text class="strategy-copy-desc">优先后端 DEM 反查，弱网时自动降级硬件海拔</text>
                 </view>
               </label>
               <label class="strategy-item">
-                <radio value="hardware" :checked="altitudeMode === 'hardware'" color="#1890FF" />
+                <radio value="hardware" :checked="altitudeMode === 'hardware'" color="#1E5AA8" />
                 <view class="strategy-copy">
                   <text class="strategy-copy-title">硬件优先模式</text>
                   <text class="strategy-copy-desc">跳过 DEM 请求，直接使用手机硬件高程</text>
@@ -1000,8 +1000,8 @@ defineExpose({
 
 .stepper-node.active,
 .stepper-node.done {
-  border-color: #1890ff;
-  background: #1890ff;
+  border-color: #1E5AA8;
+  background: #1E5AA8;
 }
 
 .stepper-node-text {
@@ -1039,7 +1039,7 @@ defineExpose({
 }
 
 .stepper-line.done {
-  background: #1890ff;
+  background: #1E5AA8;
 }
 
 .wizard-content {
@@ -1264,7 +1264,7 @@ defineExpose({
 
 .mode-item.active {
   color: #ffffff;
-  background: #1890ff;
+  background: #1E5AA8;
 }
 
 .btn-group-compact {
@@ -1464,7 +1464,7 @@ defineExpose({
 }
 
 .btn-flow-primary {
-  background: #1890ff;
+  background: #1E5AA8;
   color: #ffffff;
 }
 

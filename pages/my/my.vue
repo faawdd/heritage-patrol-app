@@ -1,38 +1,74 @@
 <template>
-	<view class="page">
-		<view class="hero">
-			<view>
-				<text class="hero-kicker">{{ t('my.heroLabel') }}</text>
-				<text class="hero-title">{{ t('my.title') }}</text>
-				<text class="hero-subtitle">{{ t('my.subtitle') }}</text>
+	<view class="u-page has-tabbar">
+		<AppHeader title="我的" tall />
+
+		<view class="u-body overlap">
+			<view class="u-card profile">
+				<view class="avatar">{{ avatarText }}</view>
+				<view class="profile-info">
+					<text class="name">{{ user.full_name || user.username || '-' }}</text>
+					<text class="account">账号：{{ user.username || '-' }}</text>
+					<text class="u-badge info role">{{ roleText }}</text>
+				</view>
 			</view>
-		</view>
 
-		<view class="card profile-card">
-			<text class="label">{{ t('my.fullName') }}</text>
-			<text class="value">{{ user.full_name || '-' }}</text>
-			<text class="label">{{ t('my.username') }}</text>
-			<text class="value">{{ user.username || '-' }}</text>
-			<text class="label">{{ t('my.role') }}</text>
-			<text class="value">{{ getRoleDisplay() }}</text>
-		</view>
+			<view class="u-card menu">
+				<view class="menu-item" @click="goSecurity">
+					<view class="menu-icon" style="background: #E7F6EC">
+						<AppIcon name="shield" :size="52" color="#15803D" />
+					</view>
+					<view class="menu-text">
+						<text class="menu-title">快捷登录</text>
+						<text class="menu-sub">{{ quickText }}</text>
+					</view>
+					<AppIcon name="chevron-right" :size="44" color="#94A3B8" />
+				</view>
 
-		<view class="card password-card">
-			<text class="section-title">{{ t('my.changePassword') }}</text>
-			<input class="input" password v-model="passwordForm.current_password" :placeholder="t('my.currentPassword')" />
-			<input class="input" password v-model="passwordForm.new_password" :placeholder="t('my.newPassword')" />
-			<input class="input" password v-model="passwordForm.confirm_password" :placeholder="t('my.confirmPassword')" />
-			<button class="action-btn primary" @click="changePassword" :disabled="saving">{{ saving ? t('my.saving') : t('my.saveNewPassword') }}</button>
-		</view>
+				<view class="menu-item" @click="pwdOpen = !pwdOpen">
+					<view class="menu-icon" style="background: #E8F0FB">
+						<AppIcon name="key" :size="52" color="#1E5AA8" />
+					</view>
+					<view class="menu-text">
+						<text class="menu-title">修改密码</text>
+						<text class="menu-sub">定期修改密码更安全</text>
+					</view>
+					<AppIcon :name="pwdOpen ? 'chevron-down' : 'chevron-right'" :size="44" color="#94A3B8" />
+				</view>
 
-		<view class="card logout-card">
-			<button class="action-btn danger" @click="logout">{{ t('my.logout') }}</button>
-		</view>
+				<view v-if="pwdOpen" class="pwd u-fade-in">
+					<input v-model="pwd.current" class="u-input" password placeholder="当前密码" placeholder-class="u-placeholder" />
+					<input v-model="pwd.next" class="u-input" password placeholder="新密码（至少 6 位）" placeholder-class="u-placeholder" />
+					<input v-model="pwd.confirm" class="u-input" password placeholder="再输一次新密码" placeholder-class="u-placeholder" />
+					<button class="u-btn primary block" :disabled="saving" @click="changePassword">{{ saving ? '正在保存…' : '保存新密码' }}</button>
+				</view>
 
-		<view class="card about-card">
-			<text class="section-title">{{ t('my.aboutSoftware') }}</text>
-			<text class="about-desc">{{ t('my.aboutSoftwareDesc') }}</text>
-			<button class="action-btn secondary" @click="goAbout">{{ t('my.openAboutSoftware') }}</button>
+				<view class="menu-item" @click="callAdmin">
+					<view class="menu-icon" style="background: #FEF3E2">
+						<AppIcon name="phone" :size="52" color="#B45309" />
+					</view>
+					<view class="menu-text">
+						<text class="menu-title">联系管理员</text>
+						<text class="menu-sub">13899665458</text>
+					</view>
+					<AppIcon name="chevron-right" :size="44" color="#94A3B8" />
+				</view>
+
+				<view class="menu-item" @click="goAbout">
+					<view class="menu-icon" style="background: #EEF2F7">
+						<AppIcon name="info" :size="52" color="#475569" />
+					</view>
+					<view class="menu-text">
+						<text class="menu-title">关于软件</text>
+						<text class="menu-sub">版本信息与反馈方式</text>
+					</view>
+					<AppIcon name="chevron-right" :size="44" color="#94A3B8" />
+				</view>
+			</view>
+
+			<button class="u-btn danger-ghost block logout" @click="logout">
+				<AppIcon name="logout" :size="48" color="#C62828" />
+				<text>退出登录</text>
+			</button>
 		</view>
 
 		<BottomNav current="my" :userInfo="user" />
@@ -40,27 +76,43 @@
 </template>
 
 <script>
-	import config from '../../common/js/config.js';
-	import { clearSession, getAuthHeader, getToken, getUser, setSession } from '../../common/js/auth.js';
-	import { getRoleLabel } from '../../common/js/i18n.js';
-	import createPageI18n from '../../common/js/pageI18n.js';
+	import AppHeader from '../../components/AppHeader.vue';
+	import AppIcon from '../../components/AppIcon.vue';
 	import BottomNav from '../../components/BottomNav.vue';
+	import { clearSession, getToken, getUser, isAdminUser, setUser } from '../../common/js/auth.js';
+	import { getRoleLabel } from '../../common/js/i18n.js';
+	import { apiRequest, extractError, issueDeviceToken } from '../../common/js/request.js';
+	import { biometricLabel, clearQuickLogin, getQuickLogin, hasQuickLogin } from '../../common/js/quickLogin.js';
 
 	export default {
-		mixins: [createPageI18n('my')],
-		components: {
-			BottomNav,
-		},
+		components: { AppHeader, AppIcon, BottomNav },
 		data() {
 			return {
 				user: {},
+				quick: null,
+				pwdOpen: false,
 				saving: false,
-				passwordForm: {
-					current_password: '',
-					new_password: '',
-					confirm_password: '',
-				},
+				pwd: { current: '', next: '', confirm: '' },
 			};
+		},
+		computed: {
+			avatarText() {
+				const name = this.user.full_name || this.user.username || '我';
+				return name.slice(-2);
+			},
+			roleText() {
+				return getRoleLabel(this.user.role || (isAdminUser(this.user) ? '管理员' : '文物看护员'));
+			},
+			quickText() {
+				const q = this.quick;
+				if (!hasQuickLogin(q)) {
+					return '未开启，开启后不用每次输密码';
+				}
+				const parts = [];
+				if (q.gestureHash) parts.push('手势');
+				if (q.biometric) parts.push(biometricLabel(q.biometric));
+				return `已开启：${parts.join(' + ')}`;
+			},
 		},
 		onLoad() {
 			if (!getToken()) {
@@ -71,145 +123,80 @@
 			this.loadMe();
 		},
 		onShow() {
-			if (getToken()) {
-				this.loadMe(false);
-			}
+			this.quick = getQuickLogin();
 		},
 		methods: {
-			getRoleDisplay() {
-				if (!this.user || (!this.user.role && !this.user.is_admin)) {
-					return '-';
-				}
-				const rawRole = this.user.role || (this.user.is_admin ? '管理员' : '看护员');
-				return getRoleLabel(rawRole);
-			},
-			loadMe(showLoading = true) {
-				if (showLoading) {
-					uni.showLoading({ title: this.t('my.loadMe') });
-				}
-				uni.request({
-					url: `${config.API_BASE_URL}/api/v1/system/profile/`,
-					method: 'GET',
-					header: getAuthHeader(),
-					success: (res) => {
-						if (res.statusCode === 200 && res.data && res.data.success && res.data.data) {
-							this.user = res.data.data;
-							setSession({ token: getToken(), user: this.user });
-							return;
+			loadMe() {
+				apiRequest({ url: '/api/auth/me' })
+					.then((res) => {
+						if (res.statusCode === 200 && res.data && res.data.user) {
+							this.user = res.data.user;
+							setUser(res.data.user);
 						}
-
-						// 兼容旧版接口
-						uni.request({
-							url: `${config.API_BASE_URL}/api/auth/me`,
-							method: 'GET',
-							header: getAuthHeader(),
-							success: (legacyRes) => {
-								if (legacyRes.statusCode === 200 && legacyRes.data && legacyRes.data.user) {
-									this.user = legacyRes.data.user;
-									setSession({ token: getToken(), user: this.user });
-									return;
-								}
-								if (legacyRes.statusCode === 401) {
-									this.logout(false);
-								}
-							},
-						});
-					},
-					complete: () => {
-						if (showLoading) {
-							uni.hideLoading();
-						}
-					},
-				});
+					})
+					.catch(() => null);
 			},
 			changePassword() {
-				const form = this.passwordForm;
-				if (!form.current_password || !form.new_password || !form.confirm_password) {
-					uni.showToast({ title: this.t('my.fillPasswordInfo'), icon: 'none' });
+				const { current, next, confirm } = this.pwd;
+				if (!current || !next || !confirm) {
+					uni.showToast({ title: '请把三个密码都填上', icon: 'none' });
 					return;
 				}
-				if (form.new_password.length < 6) {
-					uni.showToast({ title: this.t('my.newPasswordMin'), icon: 'none' });
+				if (next.length < 6) {
+					uni.showToast({ title: '新密码至少 6 位', icon: 'none' });
 					return;
 				}
-				if (form.new_password !== form.confirm_password) {
-					uni.showToast({ title: this.t('my.passwordMismatch'), icon: 'none' });
+				if (next !== confirm) {
+					uni.showToast({ title: '两次输入的新密码不一样', icon: 'none' });
 					return;
 				}
 				this.saving = true;
-				uni.request({
-					url: `${config.API_BASE_URL}/api/v1/system/profile/change-password/`,
+				apiRequest({
+					url: '/api/auth/change-password',
 					method: 'POST',
-					header: {
-						'Content-Type': 'application/json',
-						...getAuthHeader(),
-					},
-					data: {
-						old_password: form.current_password,
-						new_password: form.new_password,
-					},
-					success: (res) => {
-						if (res.statusCode === 200 && res.data && res.data.success) {
-							this.passwordForm.current_password = '';
-							this.passwordForm.new_password = '';
-							this.passwordForm.confirm_password = '';
-							uni.showToast({ title: this.t('my.passwordSuccess'), icon: 'success' });
+					data: { current_password: current, new_password: next },
+				})
+					.then((res) => {
+						if (res.statusCode === 200) {
+							this.pwd = { current: '', next: '', confirm: '' };
+							this.pwdOpen = false;
+							uni.showToast({ title: '密码已修改', icon: 'success' });
+							// 改密码后旧的快捷登录凭证失效，重新签发
+							if (hasQuickLogin(getQuickLogin())) {
+								issueDeviceToken().catch(() => null);
+							}
 							return;
 						}
-
-						// 兼容旧版接口
-						uni.request({
-							url: `${config.API_BASE_URL}/api/auth/change-password`,
-							method: 'POST',
-							header: {
-								'Content-Type': 'application/json',
-								...getAuthHeader(),
-							},
-							data: {
-								current_password: form.current_password,
-								new_password: form.new_password,
-							},
-							success: (legacyRes) => {
-								if (legacyRes.statusCode === 200) {
-									this.passwordForm.current_password = '';
-									this.passwordForm.new_password = '';
-									this.passwordForm.confirm_password = '';
-									uni.showToast({ title: this.t('my.passwordSuccess'), icon: 'success' });
-									return;
-								}
-								uni.showToast({ title: (legacyRes.data && legacyRes.data.detail) || this.t('my.passwordFailed'), icon: 'none' });
-							},
-							fail: () => {
-								uni.showToast({ title: this.t('my.passwordFailed'), icon: 'none' });
-							},
-							complete: () => {
-								this.saving = false;
-							},
-						});
-					},
-					fail: () => {
-						uni.showToast({ title: this.t('my.passwordFailed'), icon: 'none' });
-					},
-					complete: () => {
+						uni.showToast({ title: extractError(res, '修改失败'), icon: 'none' });
+					})
+					.catch(() => uni.showToast({ title: '网络不好，请重试', icon: 'none' }))
+					.finally(() => {
 						this.saving = false;
-					},
-				});
+					});
 			},
-			logout(showToast = true) {
-				clearSession();
-				if (showToast) {
-					uni.showToast({ title: this.t('my.loggedOut'), icon: 'none' });
-				}
-				setTimeout(() => {
-					uni.reLaunch({ url: '/pages/index/index' });
-				}, 200);
+			goSecurity() {
+				uni.navigateTo({ url: '/pages/security/security' });
 			},
 			goAbout() {
-				uni.navigateTo({
-					url: '/pages/about/about',
-					fail: (error) => {
-						console.error('打开关于页面失败:', error);
-						uni.showToast({ title: this.t('my.openAboutFailed'), icon: 'none' });
+				uni.navigateTo({ url: '/pages/about/about' });
+			},
+			callAdmin() {
+				uni.makePhoneCall({ phoneNumber: '13899665458', fail: () => null });
+			},
+			logout() {
+				uni.showModal({
+					title: '退出登录',
+					content: '退出后需要重新输入账号密码登录，手势和指纹登录也会关闭。确定退出吗？',
+					confirmText: '确定退出',
+					confirmColor: '#C62828',
+					cancelText: '取消',
+					success: (res) => {
+						if (!res.confirm) {
+							return;
+						}
+						clearQuickLogin();
+						clearSession();
+						uni.reLaunch({ url: '/pages/index/index' });
 					},
 				});
 			},
@@ -218,112 +205,114 @@
 </script>
 
 <style>
-	.page {
-		min-height: 100vh;
-		padding: 24rpx;
-		padding-bottom: calc(284rpx + env(safe-area-inset-bottom));
-		padding-bottom: calc(284rpx + constant(safe-area-inset-bottom));
-		box-sizing: border-box;
-		background: var(--bg-primary);
+	.overlap {
+		margin-top: -96rpx;
+		position: relative;
+		z-index: 2;
 	}
-	.hero {
+
+	.profile {
 		display: flex;
-		justify-content: space-between;
+		align-items: center;
+		gap: 28rpx;
+	}
+
+	.avatar {
+		width: 136rpx;
+		height: 136rpx;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #2A6BC2, #0F2F5C);
+		color: #FFFFFF;
+		font-size: 46rpx;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.profile-info {
+		display: flex;
+		flex-direction: column;
 		align-items: flex-start;
-		min-height: var(--topbar-min-height);
-		width: 100%;
-		box-sizing: border-box;
-		padding: var(--card-padding);
-		border-radius: var(--radius-card);
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
-		box-shadow: var(--shadow-strong);
-		margin-bottom: 20rpx;
+		min-width: 0;
 	}
-	.hero-kicker {
-		display: block;
-		font-size: 20rpx;
-		letter-spacing: 3rpx;
-		text-transform: uppercase;
-		opacity: 0.72;
-		margin-bottom: 10rpx;
+
+	.name {
+		font-size: 44rpx;
+		font-weight: 800;
+		color: #0F172A;
 	}
-	.hero-title {
-		display: block;
-		font-size: 20px;
-		font-weight: 700;
-		margin-bottom: 10rpx;
+
+	.account {
+		margin: 4rpx 0 12rpx;
+		font-size: 30rpx;
+		color: #64748B;
 	}
-	.hero-subtitle {
-		display: block;
-		font-size: 14px;
-		line-height: 1.6;
-		opacity: 0.88;
-	}
-	.card {
-		background: #fff;
-		border-radius: 18rpx;
-		border: 1rpx solid var(--line-soft);
-		padding: var(--card-padding);
-		box-shadow: var(--shadow-soft);
-		margin-bottom: 18rpx;
-	}
-	.label {
-		display: block;
-		font-size: 14px;
-		color: var(--text-secondary);
-		margin-top: 8rpx;
-	}
-	.value {
-		display: block;
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--text-primary);
-		margin: 6rpx 0 10rpx;
-	}
-	.section-title {
-		display: block;
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--text-primary);
-		margin-bottom: 14rpx;
-	}
-	.input {
-		width: 100%;
-		height: 84rpx;
-		padding: 0 24rpx;
-		border-radius: 18rpx;
-		background: var(--input-bg);
-		border: 1rpx solid var(--line-soft);
-		margin-bottom: 14rpx;
-		box-sizing: border-box;
-		font-size: 14px;
-	}
-	.action-btn {
-		border-radius: 999rpx;
+
+	.role {
 		font-size: 28rpx;
-		font-weight: 600;
-		margin-top: 8rpx;
 	}
-	.action-btn.primary {
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
+
+	.menu {
+		padding-top: 8rpx;
+		padding-bottom: 8rpx;
 	}
-	.action-btn.secondary {
-		background: rgba(9, 92, 219, 0.12);
-		color: var(--accent-strong);
-		border: 1rpx solid rgba(9, 92, 219, 0.26);
+
+	.menu-item {
+		display: flex;
+		align-items: center;
+		gap: 24rpx;
+		min-height: 136rpx;
+		border-bottom: 2rpx solid #EEF2F7;
 	}
-	.action-btn.danger {
-		background: var(--danger-soft);
-		color: var(--danger);
-		border: 1rpx solid rgba(220, 38, 38, 0.24);
+
+	.menu-item:last-child {
+		border-bottom: none;
 	}
-	.about-desc {
-		display: block;
-		font-size: 14px;
-		line-height: 1.7;
-		color: var(--text-secondary);
-		margin-bottom: 12rpx;
+
+	.menu-item:active {
+		opacity: 0.7;
+	}
+
+	.menu-icon {
+		width: 88rpx;
+		height: 88rpx;
+		border-radius: 24rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+	}
+
+	.menu-text {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.menu-title {
+		font-size: 36rpx;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.menu-sub {
+		margin-top: 4rpx;
+		font-size: 28rpx;
+		color: #64748B;
+	}
+
+	.pwd {
+		display: flex;
+		flex-direction: column;
+		gap: 20rpx;
+		padding: 8rpx 0 28rpx;
+		border-bottom: 2rpx solid #EEF2F7;
+	}
+
+	.logout {
+		margin-bottom: 32rpx !important;
 	}
 </style>

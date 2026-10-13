@@ -1,39 +1,54 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "鄯善文保"
+				"navigationBarTitleText": "鄯善文保巡查",
+				"navigationStyle": "custom"
 			}
 		},
 		{
 			"path": "pages/home/home",
 			"style": {
-				"navigationBarTitleText": "实时统计"
+				"navigationBarTitleText": "首页",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true
 			}
 		},
 		{
 			"path": "pages/patrol/patrol",
 			"style": {
-				"navigationBarTitleText": "文物巡查"
+				"navigationBarTitleText": "巡查上报",
+				"navigationStyle": "custom"
 			}
 		},
 		{
 			"path": "pages/records/records",
 			"style": {
-				"navigationBarTitleText": "巡查记录"
+				"navigationBarTitleText": "巡查记录",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": true
 			}
 		},
 		{
 			"path": "pages/my/my",
 			"style": {
-				"navigationBarTitleText": "我的"
+				"navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/security/security",
+			"style": {
+				"navigationBarTitleText": "快捷登录",
+				"navigationStyle": "custom"
 			}
 		},
 		{
 			"path": "pages/about/about",
 			"style": {
-				"navigationBarTitleText": "关于此软件"
+				"navigationBarTitleText": "关于软件",
+				"navigationStyle": "custom"
 			}
 		},
 		{
@@ -59,8 +74,6 @@
 			"path": "pages/collect/collect",
 			"style": {
 				"navigationBarTitleText": "文物现场采集",
-				"navigationBarBackgroundColor": "#5C9FE6",
-				"navigationBarTextStyle": "white",
 				"enablePullDownRefresh": false
 			}
 		},
@@ -68,17 +81,16 @@
 			"path": "pages/collect/my_records",
 			"style": {
 				"navigationBarTitleText": "我的采集记录",
-				"navigationBarBackgroundColor": "#5C9FE6",
-				"navigationBarTextStyle": "white",
 				"enablePullDownRefresh": true
 			}
 		}
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
-		"navigationBarTitleText": "鄯善文保",
-		"navigationBarBackgroundColor": "#5C9FE6",
-		"backgroundColor": "#F5F8FF"
+		"navigationBarTitleText": "鄯善文保巡查",
+		"navigationBarBackgroundColor": "#1E5AA8",
+		"backgroundColor": "#F1F4F9",
+		"backgroundTextStyle": "dark"
 	},
 	"permission": {
 		"scope.userLocation": {

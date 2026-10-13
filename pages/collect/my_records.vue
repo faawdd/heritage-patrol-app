@@ -217,7 +217,7 @@
 	font-size: 22rpx;
 	line-height: 1.2;
 	padding: 10rpx 18rpx;
-	background: #1d4ed8;
+	background: #174B8F;
 	color: #fff;
 	border: none;
 	border-radius: 10rpx;
@@ -229,7 +229,7 @@
 .empty-icon { font-size: 80rpx; display: block; margin-bottom: 16rpx; }
 .empty-text { font-size: 28rpx; color: #94a3b8; display: block; margin-bottom: 32rpx; }
 .btn-go-collect {
-	background: #2563eb; color: #fff; border: none;
+	background: #1E5AA8; color: #fff; border: none;
 	border-radius: 16rpx; padding: 20rpx 60rpx; font-size: 28rpx;
 }
 
@@ -242,7 +242,7 @@
 .fab {
 	position: fixed; right: 48rpx; bottom: 80rpx;
 	width: 100rpx; height: 100rpx; border-radius: 50%;
-	background: #2563eb; box-shadow: 0 4px 16px rgba(37,99,235,.4);
+	background: #1E5AA8; box-shadow: 0 4px 16px rgba(30,90,168,.4);
 	display: flex; align-items: center; justify-content: center;
 }
 .fab-icon { font-size: 56rpx; color: #fff; line-height: 1; margin-top: -4rpx; }

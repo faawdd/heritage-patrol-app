@@ -1,82 +1,180 @@
 <template>
-	<view class="container">
-		<view class="hero-card">
-			<view class="hero-top">
-				<view>
-					<text class="hero-label">{{ t('patrol.heroLabel') }}</text>
-					<text class="hero-title">{{ currentUser.full_name || currentUser.username || t('patrol.notLoggedInUser') }}</text>
-					<text class="hero-role">{{ t('patrol.currentRole', { role: getRoleText() }) }}</text>
+	<view class="u-page has-tabbar">
+		<AppHeader title="巡查上报" subtitle="按照下面 3 步完成上报" />
+
+		<view class="u-body steps">
+			<!-- 第 1 步：文物点 -->
+			<view class="u-card step" :class="{ finished: !!site }">
+				<view class="step-head">
+					<view class="step-no">{{ site ? '✓' : '1' }}</view>
+					<text class="step-title">确认文物点</text>
+				</view>
+
+				<view v-if="locating && !site" class="locating">
+					<AppIcon name="locate" :size="56" color="#94A3B8" />
+					<text>正在定位，查找附近文物点…</text>
+				</view>
+
+				<view v-else-if="site" class="site">
+					<view class="site-main">
+						<text class="site-name">{{ site.name }}</text>
+						<text v-if="site.address" class="site-addr">{{ site.address }}</text>
+						<view class="site-tags">
+							<text v-if="site.manual" class="u-badge info">手动选择</text>
+							<text v-else-if="distanceText" class="u-badge" :class="isFar ? 'warn' : 'ok'">距离约 {{ distanceText }}</text>
+							<text v-if="!locationOk" class="u-badge warn">未获取到定位</text>
+						</view>
+					</view>
+					<button class="u-btn sm change-btn" @click="openPicker">换一个</button>
+				</view>
+
+				<view v-else class="locating">
+					<AppIcon name="alert" :size="56" color="#B45309" />
+					<text>{{ locateError || '附近没有找到文物点' }}</text>
+				</view>
+
+				<view v-if="site && isFar" class="far-tip">
+					<AppIcon name="alert" :size="40" color="#B45309" />
+					<text>您离这个文物点较远，请确认是否在现场。</text>
+				</view>
+
+				<view class="row-btns">
+					<button v-if="!site" class="u-btn primary block" @click="openPicker">
+						<AppIcon name="search" :size="44" color="#FFFFFF" />
+						<text>选择文物点</text>
+					</button>
+					<button class="u-btn plain block" :disabled="locating" @click="locate">
+						<AppIcon name="refresh" :size="40" color="#334155" />
+						<text>{{ locating ? '定位中…' : '重新定位' }}</text>
+					</button>
 				</view>
 			</view>
-			<text class="hero-desc">{{ t('patrol.heroDesc') }}</text>
-		</view>
 
-		<view class="location-section">
-			<text class="section-kicker">{{ t('patrol.locationInfo') }}</text>
-			<text class="location-address">{{ location.address || t('patrol.locating') }}</text>
-			<text class="location-coord">{{ t('patrol.longitude') }} {{ location.longitude.toFixed(4) }} · {{ t('patrol.latitude') }} {{ location.latitude.toFixed(4) }}</text>
-		</view>
-
-		<view class="heritage-section">
-			<text class="title">{{ t('patrol.nearestSite') }}</text>
-			<view v-if="nearestSite">
-				<text class="site-name">{{ nearestSite.name }}</text>
-				<text v-if="typeof nearestSite.distance === 'number'" class="site-meta">{{ t('home.distanceKm', { distance: nearestSite.distance }) }}</text>
-				<text v-else class="site-meta">{{ nearestSite.distance || t('patrol.selectedSite') }}</text>
-				<text class="site-meta">{{ nearestSite.address || t('patrol.noAddressInfo') }}</text>
-			</view>
-			<view v-else>
-				<text class="site-meta">{{ t('patrol.searching') }}</text>
-			</view>
-		</view>
-
-		<view class="manual-section">
-			<text class="title">{{ t('patrol.manualTitle') }}</text>
-			<text class="manual-copy">{{ t('patrol.manualCopy') }}</text>
-			<view class="manual-search-row">
-				<input v-model="manualSearchKeyword" class="manual-input" :placeholder="t('patrol.manualSearchPlaceholder')" />
-				<button class="manual-search-btn" @click="searchManualSites">{{ t('common.search') }}</button>
-			</view>
-			<picker
-				class="manual-picker"
-				:range="manualSites"
-				range-key="name"
-				@change="onManualSiteChange"
-				:disabled="!manualSites.length"
-			>
-				<view class="manual-picker-text">{{ getManualPickerText() }}</view>
-			</picker>
-			<text v-if="!manualLoading && !manualSites.length" class="manual-empty">{{ t('patrol.manualNoResult') }}</text>
-		</view>
-
-		<view class="action-section">
-			<text class="title">{{ t('patrol.actionTitle') }}</text>
-			<text class="action-copy">{{ t('patrol.actionCopy') }}</text>
-			<view class="status-row">
-				<text class="status-label">{{ t('patrol.siteStatus') }}</text>
-				<view class="status-options">
-					<view :class="['status-option', inspectionStatus === 'normal' ? 'active' : '']" @click="setInspectionStatus('normal')">{{ t('patrol.normal') }}</view>
-					<view :class="['status-option', 'problem', inspectionStatus === 'problem' ? 'active' : '']" @click="setInspectionStatus('problem')">{{ t('patrol.problem') }}</view>
+			<!-- 第 2 步：拍照 -->
+			<view class="u-card step" :class="{ finished: !!photo, disabled: !site }">
+				<view class="step-head">
+					<view class="step-no">{{ photo ? '✓' : '2' }}</view>
+					<text class="step-title">拍摄现场照片</text>
+				</view>
+				<view v-if="!photo" class="shoot" @click="takePhoto">
+					<view class="shoot-icon">
+						<AppIcon name="camera" :size="88" color="#FFFFFF" />
+					</view>
+					<text class="shoot-text">{{ processing ? '正在处理照片…' : '点这里拍照' }}</text>
+					<text class="shoot-sub">照片会自动加上时间、地点水印</text>
+				</view>
+				<view v-else class="photo">
+					<image class="photo-img" :src="photo" mode="aspectFill" @click="preview" />
+					<button class="u-btn plain block" @click="takePhoto">
+						<AppIcon name="camera" :size="44" color="#334155" />
+						<text>重新拍照</text>
+					</button>
 				</view>
 			</view>
-			<textarea
-				v-model="issueDetails"
-				class="issue-textarea"
-				:placeholder="inspectionStatus === 'problem' ? t('patrol.problemRequiredPlaceholder') : t('patrol.problemOptionalPlaceholder')"
-			></textarea>
-			<text v-if="inspectionStatus === 'problem'" class="issue-hint">{{ t('patrol.problemHint') }}</text>
-			<button class="action-btn" @click="takePhoto">{{ t('patrol.takePhoto') }}</button>
+
+			<!-- 第 3 步：情况 -->
+			<view class="u-card step" :class="{ finished: status === 'normal' || (status === 'problem' && issueText), disabled: !photo }">
+				<view class="step-head">
+					<view class="step-no">3</view>
+					<text class="step-title">文物点情况</text>
+				</view>
+				<view class="status-row">
+					<view class="status-btn ok" :class="{ active: status === 'normal' }" @click="setStatus('normal')">
+						<AppIcon name="check-circle" :size="72" :color="status === 'normal' ? '#FFFFFF' : '#15803D'" />
+						<text>正常</text>
+					</view>
+					<view class="status-btn bad" :class="{ active: status === 'problem' }" @click="setStatus('problem')">
+						<AppIcon name="alert" :size="72" :color="status === 'problem' ? '#FFFFFF' : '#C62828'" />
+						<text>有问题</text>
+					</view>
+				</view>
+
+				<view v-if="status === 'problem'" class="issue u-fade-in">
+					<text class="issue-label">发现了什么问题？（可多选）</text>
+					<view class="chips">
+						<view
+							v-for="item in issueOptions"
+							:key="item"
+							class="chip"
+							:class="{ active: chips.indexOf(item) > -1 }"
+							@click="toggleChip(item)"
+						>{{ item }}</view>
+					</view>
+					<textarea
+						v-model="issueNote"
+						class="issue-input"
+						maxlength="300"
+						placeholder="补充说明（选填）：例如位置、范围、严重程度"
+						placeholder-class="u-placeholder"
+						:auto-height="false"
+					/>
+				</view>
+			</view>
+
+			<button class="u-btn xl block submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="submitting" @click="submit">
+				<AppIcon name="upload" :size="56" :color="canSubmit ? '#FFFFFF' : '#94A3B8'" />
+				<text>{{ submitting ? '正在上报…' : '提交巡查' }}</text>
+			</button>
+			<text class="submit-hint">{{ submitHint }}</text>
 		</view>
 
-		<view class="preview-section" v-if="previewImage">
-			<text class="title">{{ t('patrol.previewTitle') }}</text>
-			<image :src="previewImage" mode="aspectFit"></image>
-			<button class="upload-btn" @click="uploadRecord">{{ t('patrol.confirmUpload') }}</button>
+		<!-- 文物点选择 -->
+		<view v-if="pickerOpen" class="sheet-mask" @click="pickerOpen = false">
+			<view class="sheet" @click.stop>
+				<view class="sheet-head">
+					<text class="sheet-title">选择文物点</text>
+					<view class="sheet-close" @click="pickerOpen = false">
+						<AppIcon name="close" :size="48" color="#334155" />
+					</view>
+				</view>
+				<view class="search">
+					<AppIcon name="search" :size="44" color="#64748B" />
+					<input
+						v-model.trim="keyword"
+						class="search-input"
+						placeholder="输入文物点名称搜索"
+						placeholder-class="u-placeholder"
+						confirm-type="search"
+						@input="onKeyword"
+						@confirm="searchSites"
+					/>
+				</view>
+				<scroll-view scroll-y class="sheet-list">
+					<view v-if="searching" class="u-empty">正在搜索…</view>
+					<view v-else-if="!sites.length" class="u-empty">没有找到文物点，换个名字试试</view>
+					<view
+						v-for="item in sites"
+						:key="item.id"
+						class="site-option"
+						:class="{ active: site && site.id === item.id }"
+						@click="chooseSite(item)"
+					>
+						<view class="site-option-main">
+							<text class="site-option-name">{{ item.name }}</text>
+							<text class="site-option-sub">{{ [item.level, item.address].filter(Boolean).join(' · ') || item.sip_code || '' }}</text>
+						</view>
+						<AppIcon v-if="site && site.id === item.id" name="check" :size="48" color="#1E5AA8" :stroke="3" />
+					</view>
+				</scroll-view>
+			</view>
 		</view>
 
-		<BottomNav current="patrol" :userInfo="currentUser" />
-		
-		<!-- 用于水印绘制的Canvas，应在视图外；尺寸需与原图一致避免裁切 -->
+		<!-- 提交成功 -->
+		<view v-if="success" class="success-mask">
+			<view class="success u-fade-in">
+				<view class="success-icon">
+					<AppIcon name="check" :size="120" color="#FFFFFF" :stroke="3" />
+				</view>
+				<text class="success-title">上报成功</text>
+				<text class="success-sub">{{ success.site }} · {{ success.normal ? '情况正常' : '已上报问题' }}</text>
+				<button class="u-btn primary xl block" @click="again">继续巡查</button>
+				<button class="u-btn ghost block" style="margin-top: 24rpx" @click="goRecords">查看我的记录</button>
+			</view>
+		</view>
+
+		<BottomNav current="patrol" :userInfo="user" />
+
+		<!-- 水印绘制用的离屏 Canvas，尺寸需与原图一致避免裁切 -->
 		<canvas
 			canvas-id="watermarkCanvas"
 			:width="watermarkCanvas.width"
@@ -87,217 +185,154 @@
 </template>
 
 <script>
-	import { addWatermark } from '../../common/js/watermark.js';
-	import config from '../../common/js/config.js';
-	import { getAuthHeader, getToken, getUser } from '../../common/js/auth.js';
-	import { getRoleLabel, t as translate } from '../../common/js/i18n.js';
-	import createPageI18n from '../../common/js/pageI18n.js';
+	import AppHeader from '../../components/AppHeader.vue';
+	import AppIcon from '../../components/AppIcon.vue';
 	import BottomNav from '../../components/BottomNav.vue';
-	
+	import { addWatermark } from '../../common/js/watermark.js';
+	import { getToken, getUser } from '../../common/js/auth.js';
+	import { apiRequest, apiUpload, extractError } from '../../common/js/request.js';
+	import { formatDistance, getLocation, pad } from '../../common/js/format.js';
+
+	const FAR_KM = 1;
+
 	export default {
-		mixins: [createPageI18n('patrol')],
-		components: {
-			BottomNav,
-		},
+		components: { AppHeader, AppIcon, BottomNav },
 		data() {
 			return {
-				currentUser: {},
-				inspectionStatus: 'normal',
-				issueDetails: '',
-				locationAvailable: false,
-				location: {
-					latitude: 0,
-					longitude: 0,
-					address: translate('patrol.locating')
-				},
-				nearestSite: null,
-				manualSearchKeyword: '',
-				manualSites: [],
-				manualSelectedIndex: -1,
-				manualLoading: false,
-				previewImage: null,
-				patrolRecord: {
-					site_id: null,
-					photo_path: null,
-					latitude: null,
-					longitude: null,
-				},
-				watermarkCanvas: {
-					width: 1,
-					height: 1,
-				},
+				user: {},
+				locating: false,
+				locationOk: false,
+				locateError: '',
+				location: { latitude: 0, longitude: 0 },
+				site: null,
+				pickerOpen: false,
+				keyword: '',
+				sites: [],
+				searching: false,
+				searchTimer: null,
+				photo: '',
+				processing: false,
+				status: '',
+				chips: [],
+				issueNote: '',
+				issueOptions: ['盗掘痕迹', '人为破坏', '自然损毁', '违规建设', '标志碑损坏', '垃圾堆放', '其他'],
+				submitting: false,
+				success: null,
+				watermarkCanvas: { width: 1, height: 1 },
 			};
+		},
+		computed: {
+			distanceText() {
+				return this.site ? formatDistance(this.site.distance) : '';
+			},
+			isFar() {
+				return !!(this.site && !this.site.manual && Number(this.site.distance) > FAR_KM);
+			},
+			issueText() {
+				const note = (this.issueNote || '').trim();
+				const tags = this.chips.join('、');
+				if (tags && note) {
+					return `${tags}：${note}`;
+				}
+				return tags || note;
+			},
+			canSubmit() {
+				return !!(this.site && this.photo && (this.status === 'normal' || (this.status === 'problem' && this.issueText)));
+			},
+			submitHint() {
+				if (!this.site) return '请先确认文物点';
+				if (!this.photo) return '请拍摄现场照片';
+				if (!this.status) return '请选择「正常」或「有问题」';
+				if (this.status === 'problem' && !this.issueText) return '请选择或填写发现的问题';
+				return '信息已填好，请点击提交';
+			},
 		},
 		onLoad() {
 			if (!getToken()) {
 				uni.reLaunch({ url: '/pages/index/index' });
 				return;
 			}
-			this.currentUser = getUser() || {};
-			this.getCurrentLocation();
-			this.loadManualSites();
+			this.user = getUser() || {};
+			this.locate();
+		},
+		onUnload() {
+			clearTimeout(this.searchTimer);
 		},
 		methods: {
-			getRoleText() {
-				const role = this.currentUser.role || (this.currentUser.is_admin ? '管理员' : '看护员');
-				return getRoleLabel(role);
-			},
-			getWatermarkUserName() {
-				return this.currentUser.full_name || this.currentUser.username || this.t('patrol.notLoggedInUser');
-			},
-			getSelectedSiteName() {
-				if (this.nearestSite && this.nearestSite.name) {
-					return this.nearestSite.name;
-				}
-
-				if (this.manualSelectedIndex >= 0 && this.manualSites[this.manualSelectedIndex]) {
-					return this.manualSites[this.manualSelectedIndex].name;
-				}
-
-				const matchedSite = this.manualSites.find(item => item.id === this.patrolRecord.site_id);
-				if (matchedSite && matchedSite.name) {
-					return matchedSite.name;
-				}
-
-				return this.t('patrol.unselectedSiteName');
-			},
-			buildWatermarkText(time) {
-				const userName = this.getWatermarkUserName();
-				const siteName = this.getSelectedSiteName();
-				const longitude = Number(this.location.longitude || 0).toFixed(6);
-				const latitude = Number(this.location.latitude || 0).toFixed(6);
-				return `${this.t('patrol.watermarkUser')}: ${userName}\n${this.t('patrol.watermarkSite')}: ${siteName}\n${this.t('patrol.watermarkTime')}: ${time}\n${this.t('patrol.watermarkCoord')}: ${longitude}, ${latitude}`;
-			},
-			setInspectionStatus(status) {
-				this.inspectionStatus = status;
-			},
-			// 1. 获取当前地理位置
-			getCurrentLocation() {
-				uni.getLocation({
-					type: 'wgs84',
-					geocode: true, // 返回地址信息
-					success: (res) => {
-						this.locationAvailable = true;
-						this.location.latitude = res.latitude;
-						this.location.longitude = res.longitude;
-						this.location.address = res.address ? `${res.address.city}${res.address.district}${res.address.street}${res.address.streetNum}` : this.t('patrol.unknownLocation');
-						this.findNearestSite();
-					},
-					fail: (err) => {
-						this.locationAvailable = false;
-						this.location.address = this.t('patrol.locationFailedManual');
-						uni.showToast({
-							title: this.t('patrol.locationFailedToast'),
-							icon: 'none'
-						});
-						this.loadManualSites();
-						console.error('获取位置失败:', err);
-					}
-				});
-			},
-			// 2. 请求后端查找最近的文物点
-			findNearestSite() {
-				uni.request({
-					url: `${config.API_BASE_URL}/api/heritages/nearby`,
-					method: 'GET',
-					header: getAuthHeader(),
-					data: {
-						latitude: this.location.latitude,
-						longitude: this.location.longitude
-					},
-					success: (res) => {
-						if (res.statusCode === 200 && res.data) {
-							this.nearestSite = res.data;
-							this.patrolRecord.site_id = res.data.id;
-						} else {
-							this.nearestSite = { name: this.t('patrol.nearbyNotFound'), distance: '-' };
+			locate() {
+				this.locating = true;
+				this.locateError = '';
+				return getLocation()
+					.then((loc) => {
+						this.locationOk = true;
+						this.location = { latitude: loc.latitude, longitude: loc.longitude };
+						return apiRequest({ url: '/api/heritages/nearby', data: this.location });
+					})
+					.then((res) => {
+						if (res.statusCode === 200 && res.data && res.data.id) {
+							// 手动选择后再次定位时，不覆盖用户的选择
+							if (!this.site || !this.site.manual) {
+								this.site = { ...res.data, manual: false };
+							}
+						} else if (!this.site) {
+							this.locateError = '附近没有找到文物点，请手动选择';
 						}
-					},
-					fail: (err) => {
-						this.nearestSite = { name: this.t('patrol.nearbyFailed'), distance: '-' };
-						this.loadManualSites();
-						console.error('查找最近文物点失败:', err);
-					}
-				});
-			},
-			loadManualSites(keyword = '') {
-				this.manualLoading = true;
-				uni.request({
-					url: `${config.API_BASE_URL}/api/heritages/search`,
-					method: 'GET',
-					header: getAuthHeader(),
-					data: {
-						q: keyword,
-						limit: 20,
-					},
-					success: (res) => {
-						if (res.statusCode === 200 && res.data) {
-							this.manualSites = res.data.items || [];
-							const selectedId = this.patrolRecord.site_id;
-							this.manualSelectedIndex = this.manualSites.findIndex(item => item.id === selectedId);
-							return;
+					})
+					.catch(() => {
+						if (!this.locationOk) {
+							this.locateError = '定位失败，请打开手机定位(GPS)后重试，或手动选择文物点';
+						} else if (!this.site) {
+							this.locateError = '网络不好，查找文物点失败，请重试';
 						}
-						this.manualSites = [];
-						this.manualSelectedIndex = -1;
-					},
-					fail: () => {
-						this.manualSites = [];
-						this.manualSelectedIndex = -1;
-					},
-					complete: () => {
-						this.manualLoading = false;
-					}
-				});
+					})
+					.finally(() => {
+						this.locating = false;
+					});
 			},
-			searchManualSites() {
-				this.loadManualSites(this.manualSearchKeyword || '');
+			openPicker() {
+				this.pickerOpen = true;
+				if (!this.sites.length) {
+					this.searchSites();
+				}
 			},
-			onManualSiteChange(event) {
-				const index = Number(event.detail.value);
-				const site = this.manualSites[index];
-				if (!site) {
+			onKeyword() {
+				clearTimeout(this.searchTimer);
+				this.searchTimer = setTimeout(() => this.searchSites(), 400);
+			},
+			searchSites() {
+				this.searching = true;
+				apiRequest({ url: '/api/heritages/search', data: { q: this.keyword || '', limit: 50 } })
+					.then((res) => {
+						this.sites = res.statusCode === 200 && res.data ? res.data.items || [] : [];
+					})
+					.catch(() => {
+						this.sites = [];
+						uni.showToast({ title: '网络不好，请重试', icon: 'none' });
+					})
+					.finally(() => {
+						this.searching = false;
+					});
+			},
+			chooseSite(item) {
+				this.site = {
+					id: item.id,
+					name: item.name,
+					address: item.address,
+					latitude: item.latitude,
+					longitude: item.longitude,
+					manual: true,
+				};
+				if (!this.locationOk) {
+					this.location = { latitude: Number(item.latitude) || 0, longitude: Number(item.longitude) || 0 };
+				}
+				this.pickerOpen = false;
+			},
+			takePhoto() {
+				if (!this.site) {
+					uni.showToast({ title: '请先确认文物点', icon: 'none' });
 					return;
 				}
-				this.manualSelectedIndex = index;
-				this.selectManualSite(site);
-			},
-			getManualPickerText() {
-				if (!this.manualSites.length) {
-					return this.manualLoading ? this.t('patrol.loadingSites') : this.t('patrol.noSelectableSites');
-				}
-				if (this.manualSelectedIndex < 0 || !this.manualSites[this.manualSelectedIndex]) {
-					return this.t('patrol.selectPatrolSite');
-				}
-				const site = this.manualSites[this.manualSelectedIndex];
-				return this.t('patrol.selectedSiteFormat', {
-					name: site.name,
-					code: site.sip_code || this.t('patrol.noCode'),
-				});
-			},
-			selectManualSite(site) {
-				this.nearestSite = {
-					id: site.id,
-					name: site.name,
-					address: site.address,
-					distance: this.t('patrol.manualSelected'),
-				};
-				this.patrolRecord.site_id = site.id;
-
-				if (!this.locationAvailable) {
-					this.location.latitude = Number(site.latitude) || 0;
-					this.location.longitude = Number(site.longitude) || 0;
-					this.location.address = site.address || this.t('patrol.manualSelectedAddress', { name: site.name });
-				}
-
-				uni.showToast({ title: this.t('patrol.selectedToast', { name: site.name }), icon: 'none' });
-			},
-			// 3. 拍照
-			takePhoto() {
-				if (!this.patrolRecord.site_id) {
-					uni.showToast({
-						title: this.t('patrol.selectSiteFirst'),
-						icon: 'none'
-					});
+				if (this.processing) {
 					return;
 				}
 				uni.chooseImage({
@@ -305,355 +340,537 @@
 					sizeType: ['compressed'],
 					sourceType: ['camera'],
 					success: (res) => {
-						const tempFilePath = res.tempFilePaths[0];
-						const now = new Date();
-						const time = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-						const watermarkText = this.buildWatermarkText(time);
-						
-						// 4. 添加水印
-						addWatermark(tempFilePath, watermarkText, this).then(watermarkedPath => {
-							this.previewImage = watermarkedPath;
-							this.patrolRecord.photo_path = watermarkedPath;
-							this.patrolRecord.latitude = this.location.latitude;
-							this.patrolRecord.longitude = this.location.longitude;
-						}).catch(err => {
-							// 水印失败时回退到原图，避免影响巡查提交流程
-							uni.showToast({ title: this.t('patrol.watermarkFailed'), icon: 'none' });
-							this.previewImage = tempFilePath;
-							this.patrolRecord.photo_path = tempFilePath;
-							this.patrolRecord.latitude = this.location.latitude;
-							this.patrolRecord.longitude = this.location.longitude;
-							console.error('水印添加失败:', err);
-						});
+						const path = res.tempFilePaths[0];
+						this.processing = true;
+						addWatermark(path, this.watermarkText(), this)
+							.then((marked) => {
+								this.photo = marked;
+							})
+							.catch(() => {
+								this.photo = path;
+								uni.showToast({ title: '水印添加失败，已使用原图', icon: 'none' });
+							})
+							.finally(() => {
+								this.processing = false;
+							});
 					},
 					fail: (err) => {
 						if (err && /cancel/i.test(String(err.errMsg || ''))) {
 							return;
 						}
-						uni.showToast({ title: this.t('patrol.watermarkFailed'), icon: 'none' });
-						console.error('拍照失败:', err);
-					}
+						uni.showToast({ title: '无法打开相机，请检查相机权限', icon: 'none' });
+					},
 				});
 			},
-			// 5. 上传巡查记录
-			uploadRecord() {
-				if (!this.patrolRecord.photo_path) {
-					uni.showToast({ title: this.t('patrol.shootPhotoFirst'), icon: 'none' });
+			watermarkText() {
+				const d = new Date();
+				const time = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+				const name = this.user.full_name || this.user.username || '-';
+				const lng = Number(this.location.longitude || 0).toFixed(6);
+				const lat = Number(this.location.latitude || 0).toFixed(6);
+				return `巡查人: ${name}\n文物点: ${this.site ? this.site.name : '-'}\n时间: ${time}\n坐标: ${lng}, ${lat}`;
+			},
+			preview() {
+				uni.previewImage({ urls: [this.photo] });
+			},
+			setStatus(value) {
+				this.status = value;
+			},
+			toggleChip(item) {
+				const i = this.chips.indexOf(item);
+				if (i > -1) {
+					this.chips.splice(i, 1);
+				} else {
+					this.chips.push(item);
+				}
+			},
+			submit() {
+				if (this.submitting) {
 					return;
 				}
-
-				const issueDetails = (this.issueDetails || '').trim();
-				if (this.inspectionStatus === 'problem' && !issueDetails) {
-					uni.showToast({ title: this.t('patrol.fillIssueDetails'), icon: 'none' });
+				if (!this.canSubmit) {
+					uni.showToast({ title: this.submitHint, icon: 'none' });
 					return;
 				}
-
-				if (this.patrolRecord.latitude == null || this.patrolRecord.longitude == null) {
-					this.patrolRecord.latitude = this.location.latitude;
-					this.patrolRecord.longitude = this.location.longitude;
-				}
-
-				uni.uploadFile({
-					url: `${config.API_BASE_URL}/api/inspections/upload`,
-					filePath: this.patrolRecord.photo_path,
-					name: 'photo',
-					header: getAuthHeader(),
-					formData: {
-						'site_id': this.patrolRecord.site_id,
-						'latitude': this.patrolRecord.latitude,
-						'longitude': this.patrolRecord.longitude,
-						'is_normal': this.inspectionStatus !== 'problem',
-						'issue_details': issueDetails,
-					},
-					success: (uploadRes) => {
-						let data = {};
-						try {
-							data = JSON.parse(uploadRes.data || '{}');
-						} catch (e) {
-							data = {};
-						}
-						if (uploadRes.statusCode === 201) {
-							uni.showToast({
-								title: this.t('patrol.uploadSuccess'),
-								icon: 'success'
+				const doSubmit = () => {
+					this.submitting = true;
+					uni.showLoading({ title: '正在上报', mask: true });
+					apiUpload({
+						url: '/api/inspections/upload',
+						filePath: this.photo,
+						name: 'photo',
+						formData: {
+							site_id: this.site.id,
+							latitude: this.location.latitude,
+							longitude: this.location.longitude,
+							is_normal: this.status === 'normal',
+							issue_details: this.status === 'problem' ? this.issueText : '',
+						},
+					})
+						.then((res) => {
+							uni.hideLoading();
+							if (res.statusCode === 201 || res.statusCode === 200) {
+								this.success = { site: this.site.name, normal: this.status === 'normal' };
+								// #ifdef APP-PLUS
+								uni.vibrateLong();
+								// #endif
+								return;
+							}
+							uni.showModal({ title: '上报失败', content: extractError(res, '上报失败，请稍后重试'), showCancel: false });
+						})
+						.catch(() => {
+							uni.hideLoading();
+							uni.showModal({
+								title: '网络不好',
+								content: '照片没有传上去，请到信号好的地方再点「提交巡查」。已拍的照片和填写的内容会保留。',
+								showCancel: false,
+								confirmText: '知道了',
 							});
-							this.previewImage = null; // 清空预览
-							this.patrolRecord.photo_path = null;
-							this.inspectionStatus = 'normal';
-							this.issueDetails = '';
-						} else {
-							uni.showToast({
-								title: data.detail || this.t('patrol.uploadFailed'),
-								icon: 'none'
-							});
-						}
-					},
-					fail: (err) => {
-						uni.showToast({
-							title: this.t('patrol.uploadFailedNetwork'),
-							icon: 'none'
+						})
+						.finally(() => {
+							this.submitting = false;
 						});
-						console.error('上传失败:', err);
-					}
-				});
-			}
-		}
-	}
+				};
+				if (this.isFar) {
+					uni.showModal({
+						title: '确认提交',
+						content: `您距离「${this.site.name}」约 ${this.distanceText}，确定已经在现场了吗？`,
+						confirmText: '确定提交',
+						cancelText: '再看看',
+						success: (r) => r.confirm && doSubmit(),
+					});
+					return;
+				}
+				doSubmit();
+			},
+			again() {
+				this.success = null;
+				this.photo = '';
+				this.status = '';
+				this.chips = [];
+				this.issueNote = '';
+				this.site = null;
+				uni.pageScrollTo({ scrollTop: 0, duration: 0 });
+				this.locate();
+			},
+			goRecords() {
+				uni.reLaunch({ url: '/pages/records/records' });
+			},
+		},
+	};
 </script>
 
 <style>
-	.container {
-		min-height: 100vh;
-		padding: 24rpx;
-		padding-bottom: calc(184rpx + env(safe-area-inset-bottom));
-		padding-bottom: calc(184rpx + constant(safe-area-inset-bottom));
-		box-sizing: border-box;
-		font-size: 14px;
-		line-height: 24px;
-		background: var(--bg-primary);
+	.steps {
+		padding-top: 28rpx;
 	}
-	.hero-card {
-		min-height: var(--topbar-min-height);
-		width: 100%;
-		box-sizing: border-box;
-		padding: 24rpx;
-		border-radius: var(--radius-card);
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: var(--text-contrast);
-		margin-bottom: 24rpx;
-		box-shadow: var(--shadow-strong);
+
+	.step {
+		border: 3rpx solid transparent;
+		transition: opacity 0.2s;
 	}
-	.hero-top {
+
+	.step.finished {
+		border-color: #BBE3C8;
+	}
+
+	.step.disabled {
+		opacity: 0.55;
+	}
+
+	.step-head {
 		display: flex;
-		justify-content: space-between;
+		align-items: center;
+		gap: 18rpx;
+		margin-bottom: 24rpx;
+	}
+
+	.step-no {
+		width: 60rpx;
+		height: 60rpx;
+		border-radius: 50%;
+		background: #1E5AA8;
+		color: #FFFFFF;
+		font-size: 34rpx;
+		font-weight: 800;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.finished .step-no {
+		background: #15803D;
+	}
+
+	.step-title {
+		font-size: 40rpx;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.locating {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 16rpx;
+		padding: 20rpx 0 28rpx;
+		font-size: 32rpx;
+		color: #475569;
+		text-align: center;
+	}
+
+	.site {
+		display: flex;
+		align-items: flex-start;
+		gap: 20rpx;
+		padding: 24rpx;
+		border-radius: 24rpx;
+		background: #F5F8FD;
+	}
+
+	.site-main {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.site-name {
+		font-size: 42rpx;
+		font-weight: 800;
+		color: #0F172A;
+		line-height: 1.3;
+	}
+
+	.site-addr {
+		margin-top: 8rpx;
+		font-size: 28rpx;
+		color: #64748B;
+	}
+
+	.site-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12rpx;
+		margin-top: 16rpx;
+	}
+
+	.change-btn {
+		flex-shrink: 0;
+	}
+
+	.far-tip {
+		display: flex;
+		align-items: center;
+		gap: 12rpx;
+		margin-top: 20rpx;
+		padding: 18rpx 22rpx;
+		border-radius: 18rpx;
+		background: #FEF3E2;
+		color: #B45309;
+		font-size: 30rpx;
+		font-weight: 600;
+	}
+
+	.row-btns {
+		display: flex;
+		flex-direction: column;
+		gap: 20rpx;
+		margin-top: 24rpx;
+	}
+
+	.shoot {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 48rpx 24rpx;
+		border-radius: 28rpx;
+		border: 4rpx dashed #9DB9E0;
+		background: #F5F8FD;
+	}
+
+	.shoot:active {
+		background: #E8F0FB;
+	}
+
+	.shoot-icon {
+		width: 168rpx;
+		height: 168rpx;
+		border-radius: 50%;
+		background: linear-gradient(135deg, #2A6BC2, #174B8F);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 14rpx 32rpx rgba(30, 90, 168, 0.35);
+	}
+
+	.shoot-text {
+		margin-top: 24rpx;
+		font-size: 40rpx;
+		font-weight: 800;
+		color: #1E5AA8;
+	}
+
+	.shoot-sub {
+		margin-top: 8rpx;
+		font-size: 28rpx;
+		color: #64748B;
+	}
+
+	.photo {
+		display: flex;
+		flex-direction: column;
+		gap: 20rpx;
+	}
+
+	.photo-img {
+		width: 100%;
+		height: 440rpx;
+		border-radius: 24rpx;
+		background: #E2E8F0;
+	}
+
+	.status-row {
+		display: flex;
+		gap: 24rpx;
+	}
+
+	.status-btn {
+		flex: 1;
+		height: 200rpx;
+		border-radius: 28rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 12rpx;
+		font-size: 40rpx;
+		font-weight: 800;
+		border: 4rpx solid;
+		transition: all 0.15s;
+	}
+
+	.status-btn.ok {
+		color: #15803D;
+		border-color: #A7DDB9;
+		background: #F1FAF4;
+	}
+
+	.status-btn.bad {
+		color: #C62828;
+		border-color: #F1B5B5;
+		background: #FEF5F5;
+	}
+
+	.status-btn.ok.active {
+		color: #FFFFFF;
+		background: #15803D;
+		border-color: #15803D;
+		box-shadow: 0 12rpx 28rpx rgba(21, 128, 61, 0.32);
+	}
+
+	.status-btn.bad.active {
+		color: #FFFFFF;
+		background: #C62828;
+		border-color: #C62828;
+		box-shadow: 0 12rpx 28rpx rgba(198, 40, 40, 0.3);
+	}
+
+	.issue {
+		margin-top: 28rpx;
+	}
+
+	.issue-label {
+		display: block;
+		font-size: 32rpx;
+		font-weight: 700;
+		color: #334155;
+		margin-bottom: 18rpx;
+	}
+
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
 		gap: 16rpx;
 	}
-	.hero-label {
-		display: block;
-		font-size: 20rpx;
-		letter-spacing: 3rpx;
-		text-transform: uppercase;
-		opacity: 0.7;
-		margin-bottom: 10rpx;
+
+	.chip {
+		padding: 20rpx 28rpx;
+		border-radius: 999rpx;
+		border: 3rpx solid #E2E8F0;
+		background: #FFFFFF;
+		font-size: 32rpx;
+		color: #334155;
 	}
-	.hero-title {
-		display: block;
-		font-size: 20px;
+
+	.chip.active {
+		border-color: #C62828;
+		background: #FDECEC;
+		color: #C62828;
 		font-weight: 700;
-		margin-bottom: 10rpx;
 	}
-	.hero-role, .hero-desc {
-		display: block;
-		font-size: 14px;
-		line-height: 1.7;
-		opacity: 0.84;
-	}
-	.hero-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 12rpx;
-	}
-	.small-btn {
-		padding: 0 22rpx;
-		line-height: 60rpx;
-		height: 60rpx;
-		border-radius: var(--radius-pill);
-		font-size: 23rpx;
-	}
-	.primary-btn {
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
-	}
-	.secondary-btn {
-		background: rgba(255, 255, 255, 0.14);
-		color: #fff;
-		border: 1rpx solid rgba(255, 255, 255, 0.2);
-	}
-	.ghost-btn {
-		background: rgba(255, 255, 255, 0.08);
-		color: #fff;
-		border: 1rpx solid rgba(255, 255, 255, 0.18);
-	}
-	.location-section, .heritage-section, .action-section, .preview-section, .manual-section {
-		margin-bottom: 20px;
-		padding: var(--card-padding);
-		border: 1rpx solid var(--line-soft);
-		border-radius: 18rpx;
-		display: flex;
-		flex-direction: column;
-		background: #fff;
-		backdrop-filter: blur(8rpx);
-		box-shadow: var(--shadow-soft);
-	}
-	.manual-copy {
-		display: block;
-		font-size: 24rpx;
-		color: var(--text-secondary);
-		line-height: 1.7;
-		margin-bottom: 12rpx;
-	}
-	.manual-search-row {
-		display: flex;
-		gap: 10rpx;
-		margin-bottom: 12rpx;
-	}
-	.manual-input {
-		flex: 1;
-		height: 72rpx;
-		background: var(--input-bg);
-		border: 1rpx solid var(--line-soft);
-		border-radius: 16rpx;
-		padding: 0 18rpx;
-		font-size: 24rpx;
-	}
-	.manual-search-btn {
-		width: 140rpx;
-		height: 72rpx;
-		line-height: 72rpx;
-		padding: 0;
-		border-radius: 16rpx;
-		font-size: 24rpx;
-		color: #fff;
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-	}
-	.manual-picker {
-		margin-top: 4rpx;
-	}
-	.manual-picker-text {
-		height: 76rpx;
-		line-height: 76rpx;
-		padding: 0 18rpx;
-		border-radius: 16rpx;
-		border: 1rpx solid var(--line-soft);
-		background: rgba(255, 255, 255, 0.72);
-		font-size: 24rpx;
-		color: var(--text-primary);
-	}
-	.manual-empty {
-		display: block;
-		font-size: 23rpx;
-		color: var(--text-secondary);
-		padding: 8rpx 2rpx;
-	}
-	.section-kicker {
-		display: block;
-		font-size: 20rpx;
-		letter-spacing: 3rpx;
-		text-transform: uppercase;
-		color: var(--text-secondary);
-		margin-bottom: 12rpx;
-	}
-	.location-address {
-		display: block;
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--text-primary);
-		margin-bottom: 10rpx;
-		line-height: 1.5;
-	}
-	.location-coord {
-		display: block;
-		font-size: 14px;
-		color: var(--text-secondary);
-	}
-	.title {
-		font-size: var(--title-lg);
-		font-weight: 700;
-		margin-bottom: 10px;
-		color: var(--text-primary);
-	}
-	.site-name {
-		display: block;
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--text-primary);
-		margin-bottom: 10rpx;
-	}
-	.site-meta, .action-copy {
-		display: block;
-		font-size: 14px;
-		color: var(--text-secondary);
-		line-height: 1.7;
-		margin-bottom: 8rpx;
-	}
-	.status-row {
-		margin: 6rpx 0 10rpx;
-	}
-	.status-label {
-		display: block;
-		font-size: 14px;
-		color: var(--text-secondary);
-		margin-bottom: 10rpx;
-	}
-	.status-options {
-		display: flex;
-		gap: 12rpx;
-	}
-	.status-option {
-		flex: 1;
-		height: 72rpx;
-		line-height: 72rpx;
-		text-align: center;
-		border-radius: 14rpx;
-		font-size: 24rpx;
-		font-weight: 600;
-		background: var(--input-bg);
-		color: var(--text-secondary);
-		border: 1rpx solid var(--line-soft);
-	}
-	.status-option.active {
-		background: var(--accent-soft);
-		color: var(--accent-strong);
-		border-color: var(--accent);
-	}
-	.status-option.problem.active {
-		background: var(--danger-soft);
-		color: var(--danger);
-		border-color: rgba(220, 38, 38, 0.3);
-	}
-	.issue-textarea {
+
+	.issue-input {
 		width: 100%;
-		height: 140rpx;
-		margin-top: 12rpx;
-		padding: 18rpx;
+		height: 220rpx;
+		margin-top: 24rpx;
+		padding: 24rpx;
+		border-radius: 24rpx;
+		border: 3rpx solid #E2E8F0;
+		background: #F8FAFC;
+		font-size: 32rpx;
+		color: #0F172A;
 		box-sizing: border-box;
-		border-radius: 16rpx;
-		background: var(--input-bg);
-		border: 1rpx solid var(--line-soft);
-		font-size: 24rpx;
-		line-height: 1.6;
-		color: var(--text-primary);
 	}
-	.issue-hint {
+
+	.submit {
+		margin-top: 12rpx !important;
+	}
+
+	.submit-hint {
 		display: block;
-		margin-top: 8rpx;
-		font-size: 22rpx;
-		color: var(--danger);
+		margin: 18rpx 0 28rpx;
+		text-align: center;
+		font-size: 30rpx;
+		color: #64748B;
 	}
-	.action-btn, .upload-btn {
-		margin-top: 14rpx;
-		border-radius: var(--radius-pill);
-		font-size: 28rpx;
-		font-weight: 700;
+
+	.sheet-mask,
+	.success-mask {
+		position: fixed;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		z-index: 1000;
+		background: rgba(15, 23, 42, 0.5);
+		display: flex;
 	}
-	.action-btn {
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
+
+	.sheet-mask {
+		align-items: flex-end;
 	}
-	.action-btn:active,
-	.upload-btn:active,
-	.manual-search-btn:active {
-		opacity: 0.92;
-		transform: translateY(1rpx);
-	}
-	.upload-btn {
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
-	}
-	.preview-section image {
+
+	.sheet {
 		width: 100%;
-		margin-top: 10px;
-		margin-bottom: 10px;
-		border-radius: 18rpx;
+		height: 82vh;
+		background: #FFFFFF;
+		border-radius: 36rpx 36rpx 0 0;
+		display: flex;
+		flex-direction: column;
+		padding: 32rpx 32rpx env(safe-area-inset-bottom);
+		box-sizing: border-box;
+	}
+
+	.sheet-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.sheet-title {
+		font-size: 42rpx;
+		font-weight: 800;
+		color: #0F172A;
+	}
+
+	.sheet-close {
+		padding: 12rpx;
+	}
+
+	.search {
+		display: flex;
+		align-items: center;
+		gap: 16rpx;
+		height: 104rpx;
+		margin: 24rpx 0 12rpx;
+		padding: 0 24rpx;
+		border-radius: 24rpx;
+		background: #F1F5FB;
+		border: 3rpx solid #E2E8F0;
+	}
+
+	.search-input {
+		flex: 1;
+		height: 100%;
+		font-size: 34rpx;
+	}
+
+	.sheet-list {
+		flex: 1;
+		height: 0;
+	}
+
+	.site-option {
+		display: flex;
+		align-items: center;
+		gap: 16rpx;
+		padding: 28rpx 8rpx;
+		border-bottom: 2rpx solid #EEF2F7;
+	}
+
+	.site-option.active {
+		background: #F5F8FD;
+	}
+
+	.site-option-main {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.site-option-name {
+		font-size: 36rpx;
+		font-weight: 700;
+		color: #0F172A;
+	}
+
+	.site-option-sub {
+		margin-top: 4rpx;
+		font-size: 28rpx;
+		color: #64748B;
+	}
+
+	.success-mask {
+		align-items: center;
+		justify-content: center;
+		padding: 40rpx;
+	}
+
+	.success {
+		width: 100%;
+		padding: 56rpx 40rpx 44rpx;
+		border-radius: 40rpx;
+		background: #FFFFFF;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		box-sizing: border-box;
+	}
+
+	.success-icon {
+		width: 200rpx;
+		height: 200rpx;
+		border-radius: 50%;
+		background: #15803D;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 0 0 24rpx #E7F6EC;
+	}
+
+	.success-title {
+		margin-top: 44rpx;
+		font-size: 52rpx;
+		font-weight: 800;
+		color: #15803D;
+	}
+
+	.success-sub {
+		margin: 12rpx 0 48rpx;
+		font-size: 32rpx;
+		color: #475569;
+		text-align: center;
 	}
 </style>

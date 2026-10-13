@@ -735,7 +735,7 @@ defineExpose({
 	background: #dbeafe;
 }
 .badge--gps .alt-badge-text {
-	color: #1d4ed8;
+	color: #174B8F;
 }
 
 /* DEM 国家高程校准 */
@@ -806,7 +806,7 @@ defineExpose({
 	flex-shrink: 0;
 	min-width: 188rpx;
 	min-height: 84rpx;
-	background: #2563eb;
+	background: #1E5AA8;
 	color: #fff;
 	border-radius: 12rpx;
 	font-size: 26rpx;
@@ -825,7 +825,7 @@ defineExpose({
 }
 
 .alt-btn--press {
-	background: #1d4ed8;
+	background: #174B8F;
 	opacity: 0.9;
 }
 
@@ -858,7 +858,7 @@ defineExpose({
 	background: #eff6ff;
 }
 .alt-status--info .alt-status-text {
-	color: #1d4ed8;
+	color: #174B8F;
 }
 
 /* 成功 */

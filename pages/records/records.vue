@@ -1,226 +1,309 @@
 <template>
-	<view class="page">
-		<view class="hero">
-			<view>
-				<text class="hero-kicker">{{ t('records.heroLabel') }}</text>
-				<text class="hero-title">{{ t('records.title') }}</text>
-				<text class="hero-subtitle">{{ t('records.subtitle') }}</text>
+	<view class="u-page has-tabbar">
+		<AppHeader title="巡查记录" :subtitle="`共 ${records.length >= 100 ? '最近 100' : records.length} 条记录`" />
+
+		<view class="filter-bar">
+			<view
+				v-for="item in filters"
+				:key="item.key"
+				class="filter"
+				:class="[item.key, { active: filter === item.key }]"
+				@click="filter = item.key"
+			>
+				<text>{{ item.name }}</text>
+				<text class="filter-count">{{ counts[item.key] }}</text>
 			</view>
 		</view>
 
-		<view class="summary-card">
-			<text class="summary-label">{{ t('records.submittedRecords') }}</text>
-			<text class="summary-value">{{ records.length }}</text>
-		</view>
-
-		<scroll-view scroll-y class="content-scroll">
-			<view v-if="records.length === 0 && !loading" class="empty-card">
-				<text class="empty-title">{{ t('records.emptyTitle') }}</text>
-				<text class="empty-copy">{{ t('records.emptyCopy') }}</text>
+		<view class="u-body">
+			<view v-if="loading && !records.length" class="u-empty">
+				<AppIcon name="clock" :size="88" color="#94A3B8" />
+				<text>正在加载…</text>
 			</view>
 
-			<view v-for="item in records" :key="item.id" class="record-card">
-				<view class="record-header">
-					<view>
-						<text class="record-site">{{ item.site_name }}</text>
-						<text class="record-time">{{ item.inspect_time }}</text>
+			<view v-else-if="loadError && !records.length" class="u-card u-empty">
+				<AppIcon name="alert" :size="88" color="#B45309" />
+				<text>加载失败，请检查网络</text>
+				<button class="u-btn sm" @click="load">重新加载</button>
+			</view>
+
+			<view v-else-if="!visible.length" class="u-card u-empty">
+				<AppIcon name="records" :size="96" color="#94A3B8" />
+				<text>{{ records.length ? '没有符合条件的记录' : '还没有巡查记录' }}</text>
+				<button v-if="!records.length" class="u-btn primary" @click="goPatrol">
+					<AppIcon name="camera" :size="44" color="#FFFFFF" />
+					<text>去巡查上报</text>
+				</button>
+			</view>
+
+			<view v-for="group in groups" :key="group.day" class="group">
+				<text class="group-title">{{ group.label }}</text>
+				<view v-for="item in group.items" :key="item.id" class="record u-card" :class="item.is_normal ? 'ok' : 'bad'">
+					<view class="record-top">
+						<view class="record-main">
+							<text class="record-name">{{ item.site_name || '未知文物点' }}</text>
+							<view class="record-time">
+								<AppIcon name="clock" :size="30" color="#64748B" />
+								<text>{{ timeOf(item.inspect_time) }}</text>
+							</view>
+						</view>
+						<text class="u-badge big" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</text>
 					</view>
-					<text :class="['status-chip', item.is_normal ? 'status-normal' : 'status-alert']">
-						{{ item.is_normal ? t('records.normal') : t('records.abnormal') }}
-					</text>
+					<view v-if="!item.is_normal && item.issue_details" class="issue">
+						<AppIcon name="alert" :size="36" color="#C62828" />
+						<text>{{ item.issue_details }}</text>
+					</view>
+					<image
+						v-if="item.photo_url"
+						class="photo"
+						:src="item.photo_url"
+						mode="aspectFill"
+						lazy-load
+						@click="preview(item.photo_url)"
+					/>
+					<view v-if="item.latitude != null && item.longitude != null" class="coord">
+						<AppIcon name="pin" :size="30" color="#94A3B8" />
+						<text>{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</text>
+					</view>
 				</view>
-				<text class="record-text">{{ t('records.issueLabel', { detail: item.issue_details || t('common.none') }) }}</text>
-				<text class="record-text">{{ t('records.coordLabel', { longitude: formatCoord(item.longitude), latitude: formatCoord(item.latitude) }) }}</text>
-				<image v-if="item.photo_url" class="record-image" :src="item.photo_url" mode="aspectFill" @click="previewImage(item.photo_url)"></image>
 			</view>
-		</scroll-view>
+		</view>
 
 		<BottomNav current="records" />
 	</view>
 </template>
 
 <script>
-	import config from '../../common/js/config.js';
-	import { getAuthHeader, getToken } from '../../common/js/auth.js';
-	import createPageI18n from '../../common/js/pageI18n.js';
+	import AppHeader from '../../components/AppHeader.vue';
+	import AppIcon from '../../components/AppIcon.vue';
 	import BottomNav from '../../components/BottomNav.vue';
+	import { getToken } from '../../common/js/auth.js';
+	import { apiRequest } from '../../common/js/request.js';
+	import { friendlyTime, todayKey } from '../../common/js/format.js';
 
 	export default {
-		mixins: [createPageI18n('records')],
-		components: {
-			BottomNav,
-		},
+		components: { AppHeader, AppIcon, BottomNav },
 		data() {
 			return {
 				loading: false,
+				loadError: false,
 				records: [],
+				filter: 'all',
+				filters: [
+					{ key: 'all', name: '全部' },
+					{ key: 'ok', name: '正常' },
+					{ key: 'bad', name: '有问题' },
+				],
 			};
+		},
+		computed: {
+			counts() {
+				const bad = this.records.filter((r) => !r.is_normal).length;
+				return { all: this.records.length, ok: this.records.length - bad, bad };
+			},
+			visible() {
+				if (this.filter === 'ok') return this.records.filter((r) => r.is_normal);
+				if (this.filter === 'bad') return this.records.filter((r) => !r.is_normal);
+				return this.records;
+			},
+			groups() {
+				const map = {};
+				const order = [];
+				this.visible.forEach((item) => {
+					const day = String(item.inspect_time || '').slice(0, 10) || '未知日期';
+					if (!map[day]) {
+						map[day] = [];
+						order.push(day);
+					}
+					map[day].push(item);
+				});
+				return order.map((day) => ({ day, label: this.dayLabel(day), items: map[day] }));
+			},
 		},
 		onLoad() {
 			if (!getToken()) {
 				uni.reLaunch({ url: '/pages/index/index' });
 				return;
 			}
-			this.loadRecords();
+			this.load();
+		},
+		onPullDownRefresh() {
+			this.load().finally(() => uni.stopPullDownRefresh());
 		},
 		methods: {
-			loadRecords() {
+			load() {
 				this.loading = true;
-				uni.request({
-					url: `${config.API_BASE_URL}/api/inspections/mine`,
-					method: 'GET',
-					header: getAuthHeader(),
-					success: (res) => {
+				this.loadError = false;
+				return apiRequest({ url: '/api/inspections/mine' })
+					.then((res) => {
 						if (res.statusCode === 200 && res.data) {
 							this.records = res.data.items || [];
-							return;
+						} else {
+							this.loadError = true;
 						}
-						uni.showToast({ title: this.t('records.loadFailed'), icon: 'none' });
-					},
-					fail: () => {
-						uni.showToast({ title: this.t('records.loadFailed'), icon: 'none' });
-					},
-					complete: () => {
+					})
+					.catch(() => {
+						this.loadError = true;
+						uni.showToast({ title: '加载失败，请检查网络', icon: 'none' });
+					})
+					.finally(() => {
 						this.loading = false;
-					}
-				});
+					});
 			},
-			previewImage(url) {
-				uni.previewImage({ urls: [url] });
+			dayLabel(day) {
+				if (day === todayKey()) return '今天';
+				const label = friendlyTime(`${day} 00:00`);
+				return label.replace(/\s*00:00$/, '');
 			},
-			formatCoord(value) {
-				if (value === null || value === undefined || value === '') {
-					return '-';
-				}
+			timeOf(value) {
+				return String(value || '').slice(11, 16) || '-';
+			},
+			coord(value) {
+				if (value === null || value === undefined || value === '') return '-';
 				return Number(value).toFixed(5);
-			}
-		}
-	}
+			},
+			preview(url) {
+				const urls = this.visible.map((r) => r.photo_url).filter(Boolean);
+				uni.previewImage({ urls, current: url });
+			},
+			goPatrol() {
+				uni.reLaunch({ url: '/pages/patrol/patrol' });
+			},
+		},
+	};
 </script>
 
 <style>
-	.page {
-		min-height: 100vh;
-		padding: 24rpx;
-		padding-bottom: calc(184rpx + env(safe-area-inset-bottom));
-		padding-bottom: calc(184rpx + constant(safe-area-inset-bottom));
-		background: var(--bg-primary);
-	}
-	.hero {
+	.filter-bar {
 		display: flex;
-		justify-content: flex-start;
-		align-items: flex-start;
-		min-height: var(--topbar-min-height);
-		width: 100%;
-		box-sizing: border-box;
-		padding: var(--card-padding);
-		border-radius: var(--radius-card);
-		background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
-		color: #fff;
-		box-shadow: var(--shadow-strong);
-		margin-bottom: 22rpx;
-	}
-	.hero-kicker {
-		display: block;
-		font-size: 20rpx;
-		letter-spacing: 3rpx;
-		text-transform: uppercase;
-		opacity: 0.72;
-		margin-bottom: 10rpx;
-	}
-	.hero-title {
-		display: block;
-		font-size: 20px;
-		font-weight: 700;
-		margin-bottom: 10rpx;
-	}
-	.hero-subtitle {
-		display: block;
-		font-size: 14px;
-		line-height: 1.6;
-		opacity: 0.88;
-	}
-	.summary-card {
-		background: #fff;
-		border-radius: 18rpx;
-		border: 1rpx solid var(--line-soft);
-		padding: var(--card-padding);
-		box-shadow: var(--shadow-soft);
-		margin-bottom: 20rpx;
-	}
-	.summary-label {
-		display: block;
-		font-size: 14px;
-		color: var(--text-secondary);
-		margin-bottom: 10rpx;
-	}
-	.summary-value {
-		display: block;
-		font-size: 28px;
-		font-weight: 700;
-		color: var(--accent);
-	}
-	.content-scroll {
-		height: calc(100vh - 360rpx);
-	}
-	.record-card, .empty-card {
-		background: #fff;
-		border-radius: 18rpx;
-		border: 1rpx solid var(--line-soft);
-		padding: var(--card-padding);
-		margin-bottom: 20rpx;
-		box-shadow: var(--shadow-soft);
-	}
-	.record-header {
-		display: flex;
-		justify-content: space-between;
 		gap: 16rpx;
-		margin-bottom: 16rpx;
+		padding: 28rpx;
+		position: sticky;
+		top: 0;
+		z-index: 5;
+		background: #F1F4F9;
 	}
-	.record-site {
-		display: block;
-		font-size: 18px;
+
+	.filter {
+		flex: 1;
+		height: 96rpx;
+		border-radius: 24rpx;
+		background: #FFFFFF;
+		border: 3rpx solid #E2E8F0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 10rpx;
+		font-size: 34rpx;
 		font-weight: 700;
-		color: var(--text-primary);
-		margin-bottom: 8rpx;
+		color: #334155;
 	}
-	.record-time {
-		display: block;
-		font-size: 14px;
-		color: var(--text-secondary);
-	}
-	.status-chip {
-		padding: 8rpx 16rpx;
+
+	.filter-count {
+		min-width: 44rpx;
+		padding: 2rpx 12rpx;
 		border-radius: 999rpx;
-		font-size: 22rpx;
-		height: fit-content;
+		background: #EEF2F7;
+		font-size: 26rpx;
+		text-align: center;
+		box-sizing: border-box;
 	}
-	.status-normal {
-		background: rgba(9, 92, 219, 0.14);
-		color: var(--accent-strong);
+
+	.filter.active {
+		color: #FFFFFF;
+		background: #1E5AA8;
+		border-color: #1E5AA8;
 	}
-	.status-alert {
-		background: var(--danger-soft);
-		color: var(--danger);
+
+	.filter.ok.active {
+		background: #15803D;
+		border-color: #15803D;
 	}
-	.record-text, .empty-copy {
+
+	.filter.bad.active {
+		background: #C62828;
+		border-color: #C62828;
+	}
+
+	.filter.active .filter-count {
+		background: rgba(255, 255, 255, 0.25);
+	}
+
+	.group-title {
 		display: block;
-		font-size: 14px;
-		line-height: 1.7;
-		color: var(--text-secondary);
-		margin-bottom: 10rpx;
+		margin: 8rpx 4rpx 18rpx;
+		font-size: 34rpx;
+		font-weight: 800;
+		color: #334155;
 	}
-	.empty-title {
+
+	.record {
+		border-left: 12rpx solid #15803D;
+	}
+
+	.record.bad {
+		border-left-color: #C62828;
+	}
+
+	.record-top {
+		display: flex;
+		align-items: flex-start;
+		gap: 16rpx;
+	}
+
+	.record-main {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.record-name {
 		display: block;
-		font-size: 18px;
-		font-weight: 700;
-		color: var(--text-primary);
-		margin-bottom: 10rpx;
+		font-size: 38rpx;
+		font-weight: 800;
+		color: #0F172A;
+		line-height: 1.3;
 	}
-	.record-image {
-		width: 100%;
-		height: 360rpx;
+
+	.record-time {
+		display: flex;
+		align-items: center;
+		gap: 8rpx;
+		margin-top: 8rpx;
+		font-size: 30rpx;
+		color: #64748B;
+	}
+
+	.u-badge.big {
+		font-size: 30rpx;
+		padding: 12rpx 24rpx;
+	}
+
+	.issue {
+		display: flex;
+		gap: 12rpx;
+		margin-top: 20rpx;
+		padding: 20rpx 22rpx;
 		border-radius: 18rpx;
-		margin-top: 12rpx;
+		background: #FDECEC;
+		color: #9B1C1C;
+		font-size: 30rpx;
+		line-height: 1.5;
+	}
+
+	.photo {
+		width: 100%;
+		height: 380rpx;
+		margin-top: 20rpx;
+		border-radius: 20rpx;
+		background: #E2E8F0;
+	}
+
+	.coord {
+		display: flex;
+		align-items: center;
+		gap: 8rpx;
+		margin-top: 16rpx;
+		font-size: 26rpx;
+		color: #94A3B8;
 	}
 </style>

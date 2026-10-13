@@ -19,7 +19,9 @@
         /* 模块配置 */
         "modules" : {
             "Camera" : {},
-            "Geolocation" : {}
+            "Geolocation" : {},
+            "Fingerprint" : {},
+            "FaceID" : {}
         },
         /* 应用发布信息 */
         "distribute" : {
@@ -42,12 +44,19 @@
                     "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
                     "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
                     "<uses-feature android:name=\"android.hardware.camera\"/>",
-                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.USE_FINGERPRINT\"/>",
+                    "<uses-permission android:name=\"android.permission.USE_BIOMETRIC\"/>"
                 ]
             },
             /* ios打包配置 */
             "ios" : {
-                "dSYMs" : false
+                "dSYMs" : false,
+                "privacyDescription" : {
+                    "NSFaceIDUsageDescription" : "用于面容快捷登录，无需每次输入密码",
+                    "NSCameraUsageDescription" : "用于拍摄文物巡查现场照片",
+                    "NSLocationWhenInUseUsageDescription" : "用于定位附近文物点并记录巡查坐标"
+                }
             },
             /* SDK配置 */
             "sdkConfigs" : {
