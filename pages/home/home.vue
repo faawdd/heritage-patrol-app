@@ -177,7 +177,7 @@
 					const [statsRes, recordsRes, projectsRes] = await Promise.all([
 						this.request(`${config.API_BASE_URL}/api/dashboard/realtime-stats`),
 						this.request(`${config.API_BASE_URL}/api/inspections/mine`),
-						this.request(`${config.API_BASE_URL}/api/admin/projects`),
+						this.request(`${config.API_BASE_URL}/api/admin/land-projects`),
 					]);
 
 					const stats = (statsRes && statsRes.data) || {};
@@ -190,8 +190,13 @@
 						return t.slice(0, 10) === todayKey;
 					}).length;
 
-					const projects = (projectsRes && projectsRes.data && projectsRes.data.items) || [];
-					this.adminStats.pendingProjects = projects.filter(item => item.workflow_status !== 'archived').length;
+					const projectBody = (projectsRes && projectsRes.data) || {};
+					if (projectBody.summary) {
+						this.adminStats.pendingProjects = projectBody.summary.in_progress || 0;
+					} else {
+						const projects = projectBody.items || [];
+						this.adminStats.pendingProjects = projects.filter(item => !item.is_archived).length;
+					}
 				} catch (error) {
 					uni.showToast({ title: this.t('home.loadDataFailed'), icon: 'none' });
 				} finally {

@@ -2,9 +2,9 @@
 	<view class="page">
 		<view class="notice">
 			<text class="kicker">{{ t('kml.heroLabel') }}</text>
-			<text class="title">{{ t('kml.title') }}</text>
-			<text class="desc">{{ t('kml.subtitle') }}</text>
-			<view class="action-row">
+			<text class="title">{{ pageTitle || t('kml.title') }}</text>
+			<text class="desc">{{ pageTitle ? t('kml.webSubtitle') : t('kml.subtitle') }}</text>
+			<view v-if="enableLocation" class="action-row">
 				<button class="locate-btn" :disabled="locating" @click="showCurrentLocation">
 					{{ locating ? t('kml.locating') : t('kml.showCurrentLocation') }}
 				</button>
@@ -18,6 +18,7 @@
 
 <script>
 	import config from '../../common/js/config.js';
+	import { getPageTitle } from '../../common/js/i18n.js';
 	import createPageI18n from '../../common/js/pageI18n.js';
 	import BottomNav from '../../components/BottomNav.vue';
 
@@ -33,6 +34,8 @@
 				locating: false,
 				lastLocationText: '',
 				autoLocateTried: false,
+				pageTitle: '',
+				enableLocation: true,
 			};
 		},
 		onLoad(options) {
@@ -40,9 +43,20 @@
 				this.baseUrl = decodeURIComponent(options.url);
 				this.url = this.baseUrl;
 			}
+			if (options && options.title) {
+				this.pageTitle = decodeURIComponent(options.title);
+				this.updateNavigationTitle();
+			}
+			if (options && options.locate === '0') {
+				this.enableLocation = false;
+				return;
+			}
 			this.tryAutoLocateOnEnter();
 		},
 		methods: {
+			updateNavigationTitle() {
+				uni.setNavigationBarTitle({ title: this.pageTitle || getPageTitle('kml') });
+			},
 			hasLocationParams(rawUrl) {
 				if (!rawUrl) {
 					return false;
@@ -111,7 +125,7 @@
 					const target = new URL(rawUrl);
 					const path = String(target.pathname || '');
 					if (path.includes('/mobile/kml-entry/')) {
-						const nextPath = target.searchParams.get('next') || '/admin/kml-overlay-check/';
+						const nextPath = target.searchParams.get('next') || '/static/frontend/gis/kml-management';
 						target.searchParams.set('next', this.appendLocationToPath(nextPath, location));
 						return target.toString();
 					}

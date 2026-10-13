@@ -49,6 +49,13 @@
 			}
 		},
 		{
+			"path": "pages/heritage/detail",
+			"style": {
+				"navigationBarTitleText": "文物点详情",
+				"enablePullDownRefresh": true
+			}
+		},
+		{
 			"path": "pages/collect/collect",
 			"style": {
 				"navigationBarTitleText": "文物现场采集",

@@ -37,8 +37,11 @@
 					</view>
 				</view>
 				<text v-if="showHeritageFilterSummary" class="filter-summary">{{ t('admin.filterResultSummary', { count: heritageTotal, page: heritagePage }) }}</text>
-				<view v-for="item in heritages" :key="item.id" class="card">
-					<text class="card-title">{{ item.name }}</text>
+				<view v-for="item in heritages" :key="item.id" class="card card-tappable" @click="openHeritageDetail(item)">
+					<view class="card-head">
+						<text class="card-title card-title-flex">{{ item.name }}</text>
+						<text class="card-link">{{ t('admin.viewHeritageDetail') }} ›</text>
+					</view>
 					<text class="card-text">{{ t('admin.sipCode', { value: item.sip_code || t('common.notAvailable') }) }}</text>
 					<text class="card-text">{{ t('admin.categoryLevel', { category: item.category || t('common.notAvailable'), level: item.level || t('common.notAvailable') }) }}</text>
 					<text class="card-text">{{ t('admin.address', { value: item.address || t('common.notAvailable') }) }}</text>
@@ -59,34 +62,44 @@
 					<text class="section-title">{{ t('admin.projectsTitle') }}</text>
 					<text class="section-count">{{ t('admin.recordCount', { count: projects.length }) }}</text>
 				</view>
+				<text v-if="projectSummary" class="filter-summary">{{ t('admin.projectSummary', {
+					total: projectSummary.total || 0,
+					inProgress: projectSummary.in_progress || 0,
+					archived: projectSummary.archived || 0,
+					overlap: projectSummary.overlap || 0,
+				}) }}</text>
+				<view class="filters-card">
+					<view class="filters-row">
+						<input
+							v-model.trim="projectKeyword"
+							class="filter-input"
+							:placeholder="t('admin.searchProjectPlaceholder')"
+							@confirm="loadProjects()"
+						/>
+						<picker class="filter-picker" :range="projectStatusLabels" :value="projectStatusIndex" @change="onProjectStatusChange">
+							<view class="picker-text">{{ projectStatusLabels[projectStatusIndex] }}</view>
+						</picker>
+					</view>
+					<view class="filter-actions">
+						<button class="ghost-lite-btn" @click="openProjectListOnline">{{ t('admin.openProjectListOnline') }}</button>
+						<button class="primary-btn" @click="loadProjects()">{{ t('common.search') }}</button>
+					</view>
+				</view>
 				<view v-for="item in projects" :key="item.id" class="card">
 					<text class="card-title">{{ item.project_name }}</text>
-					<text class="badge">{{ getWorkflowText(item.workflow_status) }}</text>
-					<text class="card-text">{{ t('admin.projectUnit', { value: item.project_unit || t('common.notFilled') }) }}</text>
-					<text class="card-text">{{ t('admin.relatedSite', { value: item.related_site_name || t('common.notLinked') }) }}</text>
-					<text class="card-text">{{ t('admin.coordinates', { longitude: item.project_lon || '-', latitude: item.project_lat || '-' }) }}</text>
-					<text class="card-text">{{ t('admin.conclusion', { value: item.survey_conclusion || t('common.notAvailable') }) }}</text>
-					<button class="primary-btn" @click="startEdit(item)">{{ t('admin.editProjectInfo') }}</button>
-				</view>
-
-				<view v-if="editingProject" class="editor-panel">
-					<text class="editor-title">{{ t('admin.editProjectTitle', { name: form.project_name || t('common.notAvailable') }) }}</text>
-					<input v-model="form.project_name" class="input" :placeholder="t('admin.projectNamePlaceholder')" />
-					<input v-model="form.project_unit" class="input" :placeholder="t('admin.projectUnitPlaceholder')" />
-					<picker class="picker" :range="workflowLabels" @change="onWorkflowChange">
-						<view class="picker-text">{{ t('admin.currentStatus', { value: workflowLabel }) }}</view>
-					</picker>
-					<textarea v-model="form.construction_content" class="textarea" :placeholder="t('admin.constructionContentPlaceholder')"></textarea>
-					<input v-model="form.project_scale" class="input" :placeholder="t('admin.projectScalePlaceholder')" />
-					<input v-model="form.project_coordinates" class="input" :placeholder="t('admin.projectCoordinatesPlaceholder')" />
-					<input v-model="form.project_lon" class="input" :placeholder="t('admin.projectLongitudePlaceholder')" type="digit" />
-					<input v-model="form.project_lat" class="input" :placeholder="t('admin.projectLatitudePlaceholder')" type="digit" />
-					<textarea v-model="form.survey_conclusion" class="textarea" :placeholder="t('admin.surveyConclusionPlaceholder')"></textarea>
-					<textarea v-model="form.remarks" class="textarea" :placeholder="t('admin.remarksPlaceholder')"></textarea>
-					<view class="editor-actions">
-						<button class="ghost-lite-btn" @click="cancelEdit">{{ t('common.cancel') }}</button>
-						<button class="primary-btn" @click="saveProject">{{ t('admin.saveChanges') }}</button>
+					<view class="badge-row">
+						<text :class="['badge', item.is_archived ? 'badge-muted' : '']">{{ item.status_label }}</text>
+						<text v-if="item.is_overlap_artifact" class="badge badge-warn">{{ t('admin.projectOverlapBadge', { count: item.overlap_count }) }}</text>
 					</view>
+					<text class="card-text">{{ t('admin.projectCompany', { value: item.company_name || t('common.notFilled') }) }}</text>
+					<text class="card-text">{{ t('admin.projectDates', { incoming: item.incoming_doc_date || '-', receive: item.receive_date || '-' }) }}</text>
+					<text class="card-text">{{ projectOverlapText(item) }}</text>
+					<text v-if="item.final_reply_to_company" class="card-text">{{ t('admin.projectReply', { value: item.final_reply_to_company }) }}</text>
+					<text v-if="item.updated_at" class="card-text card-text-minor">{{ t('admin.projectUpdatedAt', { value: item.updated_at }) }}</text>
+					<button class="primary-btn" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</button>
+				</view>
+				<view v-if="!projects.length" class="card">
+					<text class="card-text">{{ t('admin.noProjectMatched') }}</text>
 				</view>
 			</view>
 
@@ -97,8 +110,8 @@
 					<button class="primary-btn" @click="openKmlTool">{{ t('admin.openKml') }}</button>
 				</view>
 				<view class="card" style="margin-top:20rpx;">
-					<text class="card-title">Django管理端 · 鄯善县不可移动文物采集</text>
-					<text class="card-text">进入 Django 管理端采集页面，支持现场采集表单填写、照片上传与登记记录管理。</text>
+					<text class="card-title">在线系统 · 不可移动文物采集</text>
+					<text class="card-text">进入在线系统采集页面，支持现场采集表单填写、照片上传与登记记录管理。</text>
 					<button class="primary-btn" @click="openDjangoCollectTool">打开采集管理页</button>
 				</view>
 				<view class="card" style="margin-top:20rpx;">
@@ -119,19 +132,8 @@
 <script>
 	import config from '../../common/js/config.js';
 	import { getAuthHeader, getUser, isAdminUser } from '../../common/js/auth.js';
-	import { getWorkflowLabel } from '../../common/js/i18n.js';
 	import createPageI18n from '../../common/js/pageI18n.js';
 	import BottomNav from '../../components/BottomNav.vue';
-
-	const workflowValues = [
-		'received',
-		'ovital_checked',
-		'site_surveyed',
-		'application_submitted',
-		'bureau_approved',
-		'replied_to_project',
-		'archived',
-	];
 
 	export default {
 		mixins: [createPageI18n('admin')],
@@ -157,34 +159,23 @@
 					{ value: 'QT', label: '其他' },
 				],
 				projects: [],
-				editingProject: null,
-				form: {
-					project_name: '',
-					project_unit: '',
-					workflow_status: 'received',
-					construction_content: '',
-					project_scale: '',
-					project_coordinates: '',
-					project_lon: '',
-					project_lat: '',
-					survey_conclusion: '',
-					remarks: '',
-				},
+				projectSummary: null,
+				projectKeyword: '',
+				projectStatus: '',
+				projectStatusOptions: [],
+				projectListWebUrl: '',
 			};
 		},
 		computed: {
-			workflowOptions() {
-				return workflowValues.map((value) => ({
-					value,
-					label: getWorkflowLabel(value),
-				}));
+			projectStatusSelectOptions() {
+				return [{ value: '', label: this.t('admin.allStatusOption') }, ...this.projectStatusOptions];
 			},
-			workflowLabels() {
-				return this.workflowOptions.map(item => item.label);
+			projectStatusLabels() {
+				return this.projectStatusSelectOptions.map(item => item.label);
 			},
-			workflowLabel() {
-				const selected = this.workflowOptions.find(item => item.value === this.form.workflow_status);
-				return selected ? selected.label : this.t('admin.selectStatus');
+			projectStatusIndex() {
+				const index = this.projectStatusSelectOptions.findIndex(item => item.value === this.projectStatus);
+				return index < 0 ? 0 : index;
 			},
 			heritageCategorySelectOptions() {
 				const allLabel = this.t('admin.allCategoriesOption');
@@ -224,9 +215,6 @@
 			this.loadData();
 		},
 		methods: {
-			getWorkflowText(status) {
-				return getWorkflowLabel(status);
-			},
 			request(url, method = 'GET', data = null) {
 				return new Promise((resolve, reject) => {
 					uni.request({
@@ -285,8 +273,24 @@
 					uni.showLoading({ title: this.t('admin.loadingProjects') });
 				}
 				try {
-					const projectRes = await this.request(`${config.API_BASE_URL}/api/admin/projects`);
-					this.projects = (projectRes.data && projectRes.data.items) || [];
+					const params = {};
+					if (this.projectKeyword) {
+						params.q = this.projectKeyword;
+					}
+					if (this.projectStatus) {
+						params.status = this.projectStatus;
+					}
+					const projectRes = await this.request(`${config.API_BASE_URL}/api/admin/land-projects`, 'GET', params);
+					const body = projectRes.data || {};
+					if (projectRes.statusCode !== 200) {
+						throw new Error(body.detail || 'load projects failed');
+					}
+					this.projects = body.items || [];
+					this.projectSummary = body.summary || null;
+					this.projectListWebUrl = body.web_url || '';
+					if (Array.isArray(body.status_options)) {
+						this.projectStatusOptions = body.status_options.map(item => ({ value: item.value, label: item.label }));
+					}
 				} finally {
 					if (showLoading) {
 						uni.hideLoading();
@@ -315,53 +319,46 @@
 				this.heritagePage = 1;
 				await this.loadHeritages();
 			},
-			startEdit(item) {
-				this.editingProject = item.id;
-				this.form = {
-					project_name: item.project_name || '',
-					project_unit: item.project_unit || '',
-					workflow_status: item.workflow_status || 'received',
-					construction_content: item.construction_content || '',
-					project_scale: item.project_scale || '',
-					project_coordinates: item.project_coordinates || '',
-					project_lon: item.project_lon == null ? '' : String(item.project_lon),
-					project_lat: item.project_lat == null ? '' : String(item.project_lat),
-					survey_conclusion: item.survey_conclusion || '',
-					remarks: item.remarks || '',
-				};
-				this.currentTab = 'projects';
+			openHeritageDetail(item) {
+				const name = encodeURIComponent(item.name || '');
+				uni.navigateTo({ url: `/pages/heritage/detail?id=${item.id}&name=${name}` });
 			},
-			cancelEdit() {
-				this.editingProject = null;
+			onProjectStatusChange(event) {
+				const selected = this.projectStatusSelectOptions[event.detail.value];
+				this.projectStatus = selected ? selected.value : '';
+				this.loadProjects();
 			},
-			onWorkflowChange(event) {
-				const option = this.workflowOptions[event.detail.value];
-				this.form.workflow_status = option.value;
+			projectOverlapText(item) {
+				if (!item.spatial_check_at && !item.is_overlap_artifact) {
+					return this.t('admin.projectNotChecked');
+				}
+				if (!item.is_overlap_artifact) {
+					return this.t('admin.projectNoOverlap');
+				}
+				const names = (item.overlapped_relics || [])
+					.map(row => (row.level ? `${row.name}（${row.level}）` : row.name))
+					.filter(Boolean)
+					.join('、');
+				return this.t('admin.projectOverlap', { count: item.overlap_count, names: names || '-' });
 			},
-			async saveProject() {
-				if (!this.editingProject) {
+			openWebPage(url, title) {
+				if (!url) {
+					uni.showToast({ title: this.t('admin.toolAddressMissing'), icon: 'none' });
 					return;
 				}
+				uni.navigateTo({
+					url: `/pages/kml/kml?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}&locate=0`,
+				});
+			},
+			openProjectListOnline() {
+				this.openWebPage(this.projectListWebUrl, this.t('admin.projectsTitle'));
+			},
+			async openProjectOnline(item) {
 				try {
-					const response = await this.request(
-						`${config.API_BASE_URL}/api/admin/projects/${this.editingProject}`,
-						'PUT',
-						{
-							...this.form,
-							project_lon: this.form.project_lon === '' ? null : Number(this.form.project_lon),
-							project_lat: this.form.project_lat === '' ? null : Number(this.form.project_lat),
-							related_site_id: null,
-						}
-					);
-					if (response.statusCode === 200) {
-						uni.showToast({ title: this.t('admin.projectUpdated'), icon: 'success' });
-						this.editingProject = null;
-						this.loadProjects();
-						return;
-					}
-					uni.showToast({ title: this.t('admin.saveFailed'), icon: 'none' });
+					const response = await this.request(`${config.API_BASE_URL}/api/admin/land-projects/${item.id}/web-entry`);
+					this.openWebPage(response.data && response.data.url, item.project_name || this.t('admin.projectsTitle'));
 				} catch (error) {
-					uni.showToast({ title: this.t('admin.saveFailed'), icon: 'none' });
+					uni.showToast({ title: this.t('admin.openFailed'), icon: 'none' });
 				}
 			},
 			async openKmlTool() {
@@ -551,7 +548,7 @@
 		font-size: 14px;
 		color: var(--text-secondary);
 	}
-	.card, .editor-panel {
+	.card {
 		background: #fff;
 		border-radius: 18rpx;
 		border: 1rpx solid var(--line-soft);
@@ -559,7 +556,25 @@
 		margin-bottom: 20rpx;
 		box-shadow: var(--shadow-soft);
 	}
-	.card-title, .editor-title {
+	.card-tappable:active {
+		opacity: 0.85;
+	}
+	.card-head {
+		display: flex;
+		align-items: flex-start;
+		gap: 16rpx;
+	}
+	.card-title-flex {
+		flex: 1;
+		min-width: 0;
+	}
+	.card-link {
+		flex-shrink: 0;
+		font-size: 24rpx;
+		color: var(--accent-strong);
+		padding-top: 6rpx;
+	}
+	.card-title {
 		display: block;
 		font-size: 18px;
 		font-weight: 700;
@@ -573,6 +588,15 @@
 		color: var(--text-secondary);
 		margin-bottom: 8rpx;
 	}
+	.card-text-minor {
+		font-size: 12px;
+		opacity: 0.8;
+	}
+	.badge-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 12rpx;
+	}
 	.badge {
 		display: inline-block;
 		padding: 8rpx 16rpx;
@@ -582,26 +606,17 @@
 		font-size: 22rpx;
 		margin-bottom: 12rpx;
 	}
-	.input, .textarea, .picker {
-		width: 100%;
-		background: var(--input-bg);
-		border-radius: 18rpx;
-		border: 1rpx solid var(--line-soft);
-		padding: 20rpx;
-		box-sizing: border-box;
-		margin-bottom: 16rpx;
-		font-size: 14px;
+	.badge-muted {
+		background: #eef1f5;
+		color: #66707d;
 	}
-	.textarea {
-		height: 160rpx;
+	.badge-warn {
+		background: #fff1e6;
+		color: #c2410c;
 	}
 	.picker-text {
 		font-size: 14px;
 		color: var(--text-primary);
-	}
-	.editor-actions {
-		display: flex;
-		gap: 16rpx;
 	}
 	.primary-btn, .ghost-lite-btn {
 		border-radius: var(--radius-pill);
