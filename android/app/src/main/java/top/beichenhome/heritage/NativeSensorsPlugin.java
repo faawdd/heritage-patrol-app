@@ -8,7 +8,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +17,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.core.location.LocationListenerCompat;
 import androidx.core.location.LocationManagerCompat;
 import androidx.core.location.LocationRequestCompat;
 
@@ -82,7 +82,7 @@ public class NativeSensorsPlugin extends Plugin {
         }
 
         final AtomicBoolean done = new AtomicBoolean(false);
-        final LocationListener[] holder = new LocationListener[1];
+        final LocationListenerCompat[] holder = new LocationListenerCompat[1];
         final Runnable timeoutTask = () -> {
             if (done.compareAndSet(false, true)) {
                 safeRemove(lm, holder[0]);
@@ -90,7 +90,7 @@ public class NativeSensorsPlugin extends Plugin {
             }
         };
 
-        holder[0] = new LocationListener() {
+        holder[0] = new LocationListenerCompat() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
                 if (done.compareAndSet(false, true)) {
@@ -195,14 +195,14 @@ public class NativeSensorsPlugin extends Plugin {
             Location cached, int timeout, final int staleMaxAge, final int settleMs, final double desiredAccuracy) {
         final AtomicBoolean done = new AtomicBoolean(false);
         final Location[] best = new Location[1];
-        final List<LocationListener> listeners = new ArrayList<>();
+        final List<LocationListenerCompat> listeners = new ArrayList<>();
         final List<String> activeProviders = new ArrayList<>();
         final Runnable[] finishRef = new Runnable[1];
 
         final Runnable finish = () -> {
             if (!done.compareAndSet(false, true)) return;
             mainHandler.removeCallbacks(finishRef[0]);
-            for (LocationListener l : listeners) safeRemove(lm, l);
+            for (LocationListenerCompat l : listeners) safeRemove(lm, l);
             if (best[0] != null) {
                 call.resolve(toLocationJs(best[0], false, false));
                 return;
@@ -220,7 +220,7 @@ public class NativeSensorsPlugin extends Plugin {
 
         for (String provider : providers) {
             if (done.get()) break;
-            LocationListener listener = new LocationListener() {
+            LocationListenerCompat listener = new LocationListenerCompat() {
                 @Override
                 public void onLocationChanged(@NonNull Location location) {
                     if (done.get()) return;
@@ -357,9 +357,9 @@ public class NativeSensorsPlugin extends Plugin {
         return (SystemClock.elapsedRealtimeNanos() - loc.getElapsedRealtimeNanos()) / 1_000_000L;
     }
 
-    private static void safeRemove(LocationManager lm, LocationListener l) {
+    private static void safeRemove(LocationManager lm, LocationListenerCompat l) {
         try {
-            if (l != null) lm.removeUpdates(l);
+            if (l != null) LocationManagerCompat.removeUpdates(lm, l);
         } catch (Exception ignored) {}
     }
 
