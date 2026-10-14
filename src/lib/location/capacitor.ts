@@ -58,37 +58,75 @@ export class CapacitorLocationSource implements LocationSource {
 		return new Promise<string>((resolve, reject) => {
 			let settled = false;
 			let expired = false;
+			let watchId: string | undefined;
+			// 增加超时时间到60秒，给GPS冷启动留足够时间
 			const timer = setTimeout(() => {
 				expired = true;
-				if (!settled) { settled = true; reject(new LocationError('TIMEOUT', '原生定位监听注册超时。')); }
-			}, 10000);
+				if (!settled) { 
+					settled = true; 
+					// 如果已经收到了 watchId，不算超时
+					if (watchId) {
+						console.warn('[Location] 注册超时，但已收到 watchId，继续监听');
+						return;
+					}
+					reject(new LocationError('TIMEOUT', '原生定位监听注册超时，请确保在开阔处重试。')); 
+				}
+			}, 60000); // 增加到 60 秒
+			
+			const cleanup = (): void => {
+				clearTimeout(timer);
+			};
+			
 			NativeSurveyLocation.watchPosition({ intervalMs }, (event, error) => {
+				// 如果已过期，清理监听
 				if (expired) {
-					if (event?.id) void NativeSurveyLocation.clearWatch({ id: event.id }).catch(cleanup => console.error('原生监听清理失败', cleanup));
+					if (event?.id) {
+						console.warn('[Location] 过期回调，清理监听:', event.id);
+						void NativeSurveyLocation.clearWatch({ id: event.id }).catch(cleanupError => 
+							console.error('[Location] 原生监听清理失败', cleanupError));
+					}
 					return;
 				}
+				
+				// 处理错误
 				if (error || event?.error) {
-					clearTimeout(timer);
+					cleanup();
 					if (!settled) {
 						settled = true;
 						expired = true;
-						if (event?.id) void NativeSurveyLocation.clearWatch({ id: event.id }).catch(cleanup => console.error('注册失败监听清理失败', cleanup));
+						if (event?.id) void NativeSurveyLocation.clearWatch({ id: event.id }).catch(cleanupError => 
+							console.error('[Location] 注册失败监听清理失败', cleanupError));
 						reject(locationError(error ?? event.error));
+					} else {
+						// 已经 resolve 后收到的错误，通过回调传递
+						callback(null, error ?? event.error);
 					}
-					else callback(null, error ?? event.error);
 					return;
 				}
+				
+				// 处理 watchId 确认
 				if (!settled) {
-					if (!event?.id) return;
+					if (!event?.id) return; // 还没有 id，继续等待
+					watchId = event.id;
 					settled = true;
-					clearTimeout(timer);
+					cleanup();
 					resolve(event.id);
+					// 注意：这里不 return，因为可能同时有 position 数据
 				}
-				if (event.position) callback(event.position);
+				
+				// 处理位置数据
+				if (event.position) {
+					callback(event.position);
+				}
 			}).catch(error => {
-				clearTimeout(timer);
-				if (!settled) { settled = true; reject(locationError(error)); }
-				else callback(null, error);
+				cleanup();
+				if (!settled) { 
+					settled = true; 
+					reject(locationError(error)); 
+				} else {
+					// 已经 resolve 后的错误，通过回调传递
+					callback(null, error);
+				}
 			});
 		});
 	}

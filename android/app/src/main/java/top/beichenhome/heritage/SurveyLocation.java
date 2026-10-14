@@ -22,6 +22,11 @@ import org.json.JSONObject;
 /** GPS-only, unbatched updates. All listener operations run on the main looper. */
 final class SurveyLocation implements LocationListenerCompat {
     static final String TAG = "NativeSurveyLocation";
+    
+    // 增加启动宽限期，让GPS有足够时间冷启动
+    private static final long STARTUP_GRACE_PERIOD_MS = 30_000; // 30秒启动宽限期
+    // 允许的最大定位点年龄（纳秒），用于启动阶段宽松检查
+    private static final long MAX_FIX_AGE_NANOS = 60_000_000_000L; // 60秒
 
     interface Sink {
         void position(Location location);
@@ -37,16 +42,22 @@ final class SurveyLocation implements LocationListenerCompat {
     private long registeredAtNanos;
     private long lastFixNanos;
     private long lastArrivalMs;
+    private boolean hasReceivedFirstFix = false; // 标记是否收到过第一个定位点
     private final Runnable healthCheck = new Runnable() {
         @Override public void run() {
             if (!registered) return;
             String problem = readinessError(context);
             if (problem != null) {
                 fail(problem, readinessMessage(problem));
-            } else if (SystemClock.elapsedRealtime() - lastArrivalMs >= timeoutMs(intervalMs)) {
-                fail("NO_SIGNAL", "No fresh GPS fix within " + timeoutMs(intervalMs) + " ms");
             } else {
-                main.postDelayed(this, 5_000);
+                long elapsed = SystemClock.elapsedRealtime() - lastArrivalMs;
+                long timeout = timeoutMs(intervalMs);
+                // 在启动宽限期内，不检查超时；宽限期后，只在收到过定位点后才检查超时
+                if (hasReceivedFirstFix && elapsed >= timeout) {
+                    fail("NO_SIGNAL", "No fresh GPS fix within " + timeout + " ms");
+                } else {
+                    main.postDelayed(this, 5_000);
+                }
             }
         }
     };
@@ -94,16 +105,19 @@ final class SurveyLocation implements LocationListenerCompat {
         registeredAtNanos = SystemClock.elapsedRealtimeNanos();
         lastArrivalMs = SystemClock.elapsedRealtime();
         registered = true;
+        hasReceivedFirstFix = false; // 重置标记
         try {
+            // 修改 LocationRequest 配置，增加兼容性
             LocationRequestCompat request = new LocationRequestCompat.Builder(intervalMs)
                 .setQuality(LocationRequestCompat.QUALITY_HIGH_ACCURACY)
-                .setMinUpdateIntervalMillis(intervalMs)
+                .setMinUpdateIntervalMillis(intervalMs / 2) // 允许更频繁的更新
                 .setMinUpdateDistanceMeters(0)
-                .setMaxUpdateDelayMillis(0)
+                .setMaxUpdateDelayMillis(intervalMs * 2) // 放宽最大延迟，避免某些设备收不到更新
                 .build();
             LocationManagerCompat.requestLocationUpdates(
                 manager, LocationManager.GPS_PROVIDER, request, this, Looper.getMainLooper());
-            main.postDelayed(healthCheck, 5_000);
+            // 延长首次健康检查时间，给GPS冷启动留时间
+            main.postDelayed(healthCheck, STARTUP_GRACE_PERIOD_MS);
         } catch (SecurityException e) {
             fail("PERMISSION_DENIED", "GPS registration denied: " + e.getMessage());
         } catch (IllegalArgumentException | IllegalStateException e) {
@@ -145,11 +159,30 @@ final class SurveyLocation implements LocationListenerCompat {
         }
         long now = SystemClock.elapsedRealtimeNanos();
         long fix = location.getElapsedRealtimeNanos();
-        // Reject cached, duplicate, out-of-order and delayed fixes, regardless of wall-clock changes.
-        if (!SurveyLocationPolicy.fresh(fix, registeredAtNanos, lastFixNanos, now)) return;
+        // 放宽新鲜度检查，特别是在启动阶段
+        if (!isFreshEnough(fix, registeredAtNanos, lastFixNanos, now, hasReceivedFirstFix)) {
+            Log.d(TAG, "Rejected stale fix: fix=" + fix + ", registered=" + registeredAtNanos 
+                + ", lastFix=" + lastFixNanos + ", now=" + now);
+            return;
+        }
         lastFixNanos = fix;
         lastArrivalMs = SystemClock.elapsedRealtime();
+        hasReceivedFirstFix = true; // 标记已收到首个定位点
         sink.position(new Location(location));
+    }
+    
+    /** 放宽的新鲜度检查：在启动阶段允许更旧的定位点 */
+    private boolean isFreshEnough(long fix, long registered, long previous, long now, boolean hasFirstFix) {
+        // 基本检查：定位时间不能晚于当前时间
+        if (fix > now) return false;
+        // 必须比上次更新
+        if (fix <= previous) return false;
+        // 在启动宽限期内，接受任何非重复的定位点（即使较旧）
+        if (!hasFirstFix && SystemClock.elapsedRealtime() - registeredAtNanos / 1_000_000 <= STARTUP_GRACE_PERIOD_MS) {
+            return fix >= registered - MAX_FIX_AGE_NANOS; // 允许注册前MAX_FIX_AGE_NANOS时间内的定位
+        }
+        // 正常检查：不能太旧 (例如 60 秒内)
+        return now - fix <= MAX_FIX_AGE_NANOS;
     }
 
     @Override public void onProviderDisabled(String provider) {

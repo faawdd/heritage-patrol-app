@@ -1,121 +1,146 @@
 <template>
 	<ion-page>
-		<ion-content :fullscreen="true">
+		<ion-content :fullscreen="true" class="home-content">
 			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
 				<ion-refresher-content />
 			</ion-refresher>
-			<div class="u-page">
-				<AppHeader :title="`${greet}，${displayName}`" :subtitle="today" tall>
-					<template #right>
-						<div class="role-chip">{{ roleText }}</div>
-					</template>
-				</AppHeader>
-
-				<div class="u-body overlap">
-					<!-- 主操作 -->
-					<div class="cta u-fade-in" @click="goPatrol">
-						<div class="cta-icon">
-							<AppIcon name="camera" :size="60" color="#1E5AA8" :stroke="2" />
-						</div>
-						<div class="cta-text">
-							<span class="cta-title">开始巡查上报</span>
-							<span class="cta-sub">拍照 · 选择情况 · 一键上报</span>
-						</div>
-						<AppIcon name="chevron-right" :size="48" color="#FFFFFF" :stroke="2.6" />
+			
+			<!-- 简洁头部 -->
+			<div class="home-header">
+				<div class="header-top">
+					<div class="header-text">
+						<h1 class="header-title">{{ greet }}，{{ displayName }}</h1>
+						<p class="header-date">{{ today }}</p>
 					</div>
-
-					<!-- 今日状态 + 我的巡查统计 -->
-					<div class="u-card stats-card">
-						<div class="today-row" :class="todayCount ? 'done' : 'todo'" @click="goRecords">
-							<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="40" :color="todayCount ? '#15803D' : '#B45309'" />
-							<span class="today-title">{{ todayCount ? `今天已巡查 ${todayCount} 次，辛苦了` : '今天还没有巡查，请到现场上报' }}</span>
-							<span class="today-link">记录 ›</span>
-						</div>
-						<div class="stats">
-							<div class="stat">
-								<span class="stat-num">{{ todayCount }}</span>
-								<span class="stat-label">今天</span>
-							</div>
-							<div class="stat">
-								<span class="stat-num">{{ monthCount }}</span>
-								<span class="stat-label">本月</span>
-							</div>
-							<div class="stat">
-								<span class="stat-num">{{ totalLabel }}</span>
-								<span class="stat-label">累计</span>
-							</div>
-							<div class="stat">
-								<span class="stat-num danger">{{ problemCount }}</span>
-								<span class="stat-label">发现问题</span>
-							</div>
-						</div>
-					</div>
-
-					<!-- 附近文物点 -->
-					<div class="u-card site-card">
-						<div v-if="siteState === 'loading'" class="site-body">
-							<div class="site-icon muted"><AppIcon name="locate" :size="48" color="#94A3B8" /></div>
-							<div class="site-info">
-								<span class="site-label">离我最近的文物点</span>
-								<span class="site-addr">正在定位，请稍候…</span>
-							</div>
-						</div>
-						<div v-else-if="siteState === 'ok'" class="site-body">
-							<div class="site-icon"><AppIcon name="landmark" :size="48" color="#1E5AA8" /></div>
-							<div class="site-info">
-								<span class="site-label">离我最近的文物点</span>
-								<span class="site-name">{{ nearestSite.name }}</span>
-								<span class="site-addr">{{ nearestSite.address || '暂无地址' }}</span>
-							</div>
-							<div class="site-dist">
-								<AppIcon name="pin" :size="28" color="#D99A1E" />
-								<span>{{ distanceText }}</span>
-							</div>
-						</div>
-						<div v-else class="site-body">
-							<div class="site-icon warn"><AppIcon name="alert" :size="48" color="#B45309" /></div>
-							<div class="site-info">
-								<span class="site-label">离我最近的文物点</span>
-								<span class="site-addr">{{ siteError }}</span>
-							</div>
-							<button type="button" class="u-btn sm site-retry" @click="locate">重新定位</button>
-						</div>
-					</div>
-
-					<!-- 管理员功能 -->
-					<template v-if="isAdmin">
-						<div class="u-section-title">
-							<span>管理工作台</span>
-							<span class="admin-summary">文物点 <b>{{ adminStats.totalSites }}</b> · 在办项目 <b>{{ adminStats.pendingProjects }}</b></span>
-						</div>
-						<div class="grid">
-							<div v-for="item in adminFeatures" :key="item.key" class="grid-item" @click="open(item.url)">
-								<div class="grid-icon" :style="{ background: item.bg }">
-									<AppIcon :name="item.icon" :size="46" :color="item.color" />
-								</div>
-								<span class="grid-text">{{ item.name }}</span>
-							</div>
-						</div>
-					</template>
-
-					<!-- 最近巡查 -->
-					<template v-if="recent.length">
-						<div class="u-section-title">
-							<span>最近巡查</span>
-							<span class="u-link" @click="goRecords">全部记录</span>
-						</div>
-						<div class="u-card recent">
-							<div v-for="item in recent" :key="item.id" class="recent-item" @click="goRecords">
-								<div class="dot" :class="item.is_normal ? 'ok' : 'bad'" />
-								<div class="recent-main">
-									<span class="recent-name">{{ item.site_name }}</span>
-									<span class="recent-time">{{ friendly(item.inspect_time) }}</span>
-								</div>
-								<span class="u-badge" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
-							</div>
-						</div>
-					</template>
+					<div class="header-badge">{{ roleText }}</div>
 				</div>
+			</div>
+
+			<div class="home-body">
+				<!-- 主操作按钮 - 最大最醒目 -->
+				<button type="button" class="primary-action" @click="goPatrol">
+					<div class="primary-action-icon">
+						<AppIcon name="camera" :size="56" color="#FFFFFF" :stroke="2" />
+					</div>
+					<div class="primary-action-text">
+						<span class="primary-action-title">开始巡查</span>
+						<span class="primary-action-sub">拍照上报文物点情况</span>
+					</div>
+					<AppIcon name="arrow-right" :size="32" color="#FFFFFF" :stroke="2.5" />
+				</button>
+
+				<!-- 今日统计 - 简洁卡片 -->
+				<div class="stats-card">
+					<div class="stats-header" @click="goRecords">
+						<div class="stats-status" :class="todayCount ? 'done' : 'pending'">
+							<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="28" :color="todayCount ? '#10B981' : '#F59E0B'" />
+							<span>{{ todayCount ? `今日已巡查 ${todayCount} 次` : '今日待巡查' }}</span>
+						</div>
+						<span class="stats-link">查看记录</span>
+					</div>
+					<div class="stats-grid">
+						<div class="stat-item">
+							<span class="stat-value">{{ todayCount }}</span>
+							<span class="stat-label">今天</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-value">{{ monthCount }}</span>
+							<span class="stat-label">本月</span>
+						</div>
+						<div class="stat-item">
+							<span class="stat-value">{{ totalLabel }}</span>
+							<span class="stat-label">累计</span>
+						</div>
+						<div class="stat-item" v-if="problemCount > 0">
+							<span class="stat-value danger">{{ problemCount }}</span>
+							<span class="stat-label">问题</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- 附近文物点 -->
+				<div class="site-card">
+					<div v-if="siteState === 'loading'" class="site-loading">
+						<div class="site-icon">
+							<AppIcon name="locate" :size="36" color="#94A3B8" />
+						</div>
+						<div class="site-info">
+							<span class="site-label">最近文物点</span>
+							<span class="site-status">正在定位…</span>
+						</div>
+					</div>
+					<div v-else-if="siteState === 'ok'" class="site-content" @click="goPatrol">
+						<div class="site-icon success">
+							<AppIcon name="landmark" :size="36" color="#2563EB" />
+						</div>
+						<div class="site-info">
+							<span class="site-label">最近文物点</span>
+							<span class="site-name">{{ nearestSite.name }}</span>
+							<span class="site-address">{{ nearestSite.address || '暂无地址' }}</span>
+						</div>
+						<div class="site-distance">
+							<span class="distance-value">{{ distanceText }}</span>
+						</div>
+					</div>
+					<div v-else class="site-error">
+						<div class="site-icon warning">
+							<AppIcon name="alert" :size="36" color="#F59E0B" />
+						</div>
+						<div class="site-info">
+							<span class="site-label">最近文物点</span>
+							<span class="site-status">{{ siteError }}</span>
+						</div>
+						<button type="button" class="retry-btn" @click="locate">重试</button>
+					</div>
+				</div>
+
+				<!-- 管理员功能 -->
+				<template v-if="isAdmin">
+					<div class="section-header">
+						<h2 class="section-title">管理工作台</h2>
+						<span class="section-summary">{{ adminStats.totalSites }} 文物点 · {{ adminStats.pendingProjects }} 在办项目</span>
+					</div>
+					<div class="admin-grid">
+						<button 
+							v-for="item in adminFeatures" 
+							:key="item.key" 
+							type="button"
+							class="admin-item" 
+							@click="open(item.url)"
+						>
+							<div class="admin-icon" :style="{ background: item.bg }">
+								<AppIcon :name="item.icon" :size="32" :color="item.color" :stroke="2" />
+							</div>
+							<span class="admin-name">{{ item.name }}</span>
+						</button>
+					</div>
+				</template>
+
+				<!-- 最近巡查 -->
+				<template v-if="recent.length">
+					<div class="section-header">
+						<h2 class="section-title">最近巡查</h2>
+						<button type="button" class="section-link" @click="goRecords">全部</button>
+					</div>
+					<div class="recent-list">
+						<button 
+							v-for="item in recent" 
+							:key="item.id" 
+							type="button"
+							class="recent-item" 
+							@click="goRecords"
+						>
+							<div class="recent-status" :class="item.is_normal ? 'ok' : 'bad'">
+								<AppIcon :name="item.is_normal ? 'check-circle' : 'alert'" :size="24" :color="item.is_normal ? '#10B981' : '#EF4444'" />
+							</div>
+							<div class="recent-content">
+								<span class="recent-name">{{ item.site_name }}</span>
+								<span class="recent-time">{{ friendly(item.inspect_time) }}</span>
+							</div>
+							<span class="recent-badge" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '问题' }}</span>
+						</button>
+					</div>
+				</template>
 			</div>
 		</ion-content>
 	</ion-page>
@@ -276,315 +301,458 @@
 </script>
 
 <style scoped>
-	.role-chip {
-		padding: 4px 10px;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.18);
-		border: 1px solid rgba(255, 255, 255, 0.35);
-		font-size: 13px;
-		font-weight: 700;
-		color: #FFFFFF;
-		white-space: nowrap;
-	}
+/* ========== 首页简约设计 ========== */
+.home-content {
+	--background: #F8FAFC;
+}
 
-	.overlap {
-		margin-top: -44px;
-		position: relative;
-		z-index: 2;
-		padding-bottom: 16px;
-	}
+/* 简洁头部 */
+.home-header {
+	background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+	padding: 20px 20px 24px;
+	padding-top: calc(env(safe-area-inset-top) + 20px);
+}
 
-	.cta {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 13px 14px;
-		margin-bottom: 12px;
-		border-radius: 16px;
-		background: linear-gradient(120deg, #D99A1E 0%, #E8AE34 100%);
-		box-shadow: 0 8px 18px rgba(217, 154, 30, 0.34);
-	}
+.header-top {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+}
 
-	.cta:active {
-		transform: scale(0.98);
-	}
+.header-text {
+	flex: 1;
+	min-width: 0;
+}
 
-	.cta-icon {
-		width: 50px;
-		height: 50px;
-		border-radius: 13px;
-		background: #FFFFFF;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
+.header-title {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 700;
+	color: #FFFFFF;
+	line-height: 1.3;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
 
-	.cta-text {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-	}
+.header-date {
+	margin: 4px 0 0;
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.85);
+}
 
-	.cta-title {
-		font-size: 20px;
-		font-weight: 800;
-		color: #FFFFFF;
-		letter-spacing: 1px;
-	}
+.header-badge {
+	flex-shrink: 0;
+	padding: 6px 12px;
+	border-radius: 20px;
+	background: rgba(255, 255, 255, 0.2);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	font-size: 13px;
+	font-weight: 600;
+	color: #FFFFFF;
+	white-space: nowrap;
+}
 
-	.cta-sub {
-		margin-top: 2px;
-		font-size: 13px;
-		color: rgba(255, 255, 255, 0.92);
-	}
+/* 主体内容 */
+.home-body {
+	padding: 16px;
+	padding-bottom: 32px;
+}
 
-	.u-card {
-		margin-bottom: 12px;
-	}
+/* 主操作按钮 - 最大最醒目 */
+.primary-action {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	width: 100%;
+	padding: 20px;
+	margin-bottom: 16px;
+	border: none;
+	border-radius: 20px;
+	background: linear-gradient(135deg, #2563EB 0%, #1E40AF 100%);
+	box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35);
+	cursor: pointer;
+	transition: all 150ms ease;
+	text-align: left;
+}
 
-	.stats-card {
-		padding: 12px 12px 10px;
-	}
+.primary-action:active {
+	transform: scale(0.98);
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+}
 
-	.today-row {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 2px 2px 10px;
-		border-bottom: 1px solid #EEF2F7;
-	}
+.primary-action-icon {
+	width: 64px;
+	height: 64px;
+	border-radius: 16px;
+	background: rgba(255, 255, 255, 0.2);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
 
-	.today-title {
-		flex: 1;
-		min-width: 0;
-		font-size: 15px;
-		font-weight: 700;
-		color: #B45309;
-	}
+.primary-action-text {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
 
-	.today-row.done .today-title {
-		color: #15803D;
-	}
+.primary-action-title {
+	font-size: 22px;
+	font-weight: 700;
+	color: #FFFFFF;
+	letter-spacing: 0.5px;
+}
 
-	.today-link {
-		font-size: 14px;
-		color: var(--c-primary);
-		white-space: nowrap;
-	}
+.primary-action-sub {
+	font-size: 14px;
+	color: rgba(255, 255, 255, 0.9);
+}
 
-	.stats {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		padding-top: 10px;
-	}
+/* 统计卡片 */
+.stats-card {
+	background: #FFFFFF;
+	border-radius: 16px;
+	padding: 16px;
+	margin-bottom: 16px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 
-	.stat {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
+.stats-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #F1F5F9;
+	margin-bottom: 12px;
+	cursor: pointer;
+}
 
-	.stat + .stat {
-		border-left: 1px solid #EEF2F7;
-	}
+.stats-status {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 15px;
+	font-weight: 600;
+}
 
-	.stat-num {
-		font-size: 22px;
-		font-weight: 800;
-		color: #1E5AA8;
-		line-height: 1.2;
-		font-variant-numeric: tabular-nums;
-	}
+.stats-status.pending {
+	color: #F59E0B;
+}
 
-	.stat-num.danger {
-		color: #C62828;
-	}
+.stats-status.done {
+	color: #10B981;
+}
 
-	.stat-label {
-		margin-top: 2px;
-		font-size: 13px;
-		color: #64748B;
-	}
+.stats-link {
+	font-size: 14px;
+	color: #2563EB;
+	font-weight: 500;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+}
 
-	.site-card {
-		padding: 12px;
-	}
+.stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+	gap: 8px;
+}
 
-	.site-body {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-	}
+.stat-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 8px 4px;
+	border-radius: 12px;
+	background: #F8FAFC;
+}
 
-	.site-icon {
-		width: 44px;
-		height: 44px;
-		border-radius: 12px;
-		background: #E8F0FB;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
+.stat-value {
+	font-size: 24px;
+	font-weight: 700;
+	color: #2563EB;
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
 
-	.site-icon.muted {
-		background: #F1F5F9;
-	}
+.stat-value.danger {
+	color: #EF4444;
+}
 
-	.site-icon.warn {
-		background: #FEF3E2;
-	}
+.stat-label {
+	margin-top: 2px;
+	font-size: 12px;
+	color: #64748B;
+	font-weight: 500;
+}
 
-	.site-info {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-	}
+/* 文物点卡片 */
+.site-card {
+	background: #FFFFFF;
+	border-radius: 16px;
+	padding: 16px;
+	margin-bottom: 16px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
 
-	.site-label {
-		font-size: 12px;
-		color: #94A3B8;
-	}
+.site-loading,
+.site-content,
+.site-error {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
 
-	.site-name {
-		font-size: 17px;
-		font-weight: 800;
-		color: #0F172A;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
+.site-content {
+	cursor: pointer;
+}
 
-	.site-addr {
-		font-size: 13px;
-		color: #64748B;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
+.site-icon {
+	width: 48px;
+	height: 48px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	background: #F1F5F9;
+}
 
-	.site-dist {
-		display: flex;
-		align-items: center;
-		gap: 2px;
-		font-size: 14px;
-		font-weight: 700;
-		color: #B45309;
-		white-space: nowrap;
-		flex-shrink: 0;
-	}
+.site-icon.success {
+	background: #DBEAFE;
+}
 
-	.site-retry {
-		flex-shrink: 0;
-		height: 36px;
-		font-size: 14px;
-	}
+.site-icon.warning {
+	background: #FEF3C7;
+}
 
-	.u-section-title {
-		font-size: 17px;
-		margin: 4px 2px 8px;
-	}
+.site-info {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
 
-	.admin-summary {
-		font-size: 13px;
-		font-weight: 500;
-		color: var(--c-text-3);
-	}
+.site-label {
+	font-size: 12px;
+	color: #94A3B8;
+	font-weight: 500;
+}
 
-	.admin-summary b {
-		color: var(--c-primary);
-		font-weight: 800;
-	}
+.site-name {
+	font-size: 16px;
+	font-weight: 600;
+	color: #1E293B;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
 
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 8px;
-		margin-bottom: 12px;
-	}
+.site-address {
+	font-size: 13px;
+	color: #64748B;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
 
-	.grid-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-		padding: 10px 4px;
-		border-radius: 12px;
-		background: #FFFFFF;
-		box-shadow: 0 4px 14px rgba(15, 47, 92, 0.06);
-	}
+.site-status {
+	font-size: 14px;
+	color: #64748B;
+}
 
-	.grid-item:active {
-		transform: scale(0.97);
-	}
+.site-distance {
+	flex-shrink: 0;
+}
 
-	.grid-icon {
-		width: 40px;
-		height: 40px;
-		border-radius: 12px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+.distance-value {
+	font-size: 15px;
+	font-weight: 600;
+	color: #2563EB;
+}
 
-	.grid-text {
-		font-size: 14px;
-		font-weight: 700;
-		color: #0F172A;
-	}
+.retry-btn {
+	flex-shrink: 0;
+	padding: 8px 16px;
+	border: 1px solid #E2E8F0;
+	border-radius: 8px;
+	background: #FFFFFF;
+	font-size: 14px;
+	font-weight: 500;
+	color: #2563EB;
+	cursor: pointer;
+	transition: all 150ms ease;
+}
 
-	.recent {
-		padding-top: 4px;
-		padding-bottom: 4px;
-	}
+.retry-btn:active {
+	background: #F8FAFC;
+	transform: scale(0.97);
+}
 
-	.recent-item {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		padding: 10px 0;
-		border-bottom: 1px solid #EEF2F7;
-	}
+/* 区块标题 */
+.section-header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	margin: 24px 4px 12px;
+}
 
-	.recent-item:last-child {
-		border-bottom: none;
-	}
+.section-title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+	color: #1E293B;
+}
 
-	.dot {
-		width: 9px;
-		height: 9px;
-		border-radius: 50%;
-		flex-shrink: 0;
-	}
+.section-summary {
+	font-size: 13px;
+	color: #64748B;
+	font-weight: 400;
+}
 
-	.dot.ok {
-		background: #15803D;
-	}
+.section-link {
+	font-size: 14px;
+	color: #2563EB;
+	font-weight: 500;
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+}
 
-	.dot.bad {
-		background: #C62828;
-	}
+/* 管理员功能网格 */
+.admin-grid {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 12px;
+}
 
-	.recent-main {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-	}
+.admin-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	padding: 16px 8px;
+	border: none;
+	border-radius: 16px;
+	background: #FFFFFF;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	cursor: pointer;
+	transition: all 150ms ease;
+}
 
-	.recent-name {
-		font-size: 16px;
-		font-weight: 700;
-		color: #0F172A;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
+.admin-item:active {
+	transform: scale(0.97);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
 
-	.recent-time {
-		font-size: 13px;
-		color: #64748B;
-	}
+.admin-icon {
+	width: 48px;
+	height: 48px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.admin-name {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1E293B;
+	text-align: center;
+}
+
+/* 最近巡查列表 */
+.recent-list {
+	background: #FFFFFF;
+	border-radius: 16px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	overflow: hidden;
+}
+
+.recent-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 16px;
+	border: none;
+	background: none;
+	width: 100%;
+	text-align: left;
+	cursor: pointer;
+	transition: background 150ms ease;
+}
+
+.recent-item:not(:last-child) {
+	border-bottom: 1px solid #F1F5F9;
+}
+
+.recent-item:active {
+	background: #F8FAFC;
+}
+
+.recent-status {
+	width: 36px;
+	height: 36px;
+	border-radius: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.recent-status.ok {
+	background: #D1FAE5;
+}
+
+.recent-status.bad {
+	background: #FEE2E2;
+}
+
+.recent-content {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.recent-name {
+	font-size: 15px;
+	font-weight: 600;
+	color: #1E293B;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.recent-time {
+	font-size: 13px;
+	color: #94A3B8;
+}
+
+.recent-badge {
+	flex-shrink: 0;
+	padding: 4px 10px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.recent-badge.ok {
+	background: #D1FAE5;
+	color: #059669;
+}
+
+.recent-badge.bad {
+	background: #FEE2E2;
+	color: #DC2626;
+}
 </style>

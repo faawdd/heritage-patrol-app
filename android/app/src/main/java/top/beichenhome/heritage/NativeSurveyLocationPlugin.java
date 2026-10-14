@@ -52,16 +52,22 @@ public final class NativeSurveyLocationPlugin extends Plugin {
         final String id = UUID.randomUUID().toString();
         final PluginCall call;
         final SurveyLocation updates;
+        private boolean ackSent = false; // 标记是否已发送确认
+        
         Watch(PluginCall call, long intervalMs) {
             this.call = call;
             updates = new SurveyLocation(getContext(), intervalMs, this);
         }
+        
         @Override public void position(Location location) {
             JSObject result = new JSObject();
             result.put("id", id);
             result.put("position", SurveyLocation.position(location));
+            // 确保 keepAlive 保持为 true，以便继续接收回调
+            call.setKeepAlive(true);
             call.resolve(result);
         }
+        
         @Override public void error(String code, String message) {
             JSObject result = new JSObject();
             result.put("id", id);
@@ -69,6 +75,17 @@ public final class NativeSurveyLocationPlugin extends Plugin {
             call.setKeepAlive(false);
             call.resolve(result);
             removeWatch(id);
+        }
+        
+        /** 发送监听确认，但不影响后续的位置回调 */
+        void sendAck() {
+            if (ackSent) return;
+            ackSent = true;
+            // 第一次调用必须使用 resolve 来返回 watchId
+            JSObject ack = new JSObject();
+            ack.put("id", id);
+            call.setKeepAlive(true); // 确保保持活跃
+            call.resolve(ack);
         }
     }
 
@@ -98,11 +115,13 @@ public final class NativeSurveyLocationPlugin extends Plugin {
                 return;
             }
             watch.updates.start();
-            if (watches.containsKey(watch.id) && watch.updates.isRegistered()) {
-                JSObject ack = new JSObject();
-                ack.put("id", watch.id);
-                call.resolve(ack);
-            }
+            // 无论是否已注册，都发送确认（可能注册是异步的）
+            // 延迟发送确认，给 start() 一些时间来完成注册
+            main.postDelayed(() -> {
+                if (watches.containsKey(watch.id)) {
+                    watch.sendAck();
+                }
+            }, 100); // 100ms 延迟，确保注册完成
         });
     }
 

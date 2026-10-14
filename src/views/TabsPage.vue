@@ -11,16 +11,17 @@
 					:class="{ main: item.main }"
 				>
 					<div v-if="item.main" class="tab-main">
-						<AppIcon name="camera" :size="56" color="#FFFFFF" :stroke="2.2" />
+						<AppIcon name="camera" :size="32" color="#FFFFFF" :stroke="2" />
 					</div>
-					<AppIcon
-						v-else
-						:name="item.icon"
-						:size="52"
-						:color="current === item.key ? '#1E5AA8' : '#64748B'"
-						:stroke="current === item.key ? 2.4 : 2"
-					/>
-					<ion-label>{{ item.name }}</ion-label>
+					<template v-else>
+						<AppIcon
+							:name="item.icon"
+							:size="26"
+							:color="current === item.key ? '#2563EB' : '#94A3B8'"
+							:stroke="current === item.key ? 2.2 : 1.8"
+						/>
+						<ion-label>{{ item.name }}</ion-label>
+					</template>
 				</ion-tab-button>
 			</ion-tab-bar>
 		</ion-tabs>
@@ -28,7 +29,7 @@
 </template>
 
 <script>
-	// 底部导航（替代原 BottomNav 组件）：首页 / 记录 / 巡查上报 / 管理（仅管理员）/ 我的
+	// 简约底部导航：突出核心功能，减少视觉噪音
 	import { IonLabel, IonPage, IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from '@ionic/vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { getUser, isAdminUser } from '@/lib/auth.js';
@@ -48,14 +49,14 @@
 				const items = [
 					{ key: 'home', name: '首页', icon: 'home', url: '/tabs/home' },
 					isAdminUser(this.user)
-						? { key: 'records', name: '记录', icon: 'records', url: '/tabs/records' }
+						? { key: 'records', name: '记录', icon: 'file', url: '/tabs/records' }
 						: { key: 'tasks', name: '任务', icon: 'clock', url: '/tabs/tasks' },
-					{ key: 'patrol', name: '巡查上报', icon: 'camera', url: '/tabs/patrol', main: true },
+					{ key: 'patrol', name: '巡查', icon: 'camera', url: '/tabs/patrol', main: true },
 				];
 				if (isAdminUser(this.user)) {
 					items.push({ key: 'admin', name: '管理', icon: 'grid', url: '/tabs/admin' });
 				} else {
-					items.push({ key: 'records', name: '记录', icon: 'records', url: '/tabs/records' });
+					items.push({ key: 'records', name: '记录', icon: 'file', url: '/tabs/records' });
 				}
 				items.push({ key: 'my', name: '我的', icon: 'user', url: '/tabs/my' });
 				return items;
@@ -70,39 +71,44 @@
 </script>
 
 <style>
+	/* ========== 简约底部导航 ========== */
 	.app-tabbar {
 		--background: #FFFFFF;
-		--border: 0.5px solid #E2E8F0;
-		height: 64px;
-		padding: 0 4px;
-		box-shadow: 0 -4px 16px rgba(15, 47, 92, 0.08);
+		--border: 1px solid #F1F5F9;
+		height: 60px;
+		padding: 0 8px;
+		padding-bottom: env(safe-area-inset-bottom);
+		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
 		overflow: visible;
 		contain: none;
 	}
 
 	.app-tabbar ion-tab-button {
-		--color: #64748B;
-		--color-selected: #1E5AA8;
+		--color: #94A3B8;
+		--color-selected: #2563EB;
 		--ripple-color: transparent;
 		overflow: visible;
-		gap: 3px;
+		gap: 2px;
+		min-width: 0;
 	}
 
 	.app-tabbar ion-tab-button ion-label {
-		font-size: 14px;
+		font-size: 11px;
 		line-height: 1.2;
 		margin: 0;
 		white-space: nowrap;
+		font-weight: 500;
 	}
 
 	.app-tabbar ion-tab-button.tab-selected ion-label {
-		font-weight: 800;
+		font-weight: 600;
+		color: #2563EB;
 	}
 
 	.app-tabbar ion-tab-button.main {
-		justify-content: flex-end;
-		--color: #1E5AA8;
-		--color-selected: #1E5AA8;
+		justify-content: center;
+		--color: #2563EB;
+		--color-selected: #2563EB;
 		z-index: 2;
 	}
 
@@ -112,22 +118,26 @@
 	}
 
 	.app-tabbar ion-tab-button.main ion-label {
-		font-weight: 800;
-		padding-bottom: 6px;
+		display: none;
 	}
 
+	/* 主按钮 - 突出的圆形设计 */
 	.tab-main {
-		flex: 0 0 auto;
-		width: 56px;
-		height: 56px;
-		margin-top: -26px;
-		box-sizing: border-box;
+		width: 52px;
+		height: 52px;
+		margin-top: -20px;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: linear-gradient(135deg, #2A6BC2 0%, #1E5AA8 60%, #174B8F 100%);
-		border: 4px solid #FFFFFF;
-		box-shadow: 0 5px 14px rgba(30, 90, 168, 0.4);
+		background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+		border: 3px solid #FFFFFF;
+		box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+		transition: all 150ms ease;
+	}
+
+	.app-tabbar ion-tab-button.main:active .tab-main {
+		transform: scale(0.95);
+		box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 	}
 </style>

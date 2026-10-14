@@ -76,60 +76,66 @@ button[disabled] {
 }
 
 /* ---------- 新版通用组件类（u- 前缀） ---------- */
+/* ========== 页面通用容器 ========== */
 .u-page {
 	min-height: 100%;
-	background: var(--c-bg);
+	background: #F8FAFC;
 	box-sizing: border-box;
 }
 
 .u-page.has-tabbar {
-	padding-bottom: 24px;
+	padding-bottom: 20px;
 }
 
 .u-body {
-	padding: 0 14px;
+	padding: 0 16px;
 }
 
+/* ========== 卡片组件 ========== */
 .u-card {
-	background: var(--c-surface);
-	border-radius: var(--r-card);
+	background: #FFFFFF;
+	border-radius: 16px;
 	padding: 16px;
-	box-shadow: var(--shadow-card);
-	margin-bottom: 14px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+	margin-bottom: 16px;
 	box-sizing: border-box;
 }
 
+/* ========== 区块标题 ========== */
 .u-section-title {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	font-size: 18px;
 	font-weight: 700;
-	color: var(--c-text);
-	margin: 6px 2px 10px;
+	color: #1E293B;
+	margin: 8px 4px 12px;
 }
 
 .u-section-title .u-link {
-	font-size: 15px;
+	font-size: 14px;
 	font-weight: 500;
-	color: var(--c-primary);
+	color: #2563EB;
 }
 
+/* ========== 按钮组件 ========== */
 .u-btn {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
-	height: 54px;
-	padding: 0 18px;
+	height: 52px;
+	padding: 0 20px;
 	margin: 0;
-	border-radius: var(--r-btn);
-	font-size: 18px;
-	font-weight: 700;
+	border-radius: 12px;
+	font-size: 16px;
+	font-weight: 600;
 	line-height: 1;
-	color: var(--c-primary);
-	background: var(--c-primary-light);
+	color: #2563EB;
+	background: #EFF6FF;
+	border: none;
 	box-sizing: border-box;
+	transition: all 150ms ease;
 }
 
 .u-btn::after {
@@ -138,55 +144,65 @@ button[disabled] {
 }
 
 .u-btn:active {
-	transform: scale(0.98);
-	opacity: 0.9;
+	transform: scale(0.97);
 }
 
+/* 主要按钮 */
 .u-btn.primary {
 	color: #FFFFFF;
-	background: linear-gradient(135deg, #2A6BC2 0%, #1E5AA8 55%, #174B8F 100%);
-	box-shadow: var(--shadow-btn);
+	background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+	box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
+.u-btn.primary:active {
+	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+}
+
+/* 成功按钮 */
 .u-btn.success {
 	color: #FFFFFF;
-	background: linear-gradient(135deg, #1C9A4C 0%, #15803D 100%);
-	box-shadow: 0 6px 14px rgba(21, 128, 61, 0.28);
+	background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+	box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
+/* 危险按钮 */
 .u-btn.danger {
 	color: #FFFFFF;
-	background: linear-gradient(135deg, #DC3B3B 0%, #C62828 100%);
-	box-shadow: 0 6px 14px rgba(198, 40, 40, 0.26);
+	background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+	box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
+/* 幽灵按钮 */
 .u-btn.ghost {
-	color: var(--c-primary);
+	color: #2563EB;
 	background: #FFFFFF;
-	border: 1.5px solid var(--c-primary);
+	border: 1px solid #2563EB;
 }
 
+/* 普通按钮 */
 .u-btn.plain {
-	color: var(--c-text-2);
+	color: #475569;
 	background: #FFFFFF;
-	border: 1px solid var(--c-line);
+	border: 1px solid #E2E8F0;
 }
 
+/* 危险幽灵按钮 */
 .u-btn.danger-ghost {
-	color: var(--c-danger);
+	color: #EF4444;
 	background: #FFFFFF;
-	border: 1.5px solid #F3C2C2;
+	border: 1px solid #FCA5A5;
 }
 
+/* 尺寸变体 */
 .u-btn.xl {
-	height: 64px;
-	font-size: 20px;
-	border-radius: 16px;
+	height: 56px;
+	font-size: 17px;
+	border-radius: 14px;
 }
 
 .u-btn.sm {
 	height: 40px;
-	font-size: 15px;
+	font-size: 14px;
 	padding: 0 14px;
 	border-radius: 10px;
 }
@@ -195,70 +211,76 @@ button[disabled] {
 	width: 100%;
 }
 
+/* ========== 徽章组件 ========== */
 .u-badge {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
-	padding: 4px 10px;
-	border-radius: 499.5px;
-	font-size: 13px;
-	font-weight: 700;
+	padding: 5px 10px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
 	line-height: 1.2;
 	white-space: nowrap;
 }
 
 .u-badge.ok {
-	color: var(--c-success);
-	background: var(--c-success-bg);
+	color: #059669;
+	background: #D1FAE5;
 }
 
 .u-badge.bad {
-	color: var(--c-danger);
-	background: var(--c-danger-bg);
+	color: #DC2626;
+	background: #FEE2E2;
 }
 
 .u-badge.info {
-	color: var(--c-primary);
-	background: var(--c-primary-light);
+	color: #2563EB;
+	background: #DBEAFE;
 }
 
 .u-badge.warn {
-	color: var(--c-warning);
-	background: var(--c-warning-bg);
+	color: #92400E;
+	background: #FEF3C7;
 }
 
+/* ========== 输入框组件 ========== */
 .u-input {
-	height: 56px;
+	height: 48px;
 	padding: 0 14px;
 	border-radius: 12px;
-	background: #F5F7FB;
-	border: 1.5px solid var(--c-line);
-	font-size: 17px;
-	color: var(--c-text);
+	background: #F8FAFC;
+	border: 1px solid #E2E8F0;
+	font-size: 16px;
+	color: #1E293B;
 	box-sizing: border-box;
+	transition: all 150ms ease;
 }
 
-.u-input-focus {
-	border-color: var(--c-primary);
+.u-input:focus {
+	border-color: #2563EB;
 	background: #FFFFFF;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .u-placeholder {
 	color: #94A3B8;
-	font-size: 16px;
+	font-size: 15px;
 }
 
+/* ========== 空状态组件 ========== */
 .u-empty {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding: 32px 12px;
-	color: var(--c-text-3);
-	font-size: 16px;
+	padding: 40px 16px;
+	color: #94A3B8;
+	font-size: 15px;
 	text-align: center;
-	gap: 10px;
+	gap: 8px;
 }
 
+/* ========== 行布局组件 ========== */
 .u-row {
 	display: flex;
 	align-items: center;
@@ -325,8 +347,8 @@ textarea:focus {
 
 /* ---------- Ionic 集成 ---------- */
 ion-content {
-	--background: var(--c-bg);
-	--color: var(--c-text);
+	--background: #F8FAFC;
+	--color: #1E293B;
 	font-size: 16px;
 }
 
@@ -334,17 +356,17 @@ ion-content.no-safe-top::part(scroll) {
 	padding-top: 0;
 }
 
-/* 标准导航栏（非自定义头部页面） */
+/* 标准导航栏 */
 ion-toolbar.app-toolbar {
-	--background: linear-gradient(150deg, #2A6BC2 0%, #1E5AA8 45%, #0F2F5C 100%);
+	--background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
 	--color: #FFFFFF;
 	--border-width: 0;
-	--min-height: 52px;
+	--min-height: 56px;
 }
 
 ion-toolbar.app-toolbar ion-title {
 	font-size: 18px;
-	font-weight: 700;
+	font-weight: 600;
 }
 
 ion-toolbar.app-toolbar ion-back-button,
@@ -352,7 +374,7 @@ ion-toolbar.app-toolbar ion-button {
 	--color: #FFFFFF;
 }
 
-/* 原生按钮重置（页面中保留 <button class="u-btn"> 写法） */
+/* 原生按钮重置 */
 button {
 	font-family: inherit;
 	cursor: pointer;
@@ -381,52 +403,54 @@ img {
 	-webkit-user-drag: none;
 }
 
-/* Overlay 主题 */
+/* ========== Overlay 主题 ========== */
 ion-toast.app-toast {
-	--background: rgba(15, 23, 42, 0.88);
+	--background: rgba(30, 41, 59, 0.92);
 	--color: #FFFFFF;
-	--border-radius: 14px;
-	--max-width: 80%;
+	--border-radius: 12px;
+	--max-width: 85%;
 	--min-width: auto;
-	font-size: 16px;
+	font-size: 15px;
 	text-align: center;
 }
 
 ion-alert.app-alert {
-	--max-width: 86%;
-	--width: 86%;
+	--max-width: 88%;
+	--width: 88%;
 }
 
 ion-alert.app-alert .alert-title {
-	font-size: 19px;
-	font-weight: 800;
+	font-size: 18px;
+	font-weight: 700;
+	color: #1E293B;
 }
 
 ion-alert.app-alert .alert-message {
-	font-size: 16px;
-	color: var(--c-text-2);
+	font-size: 15px;
+	color: #64748B;
 	white-space: pre-line;
+	line-height: 1.5;
 }
 
 ion-alert.app-alert .alert-button {
-	font-size: 17px;
-	font-weight: 700;
+	font-size: 16px;
+	font-weight: 600;
 }
 
 ion-alert.app-alert .alert-btn-danger {
-	color: var(--c-danger);
+	color: #EF4444;
 }
 
 ion-alert.app-alert .alert-btn-primary {
-	color: var(--c-primary);
+	color: #2563EB;
 }
 
 ion-loading {
-	--spinner-color: var(--c-primary);
+	--spinner-color: #2563EB;
 }
 
 ion-refresher ion-refresher-content {
-	--color: var(--c-text-3);
+	--color: #94A3B8;
 }
 
 /* ---------- 由原 uni.scss 迁移的全局类 ---------- */

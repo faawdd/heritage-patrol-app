@@ -1,36 +1,36 @@
-/* Ionic 主题色（与设计系统保持一致） */
+/* ========== 简约设计系统：清晰层次、突出功能、适合户外使用 ========== */
 :root {
-	--ion-color-primary: #1E5AA8;
-	--ion-color-primary-rgb: 30, 90, 168;
+	--ion-color-primary: #2563EB;
+	--ion-color-primary-rgb: 37, 99, 235;
 	--ion-color-primary-contrast: #FFFFFF;
 	--ion-color-primary-contrast-rgb: 255, 255, 255;
-	--ion-color-primary-shade: #1A4F94;
-	--ion-color-primary-tint: #356BB1;
+	--ion-color-primary-shade: #1E40AF;
+	--ion-color-primary-tint: #3B82F6;
 
-	--ion-color-success: #15803D;
-	--ion-color-success-rgb: 21, 128, 61;
+	--ion-color-success: #10B981;
+	--ion-color-success-rgb: 16, 185, 129;
 	--ion-color-success-contrast: #FFFFFF;
 	--ion-color-success-contrast-rgb: 255, 255, 255;
-	--ion-color-success-shade: #127136;
-	--ion-color-success-tint: #2C8D50;
+	--ion-color-success-shade: #059669;
+	--ion-color-success-tint: #34D399;
 
-	--ion-color-warning: #B45309;
-	--ion-color-warning-rgb: 180, 83, 9;
+	--ion-color-warning: #F59E0B;
+	--ion-color-warning-rgb: 245, 158, 11;
 	--ion-color-warning-contrast: #FFFFFF;
 	--ion-color-warning-contrast-rgb: 255, 255, 255;
-	--ion-color-warning-shade: #9E4908;
-	--ion-color-warning-tint: #BC6422;
+	--ion-color-warning-shade: #D97706;
+	--ion-color-warning-tint: #FBBF24;
 
-	--ion-color-danger: #C62828;
-	--ion-color-danger-rgb: 198, 40, 40;
+	--ion-color-danger: #EF4444;
+	--ion-color-danger-rgb: 239, 68, 68;
 	--ion-color-danger-contrast: #FFFFFF;
 	--ion-color-danger-contrast-rgb: 255, 255, 255;
-	--ion-color-danger-shade: #AE2323;
-	--ion-color-danger-tint: #CC3E3E;
+	--ion-color-danger-shade: #DC2626;
+	--ion-color-danger-tint: #F87171;
 
-	--ion-background-color: #F1F4F9;
-	--ion-background-color-rgb: 241, 244, 249;
-	--ion-text-color: #0F172A;
-	--ion-text-color-rgb: 15, 23, 42;
+	--ion-background-color: #F8FAFC;
+	--ion-background-color-rgb: 248, 250, 252;
+	--ion-text-color: #1E293B;
+	--ion-text-color-rgb: 30, 41, 59;
 	--ion-font-family: -apple-system, "PingFang SC", "HarmonyOS Sans SC", "MiSans", "Microsoft YaHei", sans-serif;
 }
