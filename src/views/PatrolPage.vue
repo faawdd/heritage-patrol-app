@@ -2,13 +2,16 @@
 	<div class="app-page">
 		<div ref="content" class="app-content">
 			<div class="u-page">
-				<AppHeader title="巡查上报" subtitle="按照下面 3 步完成上报" />
+				<AppHeader title="巡查上报" :subtitle="`第 ${currentStep + 1} 步 / 共 3 步 · ${stepTitles[currentStep]}`" />
 				<div class="u-card" v-if="taskNotice">{{ taskNotice }}</div>
 				<div class="u-card" v-if="draftError" style="color: #C62828">{{ draftError }}</div>
 
 				<div class="u-body steps">
+					<van-steps :active="currentStep" class="step-progress" aria-label="巡查上报进度">
+						<van-step v-for="title in stepTitles" :key="title">{{ title }}</van-step>
+					</van-steps>
 					<!-- 第 1 步：文物点 -->
-					<div class="u-card step" :class="{ finished: !!site }">
+					<div v-if="currentStep === 0" class="u-card step" :class="{ finished: !!site }">
 						<div class="step-head">
 							<div class="step-no">{{ site ? '✓' : '1' }}</div>
 							<span class="step-title">确认文物点</span>
@@ -56,7 +59,7 @@
 					</div>
 
 					<!-- 第 2 步：拍照 -->
-					<div class="u-card step" :class="{ finished: !!photos.length, disabled: !site }">
+					<div v-else-if="currentStep === 1" class="u-card step" :class="{ finished: !!photos.length }">
 						<div class="step-head">
 							<div class="step-no">{{ photos.length ? '✓' : '2' }}</div>
 							<span class="step-title">拍摄现场照片</span>
@@ -71,9 +74,9 @@
 						<div v-else class="photo">
 							<div v-for="(photo, index) in photos" :key="photo.url">
 								<img class="photo-img" :src="photo.url" alt="" @click="preview(index)" />
-								<van-button native-type="button" class="u-btn sm" @click="removePhoto(index)">删除这张照片</van-button>
+								<van-button native-type="button" class="u-btn sm" :disabled="processing || submitting" @click="removePhoto(index)">删除这张照片</van-button>
 							</div>
-							<van-button native-type="button" class="u-btn plain block" @click="takePhoto">
+							<van-button native-type="button" class="u-btn plain block" :disabled="processing || submitting" @click="takePhoto">
 								<AppIcon name="camera" :size="44" color="#334155" />
 								<span>继续拍照（{{ photos.length }}/20）</span>
 							</van-button>
@@ -82,7 +85,7 @@
 					</div>
 
 					<!-- 第 3 步：情况 -->
-					<div class="u-card step" :class="{ finished: status === 'normal' || (status === 'problem' && issueText), disabled: !photos.length }">
+					<div v-else class="u-card step" :class="{ finished: status === 'normal' || (status === 'problem' && issueText) }">
 						<div class="step-head">
 							<div class="step-no">3</div>
 							<span class="step-title">文物点情况</span>
@@ -118,11 +121,19 @@
 						</div>
 					</div>
 
-					<van-button native-type="button" class="u-btn xl block submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="submitting" @click="submit">
-						<AppIcon name="upload" :size="56" :color="canSubmit ? '#FFFFFF' : '#94A3B8'" />
-						<span>{{ submitting ? '正在上报…' : '提交巡查' }}</span>
-					</van-button>
-					<span class="submit-hint">{{ submitHint }}</span>
+					<div class="step-actions" :class="{ 'final-step': currentStep === 2 }">
+						<van-button v-if="currentStep > 0" native-type="button" class="u-btn plain previous-step" :disabled="processing || submitting" @click="previousStep">
+							上一步
+						</van-button>
+						<van-button v-if="currentStep < 2" native-type="button" class="u-btn primary xl next-step" :disabled="!canGoNext" @click="nextStep">
+							{{ currentStep === 0 ? '确认文物点，下一步' : '照片已拍好，下一步' }}
+						</van-button>
+						<van-button v-else native-type="button" class="u-btn xl submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="!canSubmit || submitting" @click="submit">
+							<AppIcon name="upload" :size="44" :color="canSubmit ? '#FFFFFF' : '#94A3B8'" />
+							<span>{{ submitting ? '正在上报…' : '提交巡查' }}</span>
+						</van-button>
+					</div>
+					<span class="submit-hint" role="status">{{ stepHint }}</span>
 				</div>
 			</div>
 
@@ -203,6 +214,8 @@
 		data() {
 			return {
 				user: {},
+				currentStep: 0,
+				stepTitles: ['确认文物点', '拍摄照片', '填写情况'],
 				locating: false,
 				locationOk: false,
 				locateError: '',
@@ -229,6 +242,16 @@
 			};
 		},
 		computed: {
+			canGoNext() {
+				if (this.processing || this.submitting) return false;
+				return this.currentStep === 0 ? !!this.site : this.currentStep === 1 && !!this.site && !!this.photos.length;
+			},
+			stepHint() {
+				if (this.processing) return '请等待照片处理完成';
+				if (this.currentStep === 0) return this.site ? '确认文物点后，点击下一步拍摄现场照片' : '请先选择或定位文物点';
+				if (this.currentStep === 1) return this.photos.length ? `已添加 ${this.photos.length} 张照片，点击下一步填写情况` : '请至少添加一张现场照片';
+				return this.submitHint;
+			},
 			distanceText() {
 				return this.site ? formatDistance(this.site.distance) : '';
 			},
@@ -276,6 +299,7 @@
 						this.issueNote = draft.issueNote;
 						this.capturedAt = draft.capturedAt || '';
 						this.photos = draft.photos.map(file => ({ file, url: URL.createObjectURL(file) }));
+						this.currentStep = this.site && this.photos.length && [0, 1, 2].includes(draft.currentStep) ? draft.currentStep : 0;
 					}
 				} catch (error) {
 					toast(error.message || '本地巡查草稿读取失败');
@@ -297,6 +321,22 @@
 			this.revokePhoto();
 		},
 		methods: {
+			setStep(step) {
+				this.currentStep = step;
+				this.persistDraft();
+				this.$nextTick(() => this.$refs.content?.scrollTo({ top: 0 }));
+			},
+			nextStep() {
+				if (!this.canGoNext) {
+					toast(this.stepHint, { icon: 'none' });
+					return;
+				}
+				this.setStep(this.currentStep + 1);
+			},
+			previousStep() {
+				if (this.currentStep === 0 || this.processing || this.submitting) return;
+				this.setStep(this.currentStep - 1);
+			},
 			persistDraft() {
 				if (!this.user.id || !this.photos.length || this.success) return this.draftSaving;
 				const userId = this.user.id;
@@ -304,6 +344,7 @@
 					site: { ...this.site }, location: { ...this.location }, locationOk: this.locationOk,
 					status: this.status, chips: [...this.chips], issueNote: this.issueNote,
 					capturedAt: this.capturedAt,
+					currentStep: this.currentStep,
 					photos: this.photos.map(photo => photo.file),
 				};
 				this.draftSaving = this.draftSaving.then(async () => {
@@ -344,7 +385,7 @@
 								const a = Math.sin((lat2 - lat1) / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(radians(Number(item.longitude) - loc.longitude) / 2) ** 2;
 								return { ...item, distance: 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)) };
 							}).sort((a, b) => a.distance - b.distance);
-						if (!this.photos.length && (!this.site || !this.site.manual) && nearby.length) this.site = { ...nearby[0], manual: false };
+						if (this.currentStep === 0 && !this.photos.length && (!this.site || !this.site.manual) && nearby.length) this.site = { ...nearby[0], manual: false };
 						if (!this.site) this.locateError = this.taskNotice || '没有已分配文物点，请联系管理员';
 					})
 					.catch((err) => {
@@ -390,6 +431,7 @@
 				this.photos = [];
 			},
 			async removePhoto(index) {
+				if (this.processing || this.submitting) return;
 				const [photo] = this.photos.splice(index, 1);
 				if (photo.url.startsWith('blob:')) URL.revokeObjectURL(photo.url);
 				if (this.photos.length) await this.persistDraft();
@@ -434,20 +476,17 @@
 					return;
 				}
 				if (this.photos.length >= 20) { toast('最多添加 20 张照片'); return; }
-				let picked;
-				try {
-					picked = await chooseImage({ source: 'camera' });
-				} catch (err) {
-					if (err && (err.cancelled || /cancel/i.test(String(err.errMsg || err.message || '')))) {
-						return;
-					}
-					toast('无法打开相机，请检查相机权限', { icon: 'none' });
-					return;
-				}
-				const path = picked.webPath;
 				this.processing = true;
 				try {
-					await this.addPhoto(path);
+					let picked;
+					try {
+						picked = await chooseImage({ source: 'camera' });
+					} catch (err) {
+						if (err && (err.cancelled || /cancel/i.test(String(err.errMsg || err.message || '')))) return;
+						toast('无法打开相机，请检查相机权限', { icon: 'none' });
+						return;
+					}
+					await this.addPhoto(picked.webPath);
 				} catch (e) {
 					toast(e.message || '水印添加失败，请重试', { icon: 'none' });
 				} finally {
@@ -484,6 +523,10 @@
 					toast(this.submitHint, { icon: 'none' });
 					return;
 				}
+				if (this.currentStep !== 2) {
+					toast('请点击下一步，完成填写情况后再提交', { icon: 'none' });
+					return;
+				}
 				if (this.isFar) {
 					const r = await showModal({
 						title: '确认提交',
@@ -495,7 +538,7 @@
 						return;
 					}
 				}
-				this.doSubmit();
+				return this.doSubmit();
 			},
 			async doSubmit() {
 				this.submitting = true;
@@ -531,6 +574,7 @@
 				}
 			},
 			resetForm() {
+				this.currentStep = 0;
 				this.success = null;
 				this.capturedAt = '';
 				this.revokePhoto();
@@ -573,8 +617,9 @@
 	background: #F0FDF4;
 }
 
-.step.disabled {
-	opacity: 0.5;
+.step-progress {
+	margin-bottom: 16px;
+	border-radius: 12px;
 }
 
 .step-head {
@@ -864,12 +909,50 @@
 }
 
 /* 提交按钮 */
+.step-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	width: 100%;
+	margin-top: 8px;
+}
+
+.previous-step {
+	flex: 0 0 auto;
+}
+
+.next-step,
 .submit {
-	margin: 8px 16px !important;
+	flex: 1;
+	min-width: 0;
+	margin: 0;
 	height: 56px;
 	font-size: 17px;
 	font-weight: 600;
 	border-radius: 12px;
+}
+
+.submit :deep(.van-button__content),
+.submit :deep(.van-button__text) {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.step-actions.final-step {
+	flex-direction: column;
+}
+
+.final-step .submit {
+	flex: none;
+	width: 100%;
+	order: 0;
+}
+
+.final-step .previous-step {
+	width: 100%;
+	order: 1;
 }
 
 .submit-hint {

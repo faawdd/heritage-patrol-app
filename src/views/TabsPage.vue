@@ -11,15 +11,16 @@
 			:model-value="current"
 			class="app-tabbar"
 			:fixed="false"
+			:border="false"
 			safe-area-inset-bottom
 			@change="selectTab"
 		>
 			<van-tabbar-item v-for="item in navItems" :key="item.key" :name="item.key" :class="{ main: item.main }">
 				<template #icon="{ active }">
 					<div v-if="item.main" class="tab-main">
-						<AppIcon name="camera" :size="32" color="#FFFFFF" :stroke="2" />
+						<AppIcon name="camera" :size="48" color="#FFFFFF" :stroke="2" />
 					</div>
-					<AppIcon v-else :name="item.icon" :size="26" :color="active ? '#2563EB' : '#94A3B8'" :stroke="active ? 2.2 : 1.8" />
+					<AppIcon v-else :name="item.icon" :size="40" :color="active ? '#2563EB' : '#94A3B8'" :stroke="active ? 2.2 : 1.8" />
 				</template>
 				{{ item.name }}
 			</van-tabbar-item>
@@ -74,15 +75,16 @@
 	}
 	.app-tabbar {
 		flex-shrink: 0;
-		--van-tabbar-height: 60px;
+		--van-tabbar-height: 66px;
+		--van-tabbar-item-font-size: 14px;
 		--van-tabbar-item-text-color: #94A3B8;
 		--van-tabbar-item-active-color: #2563EB;
 		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
 		z-index: 2;
 	}
 	.app-tabbar .van-tabbar-item {
-		font-size: 11px;
-		font-weight: 500;
+		font-size: 14px;
+		font-weight: 600;
 		min-width: 0;
 	}
 	.app-tabbar .van-tabbar-item.main {
