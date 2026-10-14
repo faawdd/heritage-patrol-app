@@ -84,11 +84,12 @@
         </div>
 
         <div class="window-actions">
-          <button type="button" class="btn-grab" :disabled="isPointLoading(activePoint.id)" @click="grabPoint(activePoint)">
+          <button type="button" class="btn-grab" :disabled="isPointLoading(activePoint.id) || loadingMap[activePoint.id]?.sampling" @click="grabPoint(activePoint)">
             {{ isPointLoading(activePoint.id) ? '定位中' : '实时定位' }}
           </button>
           <button type="button" class="btn-finish" @click="closePointWindow">完成当前点位</button>
         </div>
+        <HighAccuracyCapture ref="surveyRef" :key="activePoint.id" :disabled="isPointLoading(activePoint.id)" @collecting="setLoading(activePoint.id, 'sampling', $event)" @captured="applySurveyPoint(activePoint, $event)" />
       </div>
     </div>
 
@@ -115,6 +116,7 @@
  */
 import { computed, reactive, ref, watch } from 'vue';
 import { toast } from '@/lib/ui.js';
+import HighAccuracyCapture from './HighAccuracyCapture.vue';
 
 const props = defineProps({
   modelValue: {
@@ -151,6 +153,7 @@ const coordList = reactive([]);
 const loadingMap = reactive({});
 const pointWindowVisible = ref(false);
 const activePointId = ref('');
+const surveyRef = ref(null);
 
 const pointThemes = [
   { bg: '#FFFBE6', border: '#FFE58F' },
@@ -188,6 +191,7 @@ function normalizePoint(raw) {
     latitude: raw?.latitude != null ? String(raw.latitude) : '',
     altitude: raw?.altitude != null ? String(raw.altitude) : '',
     sourceTag: raw?.sourceTag != null ? String(raw.sourceTag) : '',
+    survey: raw?.survey ?? null,
     description: raw?.description || (type === 'boundary' ? buildBoundaryDefaultDescription() : ''),
     remark: raw?.remark || '',
     // 内部标记：description 是否由系统自动填充，便于切换类型时安全覆盖。
@@ -196,7 +200,9 @@ function normalizePoint(raw) {
 }
 
 function syncFromModelValue() {
-  coordList.splice(0, coordList.length, ...(props.modelValue || []).map((item) => normalizePoint(item)));
+  // v-model 只输出业务字段；回写时保留本机点位 id，避免当前窗口失去选中点或采样被卸载。
+  const next = (props.modelValue || []).map((item, index) => normalizePoint({ ...item, id: item?.id || coordList[index]?.id }));
+  coordList.splice(0, coordList.length, ...next);
 }
 
 watch(
@@ -228,6 +234,7 @@ function emitModel() {
     latitude: item.latitude,
     altitude: item.altitude,
     sourceTag: item.sourceTag,
+    survey: item.survey,
     description: item.description,
     remark: item.remark,
   }));
@@ -272,6 +279,8 @@ function openPointWindow(pointId) {
 }
 
 function closePointWindow() {
+  surveyRef.value?.cancel();
+  if (activePointId.value) setLoading(activePointId.value, 'sampling', false);
   pointWindowVisible.value = false;
 }
 
@@ -323,7 +332,21 @@ function onTypeChange(event, item) {
 }
 
 function onFieldInput(event, item, fieldName) {
+  if (['longitude', 'latitude', 'altitude'].includes(fieldName)) surveyRef.value?.cancel();
   item[fieldName] = event?.target?.value ?? '';
+  if (['longitude', 'latitude', 'altitude'].includes(fieldName)) {
+    if (item.survey) item.sourceTag = '手动录入（原采样精度已失效）';
+    item.survey = null;
+  }
+  emitModel();
+}
+
+function applySurveyPoint(item, point) {
+  item.longitude = point.longitude.toFixed(8);
+  item.latitude = point.latitude.toFixed(8);
+  item.altitude = point.altitude == null ? '' : point.altitude.toFixed(2);
+  item.sourceTag = 'GPS静止多点平均（未作高程校准）';
+  item.survey = point;
   emitModel();
 }
 
@@ -362,6 +385,7 @@ async function grabPoint(item) {
       toast('抓取失败，请重试', { icon: 'none' });
       return;
     }
+    item.survey = null;
 
     // 任一抓取按钮均刷新当前点的经纬高，确保同一时刻采集数据一致。
     if (Number.isFinite(Number(result.longitude))) {

@@ -54,6 +54,87 @@ scripts/sync-version.mjs   版本号同步脚本
 - 小米等手机上地图能定位不代表本应用已获精确位置权限。若仍超时，通过 `adb logcat -s NativeSensors` 查看实际启用的定位提供者和注册失败原因。
 - 定位封装回归测试：`node --experimental-vm-modules --test tests/location.test.js`。原生请求仍需在真机验证；修改 Java 后必须重新构建 APK，仅更新 Web 资源不生效。
 
+### 高精度打点与轨迹（TypeScript）
+
+`src/lib/location/` 提供与 Vue/React 无关的服务类；`HighAccuracyCapture.vue` 已接入现场采集的单点坐标窗口，原有单次定位与 DEM 海拔路径保留。高精度按钮单独启用严格采样，不改变普通巡查的可用性。
+
+采样质量元数据随组件 `v-model` 返回；现有服务端坐标列表规范化只保存坐标及来源/说明，不保存新增的 `survey` 质量字段。如果要在服务端进行长期精度审计，需另行扩展该接口，不能以当前 UI 元数据代替服务器审计记录。
+
+```ts
+import {
+  HighAccuracyLocationService, TrackService, TrackFilter,
+  locationSource, backgroundBackend, locationError,
+} from './src/lib/location/index.ts';
+
+const abort = new AbortController();
+const sampler = new HighAccuracyLocationService(locationSource);
+try {
+  const point = await sampler.collect({
+    sampleCount: 10,
+    maxAccuracyMeters: 5,
+    timeoutMs: 60000, // 每次采样尝试的上限，首次 GPS 搜星也计时
+    retries: 1,       // 最多两次采样，每次重新收集10个样本
+    average: 'weighted', // 1/accuracy²；也支持 'arithmetic'
+    signal: abort.signal,
+    onProgress: p => console.log(`第${p.attempt}次 ${p.accepted}/${p.target}`, p.reason),
+  });
+  // WGS84 经度、纬度、GPS海拔/垂直精度(null表示缺失)、最新样本时间戳、
+  // bestAccuracyRadius、保守 accuracy、spreadMeters、sampleCount、rejectedCount。
+  console.log(point);
+} catch (error) {
+  console.error(locationError(error).message);
+}
+// 页面离开/取消时 abort.abort()；不要继续使用已取消操作的结果。
+
+const track = new TrackService(locationSource, backgroundBackend);
+await track.start({
+  onPoint: point => console.log(point.segment, point.longitude, point.latitude, point.raw),
+  onRejected: reason => console.warn('噪点已剔除', reason),
+  onError: error => console.error(error.message),
+}, { maxAccuracyMeters: 20, maxSpeedMetersPerSecond: 8 });
+await track.stop();
+
+// 必须由可见页面上的用户操作启动；后台不靠 JS watchPosition 或定时器维持。
+const sessionId = await track.startBackground({ intervalMs: 1000 });
+await track.stopBackground(); // 通知栏“停止”按钮同样可停止
+const filter = new TrackFilter();
+let cursor = 0;
+while (true) {
+  const page = await track.readBackgroundPage(sessionId, cursor, filter, 500);
+  if (page.error) console.error(locationError(page.error).message);
+  // 按 segment 分段绘图，不能跨断点连直线；多页必须复用同一个 filter。
+  console.log(page.points);
+  if (page.cursor === cursor) break;
+  cursor = page.cursor; // 即使整页都是噪点，也推进原始记录游标
+}
+// listBackgroundTracks()/backgroundStatus() 可在页面或进程重建后恢复会话。
+// deleteBackgroundTrack(sessionId) 显式删除本机记录，不能删除正在采集的会话。
+```
+
+完整 Vue 3 权限、采样进度、错误提示、开始/停止、回到前台分页重放示例见 `src/examples/SurveyLocationExample.vue`。该示例未注册新路由，不会自动开启位置追踪。后台数据为设备级原始 GPS 会话，尚未关联账号/文物或自动上传服务器；接入多人账号业务前应定义会话归属和访问策略。
+
+#### 精度边界与过滤规则
+
+- **1–3 米只是良好条件下可能接近的目标，不是硬件保证。** 手机 `accuracy` 是系统估计的水平半径；多径、树木/峭壁遮挡、天线和系统偏差不一定能被平均消除。需在已知控制点重复测量真实误差，不能用增加小数位、最优样本或 `accuracy/√N` 宣称达到测绘精度。
+- 打点默认保留 10 个不同时间戳的新样本（间隔至少 1 秒、报告精度 ≤5 米、有效期 3 秒），剔除过期/重复/乱序/模拟位置、无效数值、报告速度 >0.8 米/秒及偏离静止点超过 10 米的样本。手机速度缺失或偏低时不能保证检测到所有缓慢移动，仍需人工保持静止；连续 GPS 样本也可能存在统计相关性。不足 10 个即超时；重试次数有上限，不自动放宽阈值。
+- 权限等待也有超时；取消和所有正常退出都会清理监听，原生注册迟到仍会清理。默认最多两次 60 秒采样，间隔 1.5 秒，权限等待单独最多 60 秒。采样中保持静止，否则移动平均不代表某个固定遗址点。
+- 海拔独立采用垂直精度加权；缺少垂直精度时采用算术平均。GPS 海拔不等于经过大地水准面/DEM 校正的国家高程；海拔缺失返回 `null`，海拔 0 是合法值。坐标均为 WGS84，叠加高德/百度底图前须另外做 GCJ-02/BD-09 转换。
+- 轨迹默认精度阈值 20 米（不是打点的 5 米），使用局部米制平面二维随机游走卡尔曼滤波。按报告误差和最大速度过滤跳变，超过 30 秒的定位缺口重新分段；`filterRadius` 只是模型内部估计，保留 `raw` 便于审计。车辆巡查应显式调整速度阈值。
+
+#### Android 后台定位与前台服务
+
+Manifest 已声明 `ACCESS_FINE_LOCATION`、`ACCESS_COARSE_LOCATION`、`ACCESS_BACKGROUND_LOCATION`、`FOREGROUND_SERVICE`、`FOREGROUND_SERVICE_LOCATION`、`POST_NOTIFICATIONS`，并注册不可被外部启动的 `foregroundServiceType="location"` 服务。
+
+- Android 12+ 申请精确位置必须同时声明/申请粗略与精确位置；高精度模块不接受仅有模糊位置。Android 13+ 本实现明确要求通知权限，以展示可见的记录提示和停止入口。
+- Android 14+ 启动位置前台服务受“使用期间”权限限制：**用户在 App 可见时启动的位置 FGS 可以在锁屏后继续运行，不需要自动申请“始终允许”。** Manifest 的后台权限声明不是运行时授权，也不意味着可以任意从后台启动服务。本实现不从后台偷偷启动，也不自动请求 `ACCESS_BACKGROUND_LOCATION`；如果未来确需后台启动，必须按 Android 10/11+ 规则独立申请并说明用途、满足 FGS 启动豁免及应用市场政策。
+- 原生 GPS 连续采样和 SQLite 保存不依赖 WebView 回调。停止、GPS 关闭、权限撤销、存储错误和长时间无新坐标会明确结束或报告；被系统终止的会话标记中断，不悄悄恢复或伪造遗漏轨迹。原始噪点同样落盘，返回界面后再按统一策略重放过滤。
+- 小米/其他 OEM 的省电策略仍可能结束服务，应允许应用后台运行并做锁屏/省电实测；用户“强行停止”、重启和卸载不能保证连续记录。不存在“加权限即可保证后台不死”的方案。
+- 轨迹保存在 App 私有 SQLite 中，不发送到第三方；用户应在结束巡查后停止服务以降低耗电。卸载/清除数据会丢失记录。需重新打包 APK 才能包含新的原生插件和服务。
+
+验证命令：`npm run typecheck:location`、`npm run test:location`、`npm run sync`，Android 使用 JDK 21 执行 `./gradlew assembleDebug`。CI 和 Release 构建在打包前运行类型检查和定位回归测试。算法测试含阈值、取消/重试/迟到监听清理、加权平均、跨日期变更线、静态偏差、步行噪声误差降低和后台分页重放；这些模拟结果不代替真机定位精度与锁屏续航验证。
+
+组件 UI 回归：启动 `npm run dev` 后访问 `/tests/survey.browser.html`，使用合成位置流检查坐标回填、采样进度、海拔 0、精度元数据保留、监听清理和手动编辑撤销旧精度标记，不登录或访问生产 API。
+
 ## 开发
 
 需要 Node.js ≥ 22；构建 Android 还需要 JDK 21 和 Android SDK（推荐用 Android Studio）。

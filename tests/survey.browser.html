@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>高精度坐标采集 UI 回归</title></head>
+<body>
+	<main id="fixture"></main>
+	<pre id="results">正在测试…</pre>
+	<script type="module">
+		import { runSurveyBrowserTests } from './survey.browser.js';
+		try {
+			document.querySelector('#results').textContent = JSON.stringify(await runSurveyBrowserTests(), null, 2);
+		} catch (error) {
+			document.querySelector('#results').textContent = `FAILED: ${error.stack || error}`;
+		}
+	</script>
+</body>
+</html>

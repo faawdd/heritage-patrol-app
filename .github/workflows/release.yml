@@ -59,6 +59,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate location services
+        run: |
+          npm run typecheck:location
+          npm run test:location
+
       - name: Sync version into package.json
         run: node scripts/sync-version.mjs "${{ steps.version.outputs.name }}"
 

@@ -25,6 +25,8 @@ jobs:
           cache: gradle
 
       - run: npm ci
+      - run: npm run typecheck:location
+      - run: npm run test:location
       - run: npm run build
       - run: npx cap sync android
 
