@@ -138,7 +138,7 @@
 						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.onlineTools') }}</span></div>
 						<div class="u-card adm-tool tappable" @click="openInspectionManagement">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:#E8F0FB"><AppIcon name="clock" :size="48" color="#1E5AA8" /></div>
+								<div class="adm-tool-icon" style="background:#E8F0ED"><AppIcon name="clock" :size="48" color="#245B4A" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.patrolManageTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.patrolManageDesc') }}</span>
@@ -418,10 +418,10 @@
 	}
 
 	.adm-seg {
-		--van-tabs-nav-background: #E2E8F0;
-		--van-tab-text-color: #475569;
-		--van-tab-active-text-color: #1E5AA8;
-		--van-tabs-bottom-bar-color: #1E5AA8;
+		--van-tabs-nav-background: #E4E9E5;
+		--van-tab-text-color: #4A5D54;
+		--van-tab-active-text-color: #245B4A;
+		--van-tabs-bottom-bar-color: #245B4A;
 		border-radius: 10px;
 		overflow: hidden;
 	}

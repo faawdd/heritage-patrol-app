@@ -222,74 +222,75 @@
 	.filter-bar {
 		display: flex;
 		gap: 8px;
-		padding: 14px;
+		padding: 12px 16px;
 		position: sticky;
 		top: 0;
 		z-index: 5;
-		background: #F1F4F9;
+		background: var(--c-bg);
+		border-bottom: 1px solid var(--c-line);
 	}
 
 	.filter {
 		flex: 1;
-		height: 48px;
-		border-radius: 12px;
+		height: 44px;
+		border-radius: 10px;
 		background: #FFFFFF;
-		border: 1.5px solid #E2E8F0;
+		border: 1px solid var(--c-line);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 5px;
-		font-size: 17px;
-		font-weight: 700;
-		color: #334155;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--c-text-2);
 	}
 
 	.filter-count {
-		min-width: 22px;
+		min-width: 20px;
 		padding: 1px 6px;
 		border-radius: 999px;
-		background: #EEF2F7;
-		font-size: 13px;
+		background: var(--c-fill);
+		font-size: 12px;
 		text-align: center;
 		box-sizing: border-box;
 	}
 
 	.filter.active {
 		color: #FFFFFF;
-		background: #1E5AA8;
-		border-color: #1E5AA8;
+		background: var(--c-primary);
+		border-color: var(--c-primary);
 	}
 
 	.filter.ok.active {
-		background: #15803D;
-		border-color: #15803D;
+		background: var(--c-success);
+		border-color: var(--c-success);
 	}
 
 	.filter.bad.active {
-		background: #C62828;
-		border-color: #C62828;
+		background: var(--c-danger);
+		border-color: var(--c-danger);
 	}
 
 	.filter.active .filter-count {
-		background: rgba(255, 255, 255, 0.25);
+		background: rgba(255, 255, 255, 0.22);
 	}
 
 	.group-title {
 		display: block;
-		margin: 4px 2px 8px;
-		font-size: 14px;
-		font-weight: 800;
-		color: #334155;
+		margin: 6px 2px 6px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--c-text-2);
 	}
 
 	.record {
-		border-left: 5px solid #15803D;
+		border-left: 4px solid var(--c-success);
 		padding: 12px 14px;
 		margin-bottom: 10px;
 	}
 
 	.record.bad {
-		border-left-color: #C62828;
+		border-left-color: var(--c-danger);
 	}
 
 	.record-top {
@@ -305,9 +306,9 @@
 
 	.record-name {
 		display: block;
-		font-size: 17px;
-		font-weight: 800;
-		color: #0F172A;
+		font-size: 15px;
+		font-weight: 600;
+		color: var(--c-text);
 		line-height: 1.3;
 		overflow: hidden;
 		text-overflow: ellipsis;
@@ -319,8 +320,8 @@
 		align-items: center;
 		gap: 4px;
 		margin-top: 4px;
-		font-size: 13px;
-		color: #64748B;
+		font-size: 12px;
+		color: var(--c-text-3);
 		white-space: nowrap;
 		overflow: hidden;
 	}
@@ -330,14 +331,14 @@
 	}
 
 	.record-coord {
-		color: #94A3B8;
+		color: var(--c-text-4);
 		overflow: hidden;
 		text-overflow: ellipsis;
 	}
 
 	.u-badge.big {
-		font-size: 13px;
-		padding: 4px 10px;
+		font-size: 12px;
+		padding: 3px 8px;
 		flex-shrink: 0;
 	}
 
@@ -347,9 +348,9 @@
 		margin-top: 10px;
 		padding: 10px 11px;
 		border-radius: 9px;
-		background: #FDECEC;
-		color: #9B1C1C;
-		font-size: 15px;
+		background: var(--c-danger-bg);
+		color: var(--c-danger);
+		font-size: 14px;
 		line-height: 1.5;
 	}
 
@@ -360,6 +361,6 @@
 		object-fit: cover;
 		margin-top: 10px;
 		border-radius: 10px;
-		background: #E2E8F0;
+		background: var(--c-line);
 	}
 </style>

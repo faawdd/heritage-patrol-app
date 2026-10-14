@@ -75,31 +75,31 @@
 	}
 	.app-tabbar {
 		flex-shrink: 0;
-		--van-tabbar-height: 66px;
-		--van-tabbar-item-font-size: 14px;
-		--van-tabbar-item-text-color: #94A3B8;
-		--van-tabbar-item-active-color: #2563EB;
-		box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.04);
+		--van-tabbar-height: 60px;
+		--van-tabbar-item-font-size: 12px;
+		--van-tabbar-item-text-color: #77817B;
+		--van-tabbar-item-active-color: #245B4A;
+		border-top: 1px solid var(--c-line);
 		z-index: 2;
 	}
 	.app-tabbar .van-tabbar-item {
-		font-size: 14px;
-		font-weight: 600;
+		font-size: 12px;
+		font-weight: 500;
 		min-width: 0;
 	}
 	.app-tabbar .van-tabbar-item.main {
 		overflow: visible;
 	}
 	.tab-main {
-		width: 52px;
-		height: 52px;
-		margin-top: -20px;
+		width: 48px;
+		height: 48px;
+		margin-top: -18px;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-		border: 3px solid #FFFFFF;
-		box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+		background: linear-gradient(135deg, #3A7D68 0%, #245B4A 100%);
+		border: 2.5px solid #FFFFFF;
+		box-shadow: 0 3px 10px rgba(36, 91, 74, 0.25);
 	}
 </style>

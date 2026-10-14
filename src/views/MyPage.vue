@@ -219,13 +219,13 @@
 	}
 
 	.avatar {
-		width: 68px;
-		height: 68px;
+		width: 64px;
+		height: 64px;
 		border-radius: 50%;
-		background: linear-gradient(135deg, #2A6BC2, #0F2F5C);
+		background: linear-gradient(135deg, #3A7D68, #245B4A);
 		color: #FFFFFF;
-		font-size: 23px;
-		font-weight: 800;
+		font-size: 22px;
+		font-weight: 600;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -240,19 +240,19 @@
 	}
 
 	.name {
-		font-size: 22px;
-		font-weight: 800;
-		color: #0F172A;
+		font-size: 20px;
+		font-weight: 600;
+		color: var(--c-text);
 	}
 
 	.account {
 		margin: 2px 0 6px;
-		font-size: 15px;
-		color: #64748B;
+		font-size: 14px;
+		color: var(--c-text-3);
 	}
 
 	.role {
-		font-size: 14px;
+		font-size: 13px;
 	}
 
 	.menu {
@@ -264,8 +264,8 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		min-height: 68px;
-		border-bottom: 1px solid #EEF2F7;
+		min-height: 64px;
+		border-bottom: 1px solid var(--c-line);
 	}
 
 	.menu-item:last-child {
@@ -277,9 +277,9 @@
 	}
 
 	.menu-icon {
-		width: 44px;
-		height: 44px;
-		border-radius: 12px;
+		width: 40px;
+		height: 40px;
+		border-radius: 10px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -294,15 +294,15 @@
 	}
 
 	.menu-title {
-		font-size: 18px;
-		font-weight: 700;
-		color: #0F172A;
+		font-size: 16px;
+		font-weight: 600;
+		color: var(--c-text);
 	}
 
 	.menu-sub {
 		margin-top: 2px;
-		font-size: 14px;
-		color: #64748B;
+		font-size: 13px;
+		color: var(--c-text-3);
 	}
 
 	.pwd {
@@ -310,7 +310,7 @@
 		flex-direction: column;
 		gap: 10px;
 		padding: 4px 0 14px;
-		border-bottom: 1px solid #EEF2F7;
+		border-bottom: 1px solid var(--c-line);
 	}
 
 	.logout {

@@ -2,7 +2,7 @@
 	<div class="app-header" :class="{ tall }">
 		<div class="app-header-bar">
 			<van-button v-if="back" native-type="button" class="app-header-back" aria-label="返回" @click="goBack">
-				<AppIcon name="chevron-right" :size="48" color="#FFFFFF" :stroke="2.6" class="flip" />
+				<AppIcon name="chevron-right" :size="48" color="#26332D" :stroke="2.6" class="flip" />
 			</van-button>
 			<div class="app-header-text">
 				<span class="app-header-title">{{ title }}</span>
@@ -42,21 +42,10 @@
 	.app-header {
 		position: relative;
 		padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 14px;
-		background: linear-gradient(150deg, #2A6BC2 0%, #1E5AA8 45%, #0F2F5C 100%);
-		color: #FFFFFF;
+		background: #FFFFFF;
+		border-bottom: 1px solid var(--c-line, #E4E9E5);
+		color: var(--c-text, #26332D);
 		overflow: hidden;
-	}
-
-	.app-header::after {
-		content: '';
-		position: absolute;
-		right: -60px;
-		top: -40px;
-		width: 210px;
-		height: 210px;
-		border-radius: 50%;
-		background: radial-gradient(circle, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 70%);
-		pointer-events: none;
 	}
 
 	.app-header.tall {
@@ -88,6 +77,10 @@
 		transform: rotate(180deg);
 	}
 
+	.app-header-back .van-icon {
+		color: var(--c-text, #26332D) !important;
+	}
+
 	.app-header-text {
 		flex: 1;
 		min-width: 0;
@@ -96,19 +89,20 @@
 	}
 
 	.app-header-title {
-		font-size: 20px;
-		font-weight: 800;
-		letter-spacing: 0.5px;
+		font-size: 17px;
+		font-weight: 600;
+		letter-spacing: 0.2px;
 		line-height: 1.3;
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;
+		color: var(--c-text, #26332D);
 	}
 
 	.app-header-sub {
 		margin-top: 2px;
-		font-size: 13px;
-		color: rgba(255, 255, 255, 0.82);
+		font-size: 12px;
+		color: var(--c-text-3, #77817B);
 	}
 
 	.app-header-right {
