@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from '@ionic/vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import TabsPage from '@/views/TabsPage.vue';
 import { getUser, isAdminUser, isLoggedIn } from '@/lib/auth.js';
 import { installNav } from '@/lib/nav.js';

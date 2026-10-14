@@ -1,7 +1,7 @@
 <template>
-	<ion-page>
-		<ion-content>
-			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)"><ion-refresher-content /></ion-refresher>
+	<div class="app-page">
+		<div class="app-content">
+			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
 			<AppHeader :title="t('nav.heritageDetail')" back />
 	<div class="page">
 		<div v-if="loading && !detail" class="state-box">
@@ -10,7 +10,7 @@
 
 		<div v-else-if="errorMessage && !detail" class="state-box">
 			<span class="state-text">{{ errorMessage }}</span>
-			<button type="button" class="primary-btn state-btn" @click="loadDetail()">{{ t('heritageDetail.retry') }}</button>
+			<van-button native-type="button" class="primary-btn state-btn" @click="loadDetail()">{{ t('heritageDetail.retry') }}</van-button>
 		</div>
 
 		<div v-else-if="detail" class="content">
@@ -33,9 +33,9 @@
 					</div>
 				</div>
 				<div class="action-row">
-					<button v-if="hasLocation" class="ghost-btn" @click="copyCoordinates">{{ t('heritageDetail.copyCoords') }}</button>
-					<button v-if="hasLocation" class="ghost-btn" @click="openMap">{{ t('heritageDetail.openMap') }}</button>
-					<button v-if="detail.web_url" class="ghost-btn" @click="openOnline">{{ t('heritageDetail.openOnline') }}</button>
+					<van-button v-if="hasLocation" class="ghost-btn" @click="copyCoordinates">{{ t('heritageDetail.copyCoords') }}</van-button>
+					<van-button v-if="hasLocation" class="ghost-btn" @click="openMap">{{ t('heritageDetail.openMap') }}</van-button>
+					<van-button v-if="detail.web_url" class="ghost-btn" @click="openOnline">{{ t('heritageDetail.openOnline') }}</van-button>
 				</div>
 			</div>
 
@@ -112,12 +112,12 @@
 			</div>
 		</div>
 	</div>
-		</ion-content>
-	</ion-page>
+		</van-pull-refresh>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonPage, IonContent, IonRefresher, IonRefresherContent } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import config from '@/lib/config.js';
 	import { getAuthHeader } from '@/lib/auth.js';
@@ -128,9 +128,10 @@
 	import { previewImage, setClipboard, openLocation } from '@/lib/native.js';
 
 	export default {
-		components: { IonPage, IonContent, IonRefresher, IonRefresherContent, AppHeader },
+		components: { AppHeader },
 		data() {
 			return {
+				refreshing: false,
 				siteId: '',
 				siteName: '',
 				loading: false,
@@ -160,11 +161,11 @@
 		},
 		methods: {
 			t,
-			async onRefresh(event) {
+			async onRefresh() {
 				try {
 					await this.loadDetail();
 				} finally {
-					event.target.complete();
+					this.refreshing = false;
 				}
 			},
 			async loadDetail() {

@@ -142,8 +142,8 @@
           </div>
 
           <div class="btn-group-compact">
-            <button type="button" class="btn-secondary" @click="handleCollectCoordinate">采集坐标</button>
-            <button type="button" class="btn-secondary" @click="handleCollectAltitude">采集海拔</button>
+            <van-button native-type="button" class="btn-secondary" @click="handleCollectCoordinate">采集坐标</van-button>
+            <van-button native-type="button" class="btn-secondary" @click="handleCollectAltitude">采集海拔</van-button>
           </div>
         </div>
       </div>
@@ -223,7 +223,7 @@
 
           <div class="form-row">
             <span class="row-label required">普查员签名</span>
-            <button type="button" class="btn-secondary single-btn" @click="collectSignature">采集签名</button>
+            <van-button native-type="button" class="btn-secondary single-btn" @click="collectSignature">采集签名</van-button>
           </div>
           <div v-if="signStatus" class="inline-hint">
             <span class="inline-hint-text">{{ signStatus }}</span>
@@ -247,19 +247,19 @@
 
     <div class="wizard-footer">
       <div v-if="currentStep === 0" class="footer-row single">
-        <button type="button" class="btn-flow btn-flow-primary btn-flow-wide" @click="goStep1ToStep2">下一步：采集坐标</button>
+        <van-button native-type="button" class="btn-flow btn-flow-primary btn-flow-wide" @click="goStep1ToStep2">下一步：采集坐标</van-button>
       </div>
 
       <div v-if="currentStep === 1" class="footer-row split">
-        <button type="button" class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</button>
-        <button type="button" class="btn-flow btn-flow-primary right" @click="goStep2ToStep3">下一步：多媒体/审核</button>
+        <van-button native-type="button" class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</van-button>
+        <van-button native-type="button" class="btn-flow btn-flow-primary right" @click="goStep2ToStep3">下一步：多媒体/审核</van-button>
       </div>
 
       <div v-if="currentStep === 2" class="footer-row split">
-        <button type="button" class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</button>
-        <button type="button" class="btn-flow btn-flow-submit right" :disabled="loading" @click="handleSubmit">
+        <van-button native-type="button" class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</van-button>
+        <van-button native-type="button" class="btn-flow btn-flow-submit right" :disabled="loading" @click="handleSubmit">
           {{ loading ? '提交中...' : '完成并提交数据' }}
-        </button>
+        </van-button>
       </div>
     </div>
   </div>

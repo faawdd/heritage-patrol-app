@@ -1,10 +1,10 @@
 <template>
 	<section class="survey-capture">
 		<p>静止采集 10 个精度 ≤5 米的新样本。手机精度为估计值，不保证 1–3 米。</p>
-		<button type="button" :disabled="collecting || disabled" @click="capture">
+		<van-button native-type="button" :disabled="collecting || disabled" @click="capture">
 			{{ collecting ? '高精度采样中…' : '静止高精度打点' }}
-		</button>
-		<button v-if="collecting" type="button" @click="controller?.abort()">取消采样</button>
+		</van-button>
+		<van-button v-if="collecting" native-type="button" @click="controller?.abort()">取消采样</van-button>
 		<p v-if="progress" aria-live="polite">
 			第 {{ progress.attempt }} 次：{{ progress.accepted }}/{{ progress.target }} 个有效样本，
 			剔除 {{ progress.rejected }} 个；

@@ -1,24 +1,45 @@
 <template>
-	<ion-app>
-		<ion-router-outlet />
+	<div class="app-shell">
+		<router-view v-slot="{ Component, route }">
+			<KeepAlive include="TabsPage" :max="1">
+				<component :is="Component" :key="pageKey(route)" />
+			</KeepAlive>
+		</router-view>
+		<van-action-sheet
+			v-model:show="actionSheetState.show"
+			:actions="actionSheetState.actions"
+			:title="actionSheetState.title"
+			cancel-text="取消"
+			close-on-click-action
+			@select="finishActionSheet"
+			@cancel="finishActionSheet()"
+			@click-overlay="finishActionSheet()"
+		/>
 		<UpdateDialog />
-	</ion-app>
+	</div>
 </template>
 
 <script setup>
 	import { onMounted, onUnmounted } from 'vue';
-	import { IonApp, IonRouterOutlet, useBackButton, useIonRouter } from '@ionic/vue';
+	import { useRouter } from 'vue-router';
 	import { App as CapApp } from '@capacitor/app';
 	import { Capacitor } from '@capacitor/core';
 	import { ScreenOrientation } from '@capacitor/screen-orientation';
 	import { SplashScreen } from '@capacitor/splash-screen';
 	import { StatusBar, Style } from '@capacitor/status-bar';
-	import { setIonRouter } from '@/lib/nav.js';
+	import { canGoBack, navigateBack } from '@/lib/nav.js';
 	import { initAutoUpdate } from '@/lib/updater.js';
 	import UpdateDialog from '@/components/UpdateDialog.vue';
 	import { loadTasks, syncPatrols } from '@/lib/patrol.js';
-	import { isLoggedIn } from '@/lib/auth.js';
-	import { toast } from '@/lib/ui.js';
+	import { getUser, isLoggedIn } from '@/lib/auth.js';
+	import { actionSheetState, dismissOverlay, finishActionSheet, toast } from '@/lib/ui.js';
+	const router = useRouter();
+	const removeRouteListener = router.afterEach(() => { dismissOverlay(true); });
+	function pageKey(route) {
+		return route.path.startsWith('/tabs/')
+			? `tabs:${getUser()?.id || getUser()?.username || ''}`
+			: route.fullPath;
+	}
 
 	async function syncOnline() {
 		if (!isLoggedIn() || navigator.onLine === false) return;
@@ -32,22 +53,13 @@
 	}
 	let syncTimer;
 	let resumeListener;
+	let backListener;
 	onUnmounted(() => {
 		window.removeEventListener('online', syncOnline);
 		clearInterval(syncTimer);
 		resumeListener?.remove();
-	});
-
-	const ionRouter = useIonRouter();
-	setIonRouter(ionRouter);
-
-	// Android 返回键：能后退则后退，否则退到后台（避免直接退出应用）
-	useBackButton(-1, () => {
-		if (ionRouter.canGoBack()) {
-			ionRouter.back();
-		} else {
-			CapApp.minimizeApp().catch(() => CapApp.exitApp());
-		}
+		backListener?.remove();
+		removeRouteListener();
 	});
 
 	onMounted(async () => {
@@ -56,6 +68,14 @@
 		syncOnline();
 		if (!Capacitor.isNativePlatform()) {
 			return;
+		}
+		if (Capacitor.getPlatform() === 'android') {
+			backListener = await CapApp.addListener('backButton', () => {
+				if (dismissOverlay()) return;
+				if (canGoBack()) navigateBack();
+				else if (!router.currentRoute.value.path.startsWith('/tabs/') && router.currentRoute.value.path !== '/login') navigateBack();
+				else CapApp.minimizeApp().catch(error => console.error('Unable to minimize app', error));
+			});
 		}
 		resumeListener = await CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) syncOnline(); });
 		ScreenOrientation.lock({ orientation: 'portrait' }).catch(() => {});

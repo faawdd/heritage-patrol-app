@@ -7,8 +7,7 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
 import { Geolocation } from '@capacitor/geolocation';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
-import { modalController } from '@ionic/vue';
-import ImagePreview from '@/components/ImagePreview.vue';
+import { previewImages } from './ui.js';
 import { getAuthHeader } from './auth.js';
 
 export const isNative = () => Capacitor.isNativePlatform();
@@ -150,14 +149,8 @@ export async function previewImage(urls, current) {
 	if (!list.length) {
 		return;
 	}
-	const index = Math.max(0, typeof current === 'number' ? current : list.indexOf(current));
-	const modal = await modalController.create({
-		component: ImagePreview,
-		componentProps: { urls: list, index },
-		cssClass: 'image-preview-modal',
-	});
-	await modal.present();
-	return modal;
+	const index = Math.min(list.length - 1, Math.max(0, typeof current === 'number' ? current : list.indexOf(current)));
+	return previewImages(list, index);
 }
 
 export function makePhoneCall(phoneNumber) {

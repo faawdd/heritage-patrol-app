@@ -3,17 +3,17 @@
 		<h2>高精度打点与巡查轨迹</h2>
 		<HighAccuracyCapture @captured="point = $event" />
 		<p v-if="point">已采集 {{ point.sampleCount }} 个样本，保守报告半径 {{ point.accuracy }} 米。</p>
-		<button :disabled="busy || foreground || !!sessionId" @click="startForeground">开始前台轨迹</button>
-		<button :disabled="busy || foreground || !!sessionId" @click="startBackground">开始锁屏巡查</button>
-		<button :disabled="busy || (!foreground && !sessionId)" @click="stop">停止记录</button>
-		<button :disabled="busy" @click="reloadHistory">读取本机历史</button>
-		<button :disabled="busy" @click="refresh">刷新后台状态</button>
+		<van-button :disabled="busy || foreground || !!sessionId" @click="startForeground">开始前台轨迹</van-button>
+		<van-button :disabled="busy || foreground || !!sessionId" @click="startBackground">开始锁屏巡查</van-button>
+		<van-button :disabled="busy || (!foreground && !sessionId)" @click="stop">停止记录</van-button>
+		<van-button :disabled="busy" @click="reloadHistory">读取本机历史</van-button>
+		<van-button :disabled="busy" @click="refresh">刷新后台状态</van-button>
 		<p>前台轨迹：{{ foreground ? '记录中' : '已停止' }}；后台会话：{{ sessionId || '未记录' }}</p>
 		<p>界面最近 {{ points.length }} 个平滑点。锁屏原始轨迹独立保存在本机，不随页面关闭而删除。</p>
 		<p v-if="error" role="alert">{{ error }}</p>
 		<ul>
 			<li v-for="item in history" :key="item.sessionId">
-				<button @click="replay(item.sessionId)">查看 {{ new Date(item.startedAt).toLocaleString() }}</button>
+				<van-button @click="replay(item.sessionId)">查看 {{ new Date(item.startedAt).toLocaleString() }}</van-button>
 				{{ item.error?.message || (item.stoppedAt ? '已结束' : '记录中') }}
 			</li>
 		</ul>

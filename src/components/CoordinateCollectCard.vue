@@ -6,7 +6,7 @@
     </div>
 
     <div class="head-actions">
-      <button type="button" class="btn-add" @click="addPoint">新增定位点</button>
+      <van-button native-type="button" class="btn-add" @click="addPoint">新增定位点</van-button>
     </div>
 
     <div v-if="coordList.length === 0" class="empty-wrap">
@@ -24,8 +24,8 @@
         <span class="brief-row">海拔：{{ item.altitude || '未填' }}</span>
       </div>
       <div class="brief-actions">
-        <button type="button" class="btn-open" @click="openPointWindow(item.id)">打开坐标窗口</button>
-        <button type="button" class="btn-delete" @click="removePoint(index)">删除</button>
+        <van-button native-type="button" class="btn-open" @click="openPointWindow(item.id)">打开坐标窗口</van-button>
+        <van-button native-type="button" class="btn-delete" @click="removePoint(index)">删除</van-button>
       </div>
     </div>
 
@@ -33,7 +33,7 @@
       <div class="point-window" :style="pointThemeStyle(activePointIndex)">
         <div class="window-head">
           <span class="window-title">定位点 {{ activePointIndex + 1 }} 坐标窗口</span>
-          <button type="button" class="btn-close" @click="closePointWindow">关闭</button>
+          <van-button native-type="button" class="btn-close" @click="closePointWindow">关闭</van-button>
         </div>
 
         <div class="form-row">
@@ -84,10 +84,10 @@
         </div>
 
         <div class="window-actions">
-          <button type="button" class="btn-grab" :disabled="isPointLoading(activePoint.id) || loadingMap[activePoint.id]?.sampling" @click="grabPoint(activePoint)">
+          <van-button native-type="button" class="btn-grab" :disabled="isPointLoading(activePoint.id) || loadingMap[activePoint.id]?.sampling" @click="grabPoint(activePoint)">
             {{ isPointLoading(activePoint.id) ? '定位中' : '实时定位' }}
-          </button>
-          <button type="button" class="btn-finish" @click="closePointWindow">完成当前点位</button>
+          </van-button>
+          <van-button native-type="button" class="btn-finish" @click="closePointWindow">完成当前点位</van-button>
         </div>
         <HighAccuracyCapture ref="surveyRef" :key="activePoint.id" :disabled="isPointLoading(activePoint.id)" @collecting="setLoading(activePoint.id, 'sampling', $event)" @captured="applySurveyPoint(activePoint, $event)" />
       </div>

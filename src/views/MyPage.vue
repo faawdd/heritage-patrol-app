@@ -1,6 +1,6 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
+	<div class="app-page">
+		<div class="app-content">
 			<div class="u-page">
 				<AppHeader title="我的" tall />
 
@@ -41,7 +41,7 @@
 							<input v-model="pwd.current" class="u-input" type="password" placeholder="当前密码" />
 							<input v-model="pwd.next" class="u-input" type="password" placeholder="新密码（至少 6 位）" />
 							<input v-model="pwd.confirm" class="u-input" type="password" placeholder="再输一次新密码" />
-							<button type="button" class="u-btn primary block" :disabled="saving" @click="changePassword">{{ saving ? '正在保存…' : '保存新密码' }}</button>
+							<van-button native-type="button" class="u-btn primary block" :disabled="saving" @click="changePassword">{{ saving ? '正在保存…' : '保存新密码' }}</van-button>
 						</div>
 
 						<div class="menu-item" @click="callAdmin">
@@ -67,19 +67,18 @@
 						</div>
 					</div>
 
-					<button type="button" class="u-btn danger-ghost block logout" @click="logout">
+					<van-button native-type="button" class="u-btn danger-ghost block logout" @click="logout">
 						<AppIcon name="logout" :size="48" color="#C62828" />
 						<span>退出登录</span>
-					</button>
+					</van-button>
 				</div>
 
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 		import { navigateTo, reLaunch } from '@/lib/nav.js';
@@ -91,7 +90,7 @@
 	import { biometricLabel, clearQuickLogin, getQuickLogin, hasQuickLogin } from '@/lib/quickLogin.js';
 
 	export default {
-		components: { IonContent, IonPage, AppHeader, AppIcon },
+		components: { AppHeader, AppIcon },
 		data() {
 			return {
 				user: {},
@@ -120,7 +119,7 @@
 				return `已开启：${parts.join(' + ')}`;
 			},
 		},
-		ionViewWillEnter() {
+		activated() {
 			if (!getToken()) {
 				reLaunch('/login');
 				return;

@@ -1,11 +1,11 @@
 <template>
-	<ion-page>
-		<ion-content>
-			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)"><ion-refresher-content /></ion-refresher>
+	<div class="app-page">
+		<div class="app-content">
+			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
 			<div class="page">
 				<AppHeader title="我的采集记录" :subtitle="`共 ${total} 条采集登记`" back />
 
-				<div class="list-scroll">
+				<van-list v-model:loading="loadingMore" v-model:error="listError" :finished="!hasMore" :disabled="refreshing" error-text="加载失败，点击重试" @load="onInfinite" class="list-scroll">
 					<div v-if="loading && !records.length" class="loading-wrap">
 						<span class="loading-text">加载中…</span>
 					</div>
@@ -27,7 +27,7 @@
 							<span class="card-addr">{{ item.address || '（地址未填）' }}</span>
 							<div class="card-footer">
 								<span class="card-photos">{{ item.collected_at ? `${item.collected_at} · ` : '' }}照片 {{ item.photo_count || 0 }} 张</span>
-								<button type="button" class="btn-export" @click="exportDocx(item)">导出登记表</button>
+								<van-button native-type="button" class="btn-export" @click="exportDocx(item)">导出登记表</van-button>
 							</div>
 						</div>
 					</div>
@@ -35,32 +35,25 @@
 					<div v-if="!loading && !records.length" class="empty-tip">
 						<AppIcon name="records" :size="80" color="#CBD5E1" />
 						<span class="empty-text">暂无采集记录</span>
-						<button type="button" class="btn-go-collect" @click="goCollect">去采集</button>
+						<van-button native-type="button" class="btn-go-collect" @click="goCollect">去采集</van-button>
 					</div>
 
 					<div v-if="loading && records.length" class="load-more-tip"><span>加载中…</span></div>
 					<div v-if="!hasMore && records.length" class="load-more-tip"><span>— 已显示全部 —</span></div>
-				</div>
+				</van-list>
 			</div>
-
-			<ion-infinite-scroll threshold="100px" :disabled="!hasMore" @ionInfinite="onInfinite($event)">
-				<ion-infinite-scroll-content />
-			</ion-infinite-scroll>
 
 			<div class="fab" @click="goCollect">
 				<span class="fab-icon">＋</span>
 			</div>
-		</ion-content>
-	</ion-page>
+		</van-pull-refresh>
+		</div>
+	</div>
 </template>
 
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
-	import {
-		IonPage, IonContent,
-		IonRefresher, IonRefresherContent, IonInfiniteScroll, IonInfiniteScrollContent,
-	} from '@ionic/vue';
 	import config from '@/lib/config.js';
 	import { getAuthHeader } from '@/lib/auth.js';
 	import { request } from '@/lib/request.js';
@@ -72,38 +65,41 @@
 	const PAGE_SIZE = 10;
 
 	export default {
-		components: {
-			IonPage, IonContent, AppHeader, AppIcon,
-			IonRefresher, IonRefresherContent, IonInfiniteScroll, IonInfiniteScrollContent,
-		},
+		components: { AppHeader, AppIcon },
 		data() {
 			return {
+				refreshing: false,
 				records: [],
 				total: 0,
-				page: 1,
+				page: 0,
 				hasMore: true,
 				loading: false,
+				loadingMore: false,
+				listError: false,
 			};
 		},
 
-		ionViewWillEnter() {
-			this.fetchRecords(1, true);
-		},
-
 		methods: {
-			async onRefresh(event) {
-				await this.fetchRecords(1, true);
-				event.target.complete();
+			async onRefresh() {
+				try {
+					await this.fetchRecords(1, true);
+				} finally {
+					this.refreshing = false;
+				}
 			},
 
-			async onInfinite(event) {
-				await this.loadMore();
-				event.target.complete();
+			async onInfinite() {
+				try {
+					await this.loadMore();
+				} finally {
+					this.loadingMore = false;
+				}
 			},
 
 			async fetchRecords(page = 1, replace = false) {
 				if (this.loading) return;
 				this.loading = true;
+				this.listError = false;
 				try {
 					const res = await request({
 						url: `${API}/api/collect/my-records`,
@@ -117,8 +113,11 @@
 						this.hasMore = page < (pagination.total_pages || 1);
 						this.page = page;
 						this.records = replace || page === 1 ? items : [...this.records, ...items];
+					} else {
+						throw new Error('加载失败，请稍后重试');
 					}
 				} catch (_) {
+					this.listError = true;
 					toast('加载失败，请稍后重试', { icon: 'none' });
 				} finally {
 					this.loading = false;

@@ -1,10 +1,10 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
+	<div class="app-page">
+		<div class="app-content">
 			<div class="u-page">
 				<AppHeader title="我的巡查任务" subtitle="按分配文物点与巡查周期安排巡查" />
 				<div class="u-body">
-					<button class="u-btn primary block" :disabled="loading" @click="load">更新任务 / 离线缓存</button>
+					<van-button class="u-btn primary block" :disabled="loading" @click="load">更新任务 / 离线缓存</van-button>
 					<p v-if="notice">{{ notice }}</p>
 					<div v-if="!loading && !tasks.length" class="u-card">请联系管理员分配巡查文物点</div>
 					<div v-for="site in tasks" :key="site.id" class="u-card">
@@ -13,16 +13,15 @@
 						<p>{{ site.interval_days ? `每 ${site.interval_days} 天巡查一次` : '未设置周期' }}</p>
 						<span class="u-badge" :class="isOverdue(site) ? 'bad' : 'ok'">{{ site.due_at ? `${isOverdue(site) ? '已逾期 · ' : '到期 · '}${new Date(site.due_at).toLocaleString()}` : '无期限' }}</span>
 					</div>
-					<button class="u-btn primary block" @click="switchTab('/tabs/patrol')">去巡查上报</button>
+					<van-button class="u-btn primary block" @click="switchTab('/tabs/patrol')">去巡查上报</van-button>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { IonContent, IonPage, onIonViewWillEnter } from '@ionic/vue';
+import { onActivated, ref } from 'vue';
 import AppHeader from '@/components/AppHeader.vue';
 import { loadTasks } from '@/lib/patrol.js';
 import { switchTab } from '@/lib/nav.js';
@@ -45,5 +44,5 @@ async function load() {
 		loading.value = false;
 	}
 }
-onIonViewWillEnter(load);
+onActivated(load);
 </script>

@@ -2,14 +2,14 @@
 
 鄯善县文物保护巡查移动端。巡查员用它做日常巡查打卡、拍照上报、查看巡查记录。管理员还可以用它管理文物点和项目，做现场采集（坐标、海拔、照片）和 KML 叠加检查。
 
-本分支（`app2`）把原来基于 uni-app 的版本重写成了 **Capacitor + Ionic Vue** 应用。
+本分支（`app2`）把原来基于 uni-app 的版本重写成了 **Capacitor + Vant** 应用。Ionic 组件、路由、浮层与样式依赖已移除，Capacitor 原生能力保持不变。
 
 ## 技术栈
 
 | 层 | 选型 |
 | --- | --- |
-| UI | [Ionic Vue 9](https://ionicframework.com/docs/vue/overview)（Material Design 模式）+ Vue 3.5 |
-| 路由 | `@ionic/vue-router`（Vue Router 5） |
+| UI | [Vant 4](https://vant-ui.github.io/vant/) + Vue 3.5（组件自动引入） |
+| 路由 | Vue Router 5 + KeepAlive（标签页缓存） |
 | 构建 | Vite 8 |
 | 原生容器 | [Capacitor 8](https://capacitorjs.com/)（Android） |
 | 原生能力 | Camera、Geolocation、Filesystem、File Opener、Haptics、Clipboard、Browser、Status Bar、Splash Screen、Screen Orientation、生物识别（`@aparajita/capacitor-biometric-auth`） |
@@ -19,13 +19,13 @@
 
 ```
 src/
-  main.js / App.vue        应用入口（Ionic、返回键、状态栏、竖屏锁定）
+  main.js / App.vue        应用入口（Vant、返回键、状态栏、竖屏锁定）
   router/                  路由与登录/管理员守卫
   views/                   页面（TabsPage 为底部标签栏）
-  components/              公共组件（AppHeader、AppIcon、图片预览、手势锁、采集表单…）
+  components/              公共组件（AppHeader、AppIcon、手势锁、采集表单…）
   lib/                     服务层：request（API/鉴权/上传）、native（相机/定位/文件…）、
                            sensors（原生 GPS/气压）、ui（Toast/Loading/对话框）、nav、watermark…
-  theme/                   Ionic 主题变量与全局设计系统
+  theme/                   Vant 主题变量、页面布局与全局设计系统
 android/                   Capacitor Android 原生工程（含 NativeSensorsPlugin.java）
 assets/icon.png            应用图标源文件（npm run assets 生成各分辨率图标与启动图）
 scripts/sync-version.mjs   版本号同步脚本
@@ -33,6 +33,10 @@ scripts/sync-version.mjs   版本号同步脚本
 ```
 
 ## 巡查分配与离线使用
+
+底部导航、按钮、账号输入、管理分类切换、下拉刷新、采集记录分页、Toast、Loading、Dialog、ActionSheet 与图片预览使用 Vant。手势密码绘制和专业坐标/采集表单保留现有交互与数据校验。标签页使用 `KeepAlive` 保留未提交巡查草稿，重新进入时刷新数据；Android 返回键先处理浮层，再后退页面，标签页根页面退到后台。
+
+UI 与返回导航回归测试：`npm run test:ui`；原生定位回归测试：`npm run test:location`。
 
 - 管理端“文物管理 → 巡查管理”支持批量为看护员分配乡镇当前库内文物点或指定点列表，并设置等级/单点巡查周期。单点周期优先；看护员仅能上报已分配点。
 - 手机管理员可通过“管理 → 工具 → 巡查管理”进入同一在线管理页面，复用现有短时登录桥接，不向看护员开放管理入口。

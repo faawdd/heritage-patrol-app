@@ -1,6 +1,6 @@
 <template>
-	<ion-page>
-		<ion-content ref="content" :fullscreen="true">
+	<div class="app-page">
+		<div ref="content" class="app-content">
 			<div class="u-page">
 				<AppHeader title="巡查上报" subtitle="按照下面 3 步完成上报" />
 				<div class="u-card" v-if="taskNotice">{{ taskNotice }}</div>
@@ -30,7 +30,7 @@
 									<span v-if="!locationOk" class="u-badge warn">未获取到定位</span>
 								</div>
 							</div>
-							<button type="button" class="u-btn sm change-btn" @click="openPicker">换一个</button>
+							<van-button native-type="button" class="u-btn sm change-btn" @click="openPicker">换一个</van-button>
 						</div>
 
 						<div v-else class="locating">
@@ -44,14 +44,14 @@
 						</div>
 
 						<div class="row-btns">
-							<button v-if="!site" type="button" class="u-btn primary block" @click="openPicker">
+							<van-button v-if="!site" native-type="button" class="u-btn primary block" @click="openPicker">
 								<AppIcon name="search" :size="44" color="#FFFFFF" />
 								<span>选择文物点</span>
-							</button>
-							<button type="button" class="u-btn plain block" :disabled="locating" @click="locate">
+							</van-button>
+							<van-button native-type="button" class="u-btn plain block" :disabled="locating" @click="locate">
 								<AppIcon name="refresh" :size="40" color="#334155" />
 								<span>{{ locating ? '定位中…' : '重新定位' }}</span>
-							</button>
+							</van-button>
 						</div>
 					</div>
 
@@ -71,14 +71,14 @@
 						<div v-else class="photo">
 							<div v-for="(photo, index) in photos" :key="photo.url">
 								<img class="photo-img" :src="photo.url" alt="" @click="preview(index)" />
-								<button type="button" class="u-btn sm" @click="removePhoto(index)">删除这张照片</button>
+								<van-button native-type="button" class="u-btn sm" @click="removePhoto(index)">删除这张照片</van-button>
 							</div>
-							<button type="button" class="u-btn plain block" @click="takePhoto">
+							<van-button native-type="button" class="u-btn plain block" @click="takePhoto">
 								<AppIcon name="camera" :size="44" color="#334155" />
 								<span>继续拍照（{{ photos.length }}/20）</span>
-							</button>
+							</van-button>
 						</div>
-						<button type="button" class="u-btn plain block" :disabled="processing || !site" @click="pickAlbum">从相册批量添加</button>
+						<van-button native-type="button" class="u-btn plain block" :disabled="processing || !site" @click="pickAlbum">从相册批量添加</van-button>
 					</div>
 
 					<!-- 第 3 步：情况 -->
@@ -118,10 +118,10 @@
 						</div>
 					</div>
 
-					<button type="button" class="u-btn xl block submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="submitting" @click="submit">
+					<van-button native-type="button" class="u-btn xl block submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="submitting" @click="submit">
 						<AppIcon name="upload" :size="56" :color="canSubmit ? '#FFFFFF' : '#94A3B8'" />
 						<span>{{ submitting ? '正在上报…' : '提交巡查' }}</span>
-					</button>
+					</van-button>
 					<span class="submit-hint">{{ submitHint }}</span>
 				</div>
 			</div>
@@ -175,16 +175,15 @@
 					<span class="success-title">{{ success.pending ? '已保存到本机' : '上报成功' }}</span>
 					<span v-if="success.pending" class="success-sub">记录与照片已离线保存，联网后自动上传；可在记录页查看同步状态。</span>
 					<span class="success-sub">{{ success.site }} · {{ success.normal ? '情况正常' : '已上报问题' }}</span>
-					<button type="button" class="u-btn primary xl block" @click="again">继续巡查</button>
-					<button type="button" class="u-btn ghost block" style="margin-top: 12px" @click="goRecords">查看我的记录</button>
+					<van-button native-type="button" class="u-btn primary xl block" @click="again">继续巡查</van-button>
+					<van-button native-type="button" class="u-btn ghost block" style="margin-top: 12px" @click="goRecords">查看我的记录</van-button>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { addWatermark } from '@/lib/watermark.js';
@@ -200,7 +199,7 @@
 	const FAR_KM = 1;
 
 	export default {
-		components: { AppHeader, AppIcon, IonContent, IonPage },
+		components: { AppHeader, AppIcon, },
 		data() {
 			return {
 				user: {},
@@ -256,7 +255,7 @@
 				return '信息已填好，请点击提交';
 			},
 		},
-		async ionViewWillEnter() {
+		async activated() {
 			const previousId = this.user.id;
 			this.user = getUser() || {};
 			if (previousId !== this.user.id) {
@@ -290,7 +289,7 @@
 			chips: { deep: true, handler() { this.persistDraft(); } },
 			issueNote() { this.persistDraft(); },
 		},
-		ionViewWillLeave() {
+		deactivated() {
 			this.pickerOpen = false;
 		},
 		beforeUnmount() {
@@ -543,10 +542,7 @@
 			},
 			again() {
 				this.resetForm();
-				const el = this.$refs.content && this.$refs.content.$el;
-				if (el && el.scrollToTop) {
-					el.scrollToTop(0);
-				}
+				this.$refs.content?.scrollTo({ top: 0 });
 				this.locate();
 			},
 			goRecords() {

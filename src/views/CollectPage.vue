@@ -1,22 +1,17 @@
 <template>
-	<ion-page>
-		<ion-header>
-			<ion-toolbar class="app-toolbar">
-				<ion-buttons slot="start"><ion-back-button default-href="/tabs/admin" /></ion-buttons>
-				<ion-title>不可移动文物现场采集</ion-title>
-			</ion-toolbar>
-		</ion-header>
-		<ion-content>
+	<div class="app-page">
+		<van-nav-bar title="不可移动文物现场采集" left-arrow safe-area-inset-top @click-left="navigateBack('/tabs/admin')" />
+		<div class="app-content">
 			<div class="page-wrap">
 				<HeritageCollectRefactor ref="collectRef" :loading="submitting" :meta="formMeta" @submit="handleSubmit" />
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script setup>
-	import { IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent } from '@ionic/vue';
 	import { onMounted, reactive, ref } from 'vue';
+	import { navigateBack } from '@/lib/nav.js';
 	import config from '@/lib/config.js';
 	import { getAuthHeader } from '@/lib/auth.js';
 	import { request, apiUpload } from '@/lib/request.js';

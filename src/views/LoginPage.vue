@@ -1,6 +1,6 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
+	<div class="app-page">
+		<div class="app-content">
 			<div class="login-page">
 				<div class="login-hero" :class="{ 'has-avatar': mode === 'gesture' || mode === 'biometric' }" style="padding-top: calc(env(safe-area-inset-top) + 40px)">
 					<div class="brand-mark">
@@ -51,14 +51,14 @@
 						</div>
 						<span class="setup-title">开启快捷登录</span>
 						<span class="setup-desc">开启后，下次打开软件不用再输入密码，画一下手势或按一下指纹就能登录。</span>
-						<button type="button" v-if="bio.fingerprint || bio.facial" class="u-btn primary xl block setup-btn" :disabled="busy" @click="setupBiometric">
+						<van-button native-type="button" v-if="bio.fingerprint || bio.facial" class="u-btn primary xl block setup-btn" :disabled="busy" @click="setupBiometric">
 							<AppIcon :name="bio.fingerprint ? 'fingerprint' : 'face'" :size="56" color="#FFFFFF" />
 							<span>使用{{ bio.fingerprint ? '指纹' : '面容' }}登录</span>
-						</button>
-						<button type="button" class="u-btn xl block setup-btn" :class="bio.fingerprint || bio.facial ? 'ghost' : 'primary'" :disabled="busy" @click="mode = 'setGesture'">
+						</van-button>
+						<van-button native-type="button" class="u-btn xl block setup-btn" :class="bio.fingerprint || bio.facial ? 'ghost' : 'primary'" :disabled="busy" @click="mode = 'setGesture'">
 							<AppIcon name="gesture" :size="56" :color="bio.fingerprint || bio.facial ? '#1E5AA8' : '#FFFFFF'" />
 							<span>设置手势密码</span>
-						</button>
+						</van-button>
 						<div class="skip" @click="finishLogin">以后再说</div>
 					</div>
 
@@ -77,8 +77,10 @@
 						<span class="label">账号</span>
 						<div class="field" :class="{ focus: focus === 'u' }">
 							<AppIcon name="user" :size="48" color="#64748B" />
-							<input
-								v-model.trim="form.username"
+							<van-field
+								v-model="form.username"
+								:formatter="value => value.trim()"
+								:border="false"
 								class="field-input"
 								placeholder="请输入账号"
 								@focus="focus = 'u'"
@@ -89,8 +91,9 @@
 						<span class="label">密码</span>
 						<div class="field" :class="{ focus: focus === 'p' }">
 							<AppIcon name="lock" :size="48" color="#64748B" />
-							<input
+							<van-field
 								v-model="form.password"
+								:border="false"
 								class="field-input"
 								:type="showPwd ? 'text' : 'password'"
 								placeholder="请输入密码"
@@ -104,27 +107,26 @@
 							</div>
 						</div>
 
-						<button type="button" class="u-btn primary xl block login-btn" :disabled="busy" @click="handleLogin">
+						<van-button native-type="button" class="u-btn primary xl block login-btn" :disabled="busy" @click="handleLogin">
 							{{ busy ? '正在登录…' : '登 录' }}
-						</button>
+						</van-button>
 
 						<div class="form-links">
 							<span class="link" @click="handleForgotPassword">忘记密码？</span>
 							<span v-if="hasQuick" class="link strong" @click="backToQuick">使用{{ quickName }}登录</span>
 						</div>
-						<button v-if="offlineAvailable && !hasQuick" type="button" class="u-btn ghost block" @click="enterOffline">使用本机已登录账号离线巡查</button>
+						<van-button v-if="offlineAvailable && !hasQuick" native-type="button" class="u-btn ghost block" @click="enterOffline">使用本机已登录账号离线巡查</van-button>
 						<p>首次登录必须联网。离线任务需在联网登录后下载。</p>
 					</div>
 				</div>
 
-				<span class="version">{{ appVersion }} · 鄯善县文物局</span>
+				<span class="version">{{ appVersion }} · 鄯善县文化体育广播电视和旅游局</span>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage } from '@ionic/vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import GestureLock from '@/components/GestureLock.vue';
 	import GestureSetter from '@/components/GestureSetter.vue';
@@ -151,7 +153,7 @@
 	} from '@/lib/quickLogin.js';
 
 	export default {
-		components: { IonContent, IonPage, AppIcon, GestureLock, GestureSetter },
+		components: { AppIcon, GestureLock, GestureSetter },
 		data() {
 			return {
 				mode: 'password',
@@ -190,7 +192,7 @@
 				return name.slice(-2);
 			},
 		},
-		ionViewWillEnter() {
+		mounted() {
 			getAppVersion().then((v) => {
 				if (v) this.appVersion = `v${v}`;
 			}).catch(() => null);

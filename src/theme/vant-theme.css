@@ -1,0 +1,55 @@
+:root {
+	--van-primary-color: #1E5AA8;
+	--van-success-color: #15803D;
+	--van-danger-color: #C62828;
+	--van-warning-color: #B45309;
+	--van-text-color: #0F172A;
+	--van-background: #F1F4F9;
+	--van-font-size-md: 16px;
+	--van-button-default-height: 44px;
+	--van-button-border-radius: 12px;
+	--van-dialog-border-radius: 16px;
+	--van-toast-background: rgba(30, 41, 59, 0.92);
+	--van-toast-font-size: 15px;
+	--van-nav-bar-title-font-size: 18px;
+}
+
+.van-nav-bar {
+	flex-shrink: 0;
+	background: linear-gradient(135deg, #3B82F6, #2563EB);
+	--van-nav-bar-title-text-color: #FFFFFF;
+	--van-nav-bar-icon-color: #FFFFFF;
+}
+
+.van-dialog__message {
+	white-space: pre-line;
+}
+
+.van-button {
+	height: auto;
+	min-width: 0;
+	white-space: normal;
+}
+
+.van-button__content,
+.van-button__text {
+	display: inherit;
+	flex-direction: inherit;
+	align-items: inherit;
+	justify-content: inherit;
+	gap: inherit;
+	width: 100%;
+	min-width: 0;
+}
+
+.field .van-field {
+	background: transparent;
+	padding: 0;
+}
+
+.field .van-field__control {
+	font-size: inherit;
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}

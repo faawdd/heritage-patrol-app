@@ -48,8 +48,7 @@ async function setup({ android = true, available = true, permission = 'granted',
 		'@capacitor/filesystem': { Directory: {}, Filesystem: {} },
 		'@capacitor-community/file-opener': { FileOpener: {} },
 		'@capacitor/haptics': { Haptics: {}, ImpactStyle: {}, NotificationType: {} },
-		'@ionic/vue': { modalController: {} },
-		'@/components/ImagePreview.vue': { default: {} },
+		'./ui.js': { previewImages: () => {} },
 		'./auth.js': { getAuthHeader: () => ({}) },
 	};
 	const context = createContext({ console: { warn: (...args) => warnings.push(args) } });

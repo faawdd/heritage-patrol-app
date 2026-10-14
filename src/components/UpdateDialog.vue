@@ -47,23 +47,23 @@
 
 				<div class="upd-actions">
 					<template v-if="state.phase === 'available'">
-						<button type="button" class="upd-btn ghost" @click="dismissUpdate">以后再说</button>
-						<button type="button" class="upd-btn primary" @click="startDownload">立即更新</button>
+						<van-button native-type="button" class="upd-btn ghost" @click="dismissUpdate">以后再说</van-button>
+						<van-button native-type="button" class="upd-btn primary" @click="startDownload">立即更新</van-button>
 					</template>
 					<template v-else-if="state.phase === 'downloading'">
-						<button type="button" class="upd-btn ghost full" @click="dismissUpdate">取消下载</button>
+						<van-button native-type="button" class="upd-btn ghost full" @click="dismissUpdate">取消下载</van-button>
 					</template>
 					<template v-else-if="state.phase === 'ready'">
-						<button type="button" class="upd-btn ghost" @click="dismissUpdate">关闭</button>
-						<button type="button" class="upd-btn primary" @click="installUpdate">安装</button>
+						<van-button native-type="button" class="upd-btn ghost" @click="dismissUpdate">关闭</van-button>
+						<van-button native-type="button" class="upd-btn primary" @click="installUpdate">安装</van-button>
 					</template>
 					<template v-else-if="state.phase === 'permission'">
-						<button type="button" class="upd-btn ghost" @click="dismissUpdate">取消</button>
-						<button type="button" class="upd-btn primary" @click="openInstallSettings">去设置</button>
+						<van-button native-type="button" class="upd-btn ghost" @click="dismissUpdate">取消</van-button>
+						<van-button native-type="button" class="upd-btn primary" @click="openInstallSettings">去设置</van-button>
 					</template>
 					<template v-else-if="state.phase === 'error'">
-						<button type="button" class="upd-btn ghost" @click="dismissUpdate">关闭</button>
-						<button type="button" class="upd-btn primary" @click="startDownload">重试</button>
+						<van-button native-type="button" class="upd-btn ghost" @click="dismissUpdate">关闭</van-button>
+						<van-button native-type="button" class="upd-btn primary" @click="startDownload">重试</van-button>
 					</template>
 				</div>
 			</div>

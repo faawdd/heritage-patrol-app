@@ -1,6 +1,6 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
+	<div class="app-page">
+		<div class="app-content">
 			<div class="u-page">
 				<AppHeader title="关于软件" back />
 				<div class="u-body body">
@@ -37,12 +37,11 @@
 					<span class="tip">如有建议或发现问题，欢迎联系反馈</span>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { getAppVersion, makePhoneCall } from '@/lib/native.js';
@@ -50,7 +49,7 @@
 	import { toast } from '@/lib/ui.js';
 
 	export default {
-		components: { IonContent, IonPage, AppHeader, AppIcon },
+		components: { AppHeader, AppIcon },
 		data() {
 			return {
 				version: '1.0.0',

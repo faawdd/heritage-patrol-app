@@ -1,9 +1,7 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
-			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
-				<ion-refresher-content />
-			</ion-refresher>
+	<div class="app-page">
+		<div class="app-content">
+			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
 			<div class="u-page">
 				<AppHeader title="巡查记录" :subtitle="`共 ${records.length >= 100 ? '最近 100' : records.length} 条记录`" />
 
@@ -24,11 +22,11 @@
 					<div v-if="pending.length" class="u-card">
 						<h3>待同步巡查（{{ pending.length }}）</h3>
 						<p>照片已保存到本机，上传成功后才移除。不要清除应用数据或卸载。</p>
-						<button class="u-btn primary block" :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</button>
+						<van-button class="u-btn primary block" :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</van-button>
 						<div v-for="item in pending" :key="item.key">
 							<p>{{ item.site_name }} · {{ new Date(item.inspect_time).toLocaleString() }} · {{ item.photos.length }} 张照片</p>
 							<p v-if="item.error" style="color: #C62828">{{ item.error }}</p>
-							<button class="u-btn sm" @click="previewPending(item)">查看本地照片</button>
+							<van-button class="u-btn sm" @click="previewPending(item)">查看本地照片</van-button>
 						</div>
 					</div>
 					<p v-if="cached">正在显示本机缓存记录，联网后可刷新。</p>
@@ -40,16 +38,16 @@
 					<div v-else-if="loadError && !records.length" class="u-card u-empty">
 						<AppIcon name="alert" :size="88" color="#B45309" />
 						<span>加载失败，请检查网络</span>
-						<button type="button" class="u-btn sm" @click="load">重新加载</button>
+						<van-button native-type="button" class="u-btn sm" @click="load">重新加载</van-button>
 					</div>
 
 					<div v-else-if="!visible.length" class="u-card u-empty">
 						<AppIcon name="records" :size="96" color="#94A3B8" />
 						<span>{{ records.length ? '没有符合条件的记录' : '还没有巡查记录' }}</span>
-						<button v-if="!records.length" type="button" class="u-btn primary" @click="goPatrol">
+						<van-button v-if="!records.length" native-type="button" class="u-btn primary" @click="goPatrol">
 							<AppIcon name="camera" :size="44" color="#FFFFFF" />
 							<span>去巡查上报</span>
-						</button>
+						</van-button>
 					</div>
 
 					<div v-for="group in groups" :key="group.day" class="group">
@@ -86,12 +84,12 @@
 					</div>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</van-pull-refresh>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage, IonRefresher, IonRefresherContent } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { loadPatrolRecords, PATROL_CHANGED, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
@@ -101,9 +99,10 @@
 	import { toast } from '@/lib/ui.js';
 
 	export default {
-		components: { AppHeader, AppIcon, IonContent, IonPage, IonRefresher, IonRefresherContent },
+		components: { AppHeader, AppIcon, },
 		data() {
 			return {
+				refreshing: false,
 				loading: false,
 				loadError: false,
 				records: [],
@@ -142,7 +141,7 @@
 				return order.map((day) => ({ day, label: this.dayLabel(day), items: map[day] }));
 			},
 		},
-		ionViewWillEnter() {
+		activated() {
 			this.load();
 		},
 		mounted() {
@@ -169,15 +168,15 @@
 			async previewPending(item) {
 				const urls = item.photos.map(photo => URL.createObjectURL(photo));
 				try {
-					const modal = await previewImage(urls);
-					await modal.onDidDismiss();
+					const preview = await previewImage(urls);
+					await preview.closed;
 				}
 				finally {
 					urls.forEach(url => URL.revokeObjectURL(url));
 				}
 			},
-			onRefresh(event) {
-				this.load().finally(() => event.target.complete());
+			onRefresh() {
+				this.load().finally(() => { this.refreshing = false; });
 			},
 			load() {
 				this.loadPending();

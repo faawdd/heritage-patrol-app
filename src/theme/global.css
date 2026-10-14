@@ -345,35 +345,6 @@ textarea:focus {
 	}
 }
 
-/* ---------- Ionic 集成 ---------- */
-ion-content {
-	--background: #F8FAFC;
-	--color: #1E293B;
-	font-size: 16px;
-}
-
-ion-content.no-safe-top::part(scroll) {
-	padding-top: 0;
-}
-
-/* 标准导航栏 */
-ion-toolbar.app-toolbar {
-	--background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
-	--color: #FFFFFF;
-	--border-width: 0;
-	--min-height: 56px;
-}
-
-ion-toolbar.app-toolbar ion-title {
-	font-size: 18px;
-	font-weight: 600;
-}
-
-ion-toolbar.app-toolbar ion-back-button,
-ion-toolbar.app-toolbar ion-button {
-	--color: #FFFFFF;
-}
-
 /* 原生按钮重置 */
 button {
 	font-family: inherit;
@@ -401,56 +372,6 @@ input.u-input {
 
 img {
 	-webkit-user-drag: none;
-}
-
-/* ========== Overlay 主题 ========== */
-ion-toast.app-toast {
-	--background: rgba(30, 41, 59, 0.92);
-	--color: #FFFFFF;
-	--border-radius: 12px;
-	--max-width: 85%;
-	--min-width: auto;
-	font-size: 15px;
-	text-align: center;
-}
-
-ion-alert.app-alert {
-	--max-width: 88%;
-	--width: 88%;
-}
-
-ion-alert.app-alert .alert-title {
-	font-size: 18px;
-	font-weight: 700;
-	color: #1E293B;
-}
-
-ion-alert.app-alert .alert-message {
-	font-size: 15px;
-	color: #64748B;
-	white-space: pre-line;
-	line-height: 1.5;
-}
-
-ion-alert.app-alert .alert-button {
-	font-size: 16px;
-	font-weight: 600;
-}
-
-ion-alert.app-alert .alert-btn-danger {
-	color: #EF4444;
-}
-
-ion-alert.app-alert .alert-btn-primary {
-	color: #2563EB;
-}
-
-ion-loading {
-	--spinner-color: #2563EB;
-}
-
-ion-refresher ion-refresher-content {
-	--color: #94A3B8;
 }
 
 /* ---------- 由原 uni.scss 迁移的全局类 ---------- */

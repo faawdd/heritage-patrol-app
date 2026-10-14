@@ -1,15 +1,15 @@
 <template>
-	<ion-page>
-		<ion-content>
+	<div class="app-page">
+		<div class="app-content">
 			<div class="u-page">
 				<AppHeader :title="t('admin.title')" :subtitle="t('admin.headerSubtitle')" />
 
 				<div class="adm-seg-wrap">
-					<ion-segment class="adm-seg" :value="currentTab" mode="ios" @ionChange="onSegmentChange">
-						<ion-segment-button value="heritages"><ion-label>{{ t('admin.tabHeritages') }}</ion-label></ion-segment-button>
-						<ion-segment-button value="projects"><ion-label>{{ t('admin.tabProjects') }}</ion-label></ion-segment-button>
-						<ion-segment-button value="tools"><ion-label>{{ t('admin.tabTools') }}</ion-label></ion-segment-button>
-					</ion-segment>
+					<van-tabs v-model:active="currentTab" class="adm-seg">
+						<van-tab name="heritages" :title="t('admin.tabHeritages')" />
+						<van-tab name="projects" :title="t('admin.tabProjects')" />
+						<van-tab name="tools" :title="t('admin.tabTools')" />
+					</van-tabs>
 				</div>
 
 				<div class="u-body adm-body">
@@ -31,8 +31,8 @@
 								<select class="adm-select" :value="heritageCategoryIndex" @change="onHeritageCategoryChange({ detail: { value: Number($event.target.value) } })">
 									<option v-for="(l, i) in heritageCategoryLabels" :key="i" :value="i">{{ l }}</option>
 								</select>
-								<button type="button" class="u-btn plain sm" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</button>
-								<button type="button" class="u-btn primary sm" @click="applyHeritageFilters">{{ t('common.search') }}</button>
+								<van-button native-type="button" class="u-btn plain sm" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</van-button>
+								<van-button native-type="button" class="u-btn primary sm" @click="applyHeritageFilters">{{ t('common.search') }}</van-button>
 							</div>
 						</div>
 
@@ -57,9 +57,9 @@
 						<div v-if="!heritages.length" class="u-card u-empty">{{ t('admin.noHeritageMatched') }}</div>
 
 						<div v-if="heritageTotalPages > 1" class="adm-pager">
-							<button type="button" class="u-btn plain sm" :disabled="heritagePage <= 1" @click="changeHeritagePage(-1)">{{ t('admin.prevPage') }}</button>
+							<van-button native-type="button" class="u-btn plain sm" :disabled="heritagePage <= 1" @click="changeHeritagePage(-1)">{{ t('admin.prevPage') }}</van-button>
 							<span class="adm-pager-text">{{ t('admin.pageInfo', { page: heritagePage, total: heritageTotalPages }) }}</span>
-							<button type="button" class="u-btn plain sm" :disabled="heritagePage >= heritageTotalPages" @click="changeHeritagePage(1)">{{ t('admin.nextPage') }}</button>
+							<van-button native-type="button" class="u-btn plain sm" :disabled="heritagePage >= heritageTotalPages" @click="changeHeritagePage(1)">{{ t('admin.nextPage') }}</van-button>
 						</div>
 					</template>
 
@@ -88,7 +88,7 @@
 								<select class="adm-select" :value="projectStatusIndex" @change="onProjectStatusChange({ detail: { value: Number($event.target.value) } })">
 									<option v-for="(l, i) in projectStatusLabels" :key="i" :value="i">{{ l }}</option>
 								</select>
-								<button type="button" class="u-btn primary sm" @click="loadProjects()">{{ t('common.search') }}</button>
+								<van-button native-type="button" class="u-btn primary sm" @click="loadProjects()">{{ t('common.search') }}</van-button>
 							</div>
 						</div>
 
@@ -112,7 +112,7 @@
 							<div v-if="item.final_reply_to_company" class="adm-kv"><span class="k">复函号</span><span class="v">{{ item.final_reply_to_company }}</span></div>
 							<div class="adm-item-foot">
 								<span class="adm-minor">{{ item.updated_at ? t('admin.projectUpdatedAt', { value: item.updated_at }) : '' }}</span>
-								<button type="button" class="u-btn primary sm" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</button>
+								<van-button native-type="button" class="u-btn primary sm" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</van-button>
 							</div>
 						</div>
 						<div v-if="!projects.length" class="u-card u-empty">{{ t('admin.noProjectMatched') }}</div>
@@ -130,8 +130,8 @@
 								</div>
 							</div>
 							<div class="adm-tool-actions">
-								<button type="button" class="u-btn plain sm" @click="goMyRecords">{{ t('admin.myCollectRecords') }}</button>
-								<button type="button" class="u-btn primary sm" @click="goCollect">{{ t('admin.startCollect') }}</button>
+								<van-button native-type="button" class="u-btn plain sm" @click="goMyRecords">{{ t('admin.myCollectRecords') }}</van-button>
+								<van-button native-type="button" class="u-btn primary sm" @click="goCollect">{{ t('admin.startCollect') }}</van-button>
 							</div>
 						</div>
 
@@ -180,12 +180,11 @@
 					</template>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonPage, IonContent, IonSegment, IonSegmentButton, IonLabel } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { openApiEntry } from '@/lib/webview.js';
@@ -197,7 +196,7 @@
 	import { t } from '@/lib/i18n.js';
 
 	export default {
-		components: { IonPage, IonContent, IonSegment, IonSegmentButton, IonLabel, AppHeader, AppIcon },
+		components: { AppHeader, AppIcon },
 		data() {
 			return {
 				currentTab: 'heritages',
@@ -257,7 +256,7 @@
 				return this.heritageTotal;
 			},
 		},
-		ionViewWillEnter() {
+		activated() {
 			const user = getUser();
 			if (!isAdminUser(user)) {
 				toast(this.t('admin.noAdminPermission'), { icon: 'none' });
@@ -272,12 +271,6 @@
 		},
 		methods: {
 			t,
-			onSegmentChange(event) {
-				const value = event.detail.value;
-				if (value) {
-					this.currentTab = value;
-				}
-			},
 			request(url, method = 'GET', data = null) {
 				return apiRequest({ url, method, data });
 			},
@@ -425,17 +418,12 @@
 	}
 
 	.adm-seg {
-		--background: #E2E8F0;
+		--van-tabs-nav-background: #E2E8F0;
+		--van-tab-text-color: #475569;
+		--van-tab-active-text-color: #1E5AA8;
+		--van-tabs-bottom-bar-color: #1E5AA8;
 		border-radius: 10px;
-	}
-
-	.adm-seg ion-segment-button {
-		--indicator-color: #FFFFFF;
-		--color: #475569;
-		--color-checked: #1E5AA8;
-		min-height: 38px;
-		font-size: 15px;
-		font-weight: 700;
+		overflow: hidden;
 	}
 
 	.adm-body {

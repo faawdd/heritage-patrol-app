@@ -1,9 +1,9 @@
 <template>
 	<div class="app-header" :class="{ tall }">
 		<div class="app-header-bar">
-			<button v-if="back" type="button" class="app-header-back" aria-label="返回" @click="goBack">
+			<van-button v-if="back" native-type="button" class="app-header-back" aria-label="返回" @click="goBack">
 				<AppIcon name="chevron-right" :size="48" color="#FFFFFF" :stroke="2.6" class="flip" />
-			</button>
+			</van-button>
 			<div class="app-header-text">
 				<span class="app-header-title">{{ title }}</span>
 				<span v-if="subtitle" class="app-header-sub">{{ subtitle }}</span>
@@ -17,7 +17,7 @@
 </template>
 
 <script>
-	// 渐变色自定义头部：放在 <ion-content> 内部顶端，随内容滚动（与原 uni-app 自定义导航栏一致）。
+	// 渐变色自定义头部随页面内容滚动。
 	import AppIcon from './AppIcon.vue';
 	import { navigateBack } from '@/lib/nav.js';
 

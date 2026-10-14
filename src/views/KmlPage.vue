@@ -1,6 +1,6 @@
 <template>
-	<ion-page>
-		<ion-content>
+	<div class="app-page">
+		<div class="app-content">
 			<div class="u-page">
 				<AppHeader :title="pageTitle || t('kml.title')" :subtitle="t('kml.headerSubtitle')" back />
 				<div class="u-body kml-body">
@@ -20,23 +20,22 @@
 							</span>
 						</div>
 						<span class="kml-loc-value">{{ lastLocationText || t('kml.locationHint') }}</span>
-						<button type="button" class="u-btn plain sm kml-loc-btn" :disabled="locating" @click="showCurrentLocation()">
+						<van-button native-type="button" class="u-btn plain sm kml-loc-btn" :disabled="locating" @click="showCurrentLocation()">
 							{{ locating ? t('kml.locating') : t('kml.refreshLocation') }}
-						</button>
+						</van-button>
 					</div>
 
-					<button type="button" class="u-btn primary block" :disabled="opening" @click="openTool">
+					<van-button native-type="button" class="u-btn primary block" :disabled="opening" @click="openTool">
 						{{ opening ? t('kml.opening') : t('kml.openButton') }}
-					</button>
+					</van-button>
 					<span class="kml-tip">{{ t('kml.openTip') }}</span>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonPage, IonContent } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { t } from '@/lib/i18n.js';
@@ -47,7 +46,7 @@
 	// 在线系统页面禁止被 iframe 嵌入（X-Frame-Options: DENY），本页仅作为启动页：
 	// 获取定位后，申请短时令牌入口并在应用内浏览器中打开。
 	export default {
-		components: { IonPage, IonContent, AppHeader, AppIcon },
+		components: { AppHeader, AppIcon },
 		data() {
 			return {
 				presetUrl: '',

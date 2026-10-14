@@ -4,8 +4,8 @@
 		<span class="gs-tip" :class="{ error: isError }">{{ tip }}</span>
 		<GestureLock ref="lock" :size="size" @complete="onComplete" />
 		<div class="gs-actions">
-			<button type="button" v-if="step === 2" class="u-btn plain sm" @click="restart">重新画</button>
-			<button type="button" class="u-btn plain sm" @click="$emit('cancel')">{{ cancelText }}</button>
+			<van-button native-type="button" v-if="step === 2" class="u-btn plain sm" @click="restart">重新画</van-button>
+			<van-button native-type="button" class="u-btn plain sm" @click="$emit('cancel')">{{ cancelText }}</van-button>
 		</div>
 	</div>
 </template>

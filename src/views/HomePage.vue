@@ -1,9 +1,7 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true" class="home-content">
-			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
-				<ion-refresher-content />
-			</ion-refresher>
+	<div class="app-page">
+		<div class="app-content home-content">
+			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
 			
 			<!-- 简洁头部 -->
 			<div class="home-header">
@@ -18,7 +16,7 @@
 
 			<div class="home-body">
 				<!-- 主操作按钮 - 最大最醒目 -->
-				<button type="button" class="primary-action" @click="goPatrol">
+				<van-button native-type="button" class="primary-action" @click="goPatrol">
 					<div class="primary-action-icon">
 						<AppIcon name="camera" :size="56" color="#FFFFFF" :stroke="2" />
 					</div>
@@ -27,7 +25,7 @@
 						<span class="primary-action-sub">拍照上报文物点情况</span>
 					</div>
 					<AppIcon name="arrow-right" :size="32" color="#FFFFFF" :stroke="2.5" />
-				</button>
+				</van-button>
 
 				<!-- 今日统计 - 简洁卡片 -->
 				<div class="stats-card">
@@ -90,7 +88,7 @@
 							<span class="site-label">最近文物点</span>
 							<span class="site-status">{{ siteError }}</span>
 						</div>
-						<button type="button" class="retry-btn" @click="locate">重试</button>
+						<van-button native-type="button" class="retry-btn" @click="locate">重试</van-button>
 					</div>
 				</div>
 
@@ -101,10 +99,10 @@
 						<span class="section-summary">{{ adminStats.totalSites }} 文物点 · {{ adminStats.pendingProjects }} 在办项目</span>
 					</div>
 					<div class="admin-grid">
-						<button 
+						<van-button
 							v-for="item in adminFeatures" 
 							:key="item.key" 
-							type="button"
+							native-type="button"
 							class="admin-item" 
 							@click="open(item.url)"
 						>
@@ -112,7 +110,7 @@
 								<AppIcon :name="item.icon" :size="32" :color="item.color" :stroke="2" />
 							</div>
 							<span class="admin-name">{{ item.name }}</span>
-						</button>
+						</van-button>
 					</div>
 				</template>
 
@@ -120,13 +118,13 @@
 				<template v-if="recent.length">
 					<div class="section-header">
 						<h2 class="section-title">最近巡查</h2>
-						<button type="button" class="section-link" @click="goRecords">全部</button>
+						<van-button native-type="button" class="section-link" @click="goRecords">全部</van-button>
 					</div>
 					<div class="recent-list">
-						<button 
+						<van-button
 							v-for="item in recent" 
 							:key="item.id" 
-							type="button"
+							native-type="button"
 							class="recent-item" 
 							@click="goRecords"
 						>
@@ -138,16 +136,16 @@
 								<span class="recent-time">{{ friendly(item.inspect_time) }}</span>
 							</div>
 							<span class="recent-badge" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '问题' }}</span>
-						</button>
+						</van-button>
 					</div>
 				</template>
 			</div>
-		</ion-content>
-	</ion-page>
+		</van-pull-refresh>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage, IonRefresher, IonRefresherContent } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { getUser, isAdminUser, setUser } from '@/lib/auth.js';
@@ -166,9 +164,10 @@
 	];
 
 	export default {
-		components: { AppHeader, AppIcon, IonContent, IonPage, IonRefresher, IonRefresherContent },
+		components: { AppHeader, AppIcon, },
 		data() {
 			return {
+				refreshing: false,
 				user: {},
 				records: [],
 				nearestSite: null,
@@ -211,17 +210,17 @@
 				return formatDistance(this.nearestSite && this.nearestSite.distance);
 			},
 		},
-		ionViewWillEnter() {
+		activated() {
 			this.user = getUser() || {};
 			this.greet = greeting();
 			this.today = dateLabel();
 			this.refresh();
 		},
 		methods: {
-			onRefresh(event) {
+			onRefresh() {
 				this.greet = greeting();
 				this.today = dateLabel();
-				this.refresh().finally(() => event.target.complete());
+				this.refresh().finally(() => { this.refreshing = false; });
 			},
 			refresh() {
 				const tasks = [this.loadProfile(), this.loadRecords(), this.locate()];
@@ -303,7 +302,7 @@
 <style scoped>
 /* ========== 首页简约设计 ========== */
 .home-content {
-	--background: #F8FAFC;
+	background: #F8FAFC;
 }
 
 /* 简洁头部 */

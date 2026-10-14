@@ -1,6 +1,6 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
+	<div class="app-page">
+		<div class="app-content">
 			<div class="u-page">
 				<AppHeader title="快捷登录" subtitle="不用每次输入密码" back />
 
@@ -27,10 +27,10 @@
 								</div>
 							</div>
 							<div class="method-actions">
-								<button type="button" class="u-btn primary block" :disabled="busy" @click="settingGesture = true">
+								<van-button native-type="button" class="u-btn primary block" :disabled="busy" @click="settingGesture = true">
 									{{ quick && quick.gestureHash ? '修改手势' : '设置手势' }}
-								</button>
-								<button type="button" v-if="quick && quick.gestureHash" class="u-btn danger-ghost block" :disabled="busy" @click="disable('gesture')">关闭手势</button>
+								</van-button>
+								<van-button native-type="button" v-if="quick && quick.gestureHash" class="u-btn danger-ghost block" :disabled="busy" @click="disable('gesture')">关闭手势</van-button>
 							</div>
 						</div>
 
@@ -46,8 +46,8 @@
 								</div>
 							</div>
 							<div v-if="bioMode" class="method-actions">
-								<button type="button" v-if="!bioOn" class="u-btn success block" :disabled="busy" @click="enableBio">开启{{ bioName }}登录</button>
-								<button type="button" v-else class="u-btn danger-ghost block" :disabled="busy" @click="disable('biometric')">关闭{{ bioName }}登录</button>
+								<van-button native-type="button" v-if="!bioOn" class="u-btn success block" :disabled="busy" @click="enableBio">开启{{ bioName }}登录</van-button>
+								<van-button native-type="button" v-else class="u-btn danger-ghost block" :disabled="busy" @click="disable('biometric')">关闭{{ bioName }}登录</van-button>
 							</div>
 							<span v-else class="method-note">{{ checking ? '正在检测本机是否支持…' : '本机不支持指纹/面容，或还没有在手机设置里录入指纹。可以使用手势密码。' }}</span>
 						</div>
@@ -59,12 +59,11 @@
 					</template>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import GestureSetter from '@/components/GestureSetter.vue';
@@ -83,7 +82,7 @@
 	} from '@/lib/quickLogin.js';
 
 	export default {
-		components: { IonContent, IonPage, AppHeader, AppIcon, GestureSetter },
+		components: { AppHeader, AppIcon, GestureSetter },
 		data() {
 			return {
 				user: {},
@@ -117,7 +116,7 @@
 				return '未开启';
 			},
 		},
-		ionViewWillEnter() {
+		mounted() {
 			if (!getToken()) {
 				reLaunch('/login');
 				return;

@@ -26,15 +26,15 @@
 				placeholder="自动采集 或 手动填写"
 				@input="onManualInput"
 			/>
-			<button
-				type="button"
+			<van-button
+				native-type="button"
 				:class="['alt-btn', collecting ? 'alt-btn--loading' : '']"
 				:disabled="collecting"
 				@click="startCollect"
 			>
 				<span v-if="!collecting">📡 一键采集</span>
 				<span v-else class="alt-pulse">采集中…</span>
-			</button>
+			</van-button>
 		</div>
 
 		<!-- ③ 状态提示行 -->
