@@ -190,3 +190,26 @@
 .van-hairline--top::after {
 	border: 0;
 }
+
+/* 按钮文字垂直居中 */
+.van-dialog .van-dialog__confirm,
+.van-dialog .van-dialog__cancel,
+.upd-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	line-height: 1;
+}
+.van-dialog .van-dialog__confirm .van-button__content,
+.van-dialog .van-dialog__cancel .van-button__content,
+.upd-btn .van-button__content {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+}
+.van-dialog .van-button__text,
+.upd-btn .van-button__text {
+	line-height: 1;
+}
