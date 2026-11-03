@@ -117,13 +117,13 @@
 
 				<!-- 最近巡查 -->
 				<template v-if="recent.length">
-					<div class="section-header">
+					<div class="section-header recent-head">
 						<h2 class="section-title">最近巡查</h2>
 						<van-button native-type="button" class="section-link" @click="goRecords">全部</van-button>
 					</div>
 					<div class="recent-list">
 						<van-button
-							v-for="item in recent" 
+							v-for="item in recent.slice(0, 2)" 
 							:key="item.id" 
 							native-type="button"
 							class="recent-item" 
@@ -801,5 +801,57 @@
 .recent-badge.bad {
 	background: var(--c-danger-bg);
 	color: var(--c-danger);
+}
+
+/* 一屏显示：不滚动，空间不足时压缩 */
+.home-content {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+.home-content :deep(.van-pull-refresh),
+.home-content :deep(.van-pull-refresh__track) {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+.home-header {
+	flex-shrink: 0;
+	padding: 8px 16px 12px;
+	padding-top: calc(env(safe-area-inset-top) + 8px);
+}
+.header-kicker { margin-bottom: 3px; }
+.header-date { margin-top: 2px; }
+.home-body {
+	flex: 1;
+	min-height: 0;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 10px 14px 8px;
+}
+.home-body > * { flex-shrink: 0; margin-top: 0; margin-bottom: 0; }
+.primary-action { padding: 10px 14px; gap: 12px; }
+.primary-action-sub { display: none; }
+.home-body .section-header { margin: 2px 0 0; }
+.home-body .recent-list { flex-shrink: 1; min-height: 0; overflow: hidden; }
+.home-body .recent-item { padding-top: 6px; padding-bottom: 6px; }
+.home-body .admin-grid { gap: 6px; }
+.home-body .admin-item { padding-top: 6px; padding-bottom: 6px; }
+.home-body .site-address { display: none; }
+.home-body .stats-card { padding: 10px 14px; }
+.home-body .stats-header { padding-bottom: 8px; margin-bottom: 8px; }
+.home-body .site-card { padding: 10px 14px; }
+.home-body .admin-icon { width: 34px; height: 34px; border-radius: 9px; }
+@media (max-height: 800px) {
+	.home-body .admin-name { font-size: 0.6875rem; }
+	.home-body .recent-head,
+	.home-body .recent-list { display: none; }
+}
+@media (max-height: 640px) {
+	.home-body .stats-header { display: none; }
+	.home-body .admin-icon { display: none; }
 }
 </style>

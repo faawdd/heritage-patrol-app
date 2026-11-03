@@ -12,6 +12,10 @@
 							<span class="account">账号：{{ user.username || '-' }}</span>
 							<span class="u-badge info role">{{ roleText }}</span>
 						</div>
+						<button type="button" class="logout" @click="logout">
+							<AppIcon name="logout" :size="40" color="var(--c-danger)" />
+							<span>退出登录</span>
+						</button>
 					</div>
 
 					<div class="u-card menu">
@@ -127,10 +131,6 @@
 						</div>
 					</div>
 
-					<van-button native-type="button" class="u-btn danger-ghost block logout" @click="logout">
-						<AppIcon name="logout" :size="48" color="var(--c-danger)" />
-						<span>退出登录</span>
-					</van-button>
 				</div>
 
 			</div>
@@ -480,6 +480,17 @@
 	}
 
 	.logout {
-		margin-bottom: 16px !important;
+		margin-left: auto;
+		flex-shrink: 0;
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		padding: 8px 12px;
+		border: 1px solid var(--c-danger);
+		border-radius: 999px;
+		background: var(--c-danger-bg);
+		color: var(--c-danger);
+		font-size: 0.8125rem;
+		font-weight: 600;
 	}
 </style>

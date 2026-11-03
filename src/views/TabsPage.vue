@@ -18,7 +18,7 @@
 			<van-tabbar-item v-for="item in navItems" :key="item.key" :name="item.key" :class="{ main: item.main }">
 				<template #icon="{ active }">
 					<div v-if="item.main" class="tab-main">
-						<AppIcon name="camera" :size="48" color="var(--c-on-primary)" :stroke="2" />
+						<AppIcon name="camera" :size="40" color="var(--c-on-primary)" :stroke="2" />
 					</div>
 					<AppIcon v-else :name="item.icon" :size="40" :color="active ? 'var(--c-primary)' : 'var(--c-text-4)'" :stroke="active ? 2.2 : 1.8" />
 				</template>
@@ -75,7 +75,7 @@
 	}
 	.app-tabbar {
 		flex-shrink: 0;
-		--van-tabbar-height: 62px;
+		--van-tabbar-height: 58px;
 		--van-tabbar-item-font-size: 0.75rem;
 		--van-tabbar-item-text-color: var(--c-text-3);
 		--van-tabbar-item-active-color: var(--c-primary);
@@ -88,21 +88,20 @@
 		min-width: 0;
 	}
 	.app-tabbar .van-tabbar-item__icon {
-		margin-bottom: 3px;
-	}
-	.app-tabbar .van-tabbar-item.main {
-		overflow: visible;
+		margin-bottom: 2px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 	.tab-main {
-		width: 50px;
-		height: 50px;
-		margin-top: -20px;
-		border-radius: 50%;
+		width: 44px;
+		height: 30px;
+		border-radius: 15px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		background: var(--g-primary);
-		border: 3px solid var(--c-surface);
-		box-shadow: 0 4px 12px rgba(var(--c-primary-rgb), 0.3);
+		box-shadow: 0 2px 8px rgba(var(--c-primary-rgb), 0.3);
 	}
 </style>
