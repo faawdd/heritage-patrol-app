@@ -5,7 +5,7 @@
 				<AppHeader :title="pageTitle || t('kml.title')" :subtitle="t('kml.headerSubtitle')" back />
 				<div class="u-body kml-body">
 					<div class="u-card kml-intro">
-						<div class="kml-intro-icon"><AppIcon name="grid" :size="52" color="#0E7490" /></div>
+						<div class="kml-intro-icon"><AppIcon name="grid" :size="52" color="var(--c-info)" /></div>
 						<div class="kml-intro-text">
 							<span class="kml-intro-title">{{ t('kml.introTitle') }}</span>
 							<span class="kml-intro-desc">{{ t('kml.subtitle') }}</span>
@@ -197,7 +197,7 @@
 		flex: 0 0 44px;
 		height: 44px;
 		border-radius: 12px;
-		background: #E0F4F8;
+		background: var(--c-info-bg);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -209,12 +209,12 @@
 		min-width: 0;
 	}
 	.kml-intro-title {
-		font-size: 17px;
+		font-size: 1.0625rem;
 		font-weight: 700;
 		color: var(--c-text);
 	}
 	.kml-intro-desc {
-		font-size: 14px;
+		font-size: 0.875rem;
 		line-height: 1.6;
 		color: var(--c-text-3);
 	}
@@ -229,12 +229,12 @@
 		justify-content: space-between;
 	}
 	.kml-loc-label {
-		font-size: 16px;
+		font-size: 1rem;
 		font-weight: 700;
 		color: var(--c-text);
 	}
 	.kml-loc-value {
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: var(--c-text-2);
 		font-variant-numeric: tabular-nums;
 		word-break: break-all;
@@ -245,7 +245,7 @@
 	.kml-tip {
 		display: block;
 		margin-top: 10px;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		line-height: 1.6;
 		color: var(--c-text-3);
 		text-align: center;

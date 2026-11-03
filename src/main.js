@@ -12,6 +12,10 @@ import './theme/vant-theme.css';
 import './theme/variables.css';
 import './theme/global.css';
 
+import { initSettings } from './lib/settings.js';
+
+initSettings();
+
 const app = createApp(App).use(router);
 
 router.isReady().then(() => {

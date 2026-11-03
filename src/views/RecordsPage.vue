@@ -25,27 +25,27 @@
 						<van-button class="u-btn primary block" :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</van-button>
 						<div v-for="item in pending" :key="item.key">
 							<p>{{ item.site_name }} · {{ new Date(item.inspect_time).toLocaleString() }} · {{ item.photos.length }} 张照片</p>
-							<p v-if="item.error" style="color: #C62828">{{ item.error }}</p>
+							<p v-if="item.error" style="color: var(--c-danger)">{{ item.error }}</p>
 							<van-button class="u-btn sm" @click="previewPending(item)">查看本地照片</van-button>
 						</div>
 					</div>
 					<p v-if="cached">正在显示本机缓存记录，联网后可刷新。</p>
 					<div v-if="loading && !records.length" class="u-empty">
-						<AppIcon name="clock" :size="88" color="#94A3B8" />
+						<AppIcon name="clock" :size="88" color="var(--c-text-4)" />
 						<span>正在加载…</span>
 					</div>
 
 					<div v-else-if="loadError && !records.length" class="u-card u-empty">
-						<AppIcon name="alert" :size="88" color="#B45309" />
+						<AppIcon name="alert" :size="88" color="var(--c-warning)" />
 						<span>加载失败，请检查网络</span>
 						<van-button native-type="button" class="u-btn sm" @click="load">重新加载</van-button>
 					</div>
 
 					<div v-else-if="!visible.length" class="u-card u-empty">
-						<AppIcon name="records" :size="96" color="#94A3B8" />
+						<AppIcon name="records" :size="96" color="var(--c-text-4)" />
 						<span>{{ records.length ? '没有符合条件的记录' : '还没有巡查记录' }}</span>
 						<van-button v-if="!records.length" native-type="button" class="u-btn primary" @click="goPatrol">
-							<AppIcon name="camera" :size="44" color="#FFFFFF" />
+							<AppIcon name="camera" :size="44" color="var(--c-on-primary)" />
 							<span>去巡查上报</span>
 						</van-button>
 					</div>
@@ -57,10 +57,10 @@
 								<div class="record-main">
 									<span class="record-name">{{ item.site_name || '未知文物点' }}</span>
 									<div class="record-time">
-										<AppIcon name="clock" :size="28" color="#64748B" />
+										<AppIcon name="clock" :size="28" color="var(--c-text-3)" />
 										<span>{{ timeOf(item.inspect_time) }}</span>
 										<template v-if="item.latitude != null && item.longitude != null">
-											<AppIcon class="record-pin" name="pin" :size="28" color="#94A3B8" />
+											<AppIcon class="record-pin" name="pin" :size="28" color="var(--c-text-4)" />
 											<span class="record-coord">{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</span>
 										</template>
 									</div>
@@ -68,7 +68,7 @@
 								<span class="u-badge big" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
 							</div>
 							<div v-if="!item.is_normal && item.issue_details" class="issue">
-								<AppIcon name="alert" :size="36" color="#C62828" />
+								<AppIcon name="alert" :size="36" color="var(--c-danger)" />
 								<span>{{ item.issue_details }}</span>
 							</div>
 							<img
@@ -234,13 +234,13 @@
 		flex: 1;
 		height: 44px;
 		border-radius: 10px;
-		background: #FFFFFF;
+		background: var(--c-surface);
 		border: 1px solid var(--c-line);
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		gap: 5px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		font-weight: 500;
 		color: var(--c-text-2);
 	}
@@ -250,13 +250,13 @@
 		padding: 1px 6px;
 		border-radius: 999px;
 		background: var(--c-fill);
-		font-size: 12px;
+		font-size: 0.75rem;
 		text-align: center;
 		box-sizing: border-box;
 	}
 
 	.filter.active {
-		color: #FFFFFF;
+		color: var(--c-on-primary);
 		background: var(--c-primary);
 		border-color: var(--c-primary);
 	}
@@ -278,7 +278,7 @@
 	.group-title {
 		display: block;
 		margin: 6px 2px 6px;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		font-weight: 600;
 		color: var(--c-text-2);
 	}
@@ -306,7 +306,7 @@
 
 	.record-name {
 		display: block;
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 600;
 		color: var(--c-text);
 		line-height: 1.3;
@@ -320,7 +320,7 @@
 		align-items: center;
 		gap: 4px;
 		margin-top: 4px;
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: var(--c-text-3);
 		white-space: nowrap;
 		overflow: hidden;
@@ -337,7 +337,7 @@
 	}
 
 	.u-badge.big {
-		font-size: 12px;
+		font-size: 0.75rem;
 		padding: 3px 8px;
 		flex-shrink: 0;
 	}
@@ -350,7 +350,7 @@
 		border-radius: 9px;
 		background: var(--c-danger-bg);
 		color: var(--c-danger);
-		font-size: 14px;
+		font-size: 0.875rem;
 		line-height: 1.5;
 	}
 

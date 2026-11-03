@@ -61,7 +61,7 @@ onBeforeUnmount(() => { disposed = true; controller?.abort(); });
 </script>
 
 <style scoped>
-.survey-capture { padding: 12px; background: #f0f5ff; border-radius: 12px; font-size: 14px; }
-.survey-capture button { margin: 4px; padding: 10px 14px; border: 1px solid #1e5aa8; border-radius: 8px; }
-[role="alert"] { color: #b45309; }
+.survey-capture { padding: 12px; background: var(--c-primary-light); border-radius: 12px; font-size: 0.875rem; }
+.survey-capture button { margin: 4px; padding: 10px 14px; border: 1px solid var(--c-primary); border-radius: 8px; }
+[role="alert"] { color: var(--c-warning); }
 </style>

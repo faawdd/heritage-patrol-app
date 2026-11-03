@@ -11,15 +11,15 @@
 
 					<template v-else>
 						<div class="u-card intro">
-							<AppIcon name="shield" :size="64" color="#15803D" />
+							<AppIcon name="shield" :size="64" color="var(--c-success)" />
 							<span>开启后，打开软件时画一下手势或按一下指纹就能登录，不用再输入密码。</span>
 						</div>
 
 						<!-- 手势 -->
 						<div class="u-card method">
 							<div class="method-head">
-								<div class="method-icon" style="background: #E8F0FB">
-									<AppIcon name="gesture" :size="60" color="#1E5AA8" />
+								<div class="method-icon" style="background: var(--c-primary-light)">
+									<AppIcon name="gesture" :size="60" color="var(--c-primary)" />
 								</div>
 								<div class="method-text">
 									<span class="method-title">手势密码</span>
@@ -37,8 +37,8 @@
 						<!-- 指纹 / 面容 -->
 						<div class="u-card method">
 							<div class="method-head">
-								<div class="method-icon" style="background: #E7F6EC">
-									<AppIcon :name="bioMode === 'facial' ? 'face' : 'fingerprint'" :size="60" color="#15803D" />
+								<div class="method-icon" style="background: var(--c-success-bg)">
+									<AppIcon :name="bioMode === 'facial' ? 'face' : 'fingerprint'" :size="60" color="var(--c-success)" />
 								</div>
 								<div class="method-text">
 									<span class="method-title">{{ bioName }}登录</span>
@@ -53,7 +53,7 @@
 						</div>
 
 						<div v-if="hasQuick && !serverBacked" class="warn">
-							<AppIcon name="info" :size="40" color="#B45309" />
+							<AppIcon name="info" :size="40" color="var(--c-warning)" />
 							<span>服务器暂未开通长期快捷登录，登录状态最长保持 12 小时，过期后需要输入一次密码。</span>
 						</div>
 					</template>
@@ -166,7 +166,7 @@
 					title: `关闭${name}登录`,
 					content: `关闭后不能再用${name}登录。确定关闭吗？`,
 					confirmText: '确定关闭',
-					confirmColor: '#C62828',
+					confirmColor: 'var(--c-danger)',
 				});
 				if (res.confirm) {
 					disableQuickLoginMethod(method);
@@ -188,8 +188,8 @@
 		display: flex;
 		align-items: center;
 		gap: 12px;
-		font-size: 16px;
-		color: #334155;
+		font-size: 1rem;
+		color: var(--c-text-2);
 		line-height: 1.6;
 	}
 
@@ -214,20 +214,20 @@
 	}
 
 	.method-title {
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 800;
-		color: #0F172A;
+		color: var(--c-text);
 	}
 
 	.method-state {
 		margin-top: 2px;
-		font-size: 15px;
-		color: #94A3B8;
+		font-size: 0.9375rem;
+		color: var(--c-text-4);
 		font-weight: 600;
 	}
 
 	.method-state.on {
-		color: #15803D;
+		color: var(--c-success);
 	}
 
 	.method-actions {
@@ -240,8 +240,8 @@
 	.method-note {
 		display: block;
 		margin-top: 12px;
-		font-size: 15px;
-		color: #64748B;
+		font-size: 0.9375rem;
+		color: var(--c-text-3);
 		line-height: 1.6;
 	}
 
@@ -250,9 +250,9 @@
 		gap: 6px;
 		padding: 12px;
 		border-radius: 10px;
-		background: #FEF3E2;
-		color: #B45309;
-		font-size: 15px;
+		background: var(--c-warning-bg);
+		color: var(--c-warning);
+		font-size: 0.9375rem;
 		line-height: 1.6;
 	}
 </style>

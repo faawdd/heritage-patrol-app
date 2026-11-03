@@ -233,8 +233,8 @@
 	.gesture-dot {
 		position: absolute;
 		border-radius: 50%;
-		border: 3px solid #CBD5E1;
-		background: #FFFFFF;
+		border: 3px solid var(--c-line-strong);
+		background: var(--c-surface);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -247,17 +247,17 @@
 		width: 26%;
 		height: 26%;
 		border-radius: 50%;
-		background: #CBD5E1;
+		background: var(--c-line-strong);
 	}
 
 	.gesture-dot.active {
-		border-color: #1E5AA8;
-		background: #E8F0FB;
+		border-color: var(--c-primary);
+		background: var(--c-primary-light);
 		transform: scale(1.08);
 	}
 
 	.gesture-dot.active .gesture-dot-core {
-		background: #1E5AA8;
+		background: var(--c-primary);
 		width: 36%;
 		height: 36%;
 	}
@@ -272,12 +272,12 @@
 	}
 
 	.is-error .gesture-dot.active {
-		border-color: #C62828;
-		background: #FDECEC;
+		border-color: var(--c-danger);
+		background: var(--c-danger-bg);
 	}
 
 	.is-error .gesture-dot.active .gesture-dot-core {
-		background: #C62828;
+		background: var(--c-danger);
 	}
 
 	.is-error .gesture-line {
@@ -285,12 +285,12 @@
 	}
 
 	.is-success .gesture-dot.active {
-		border-color: #15803D;
-		background: #E7F6EC;
+		border-color: var(--c-success);
+		background: var(--c-success-bg);
 	}
 
 	.is-success .gesture-dot.active .gesture-dot-core {
-		background: #15803D;
+		background: var(--c-success);
 	}
 
 	.is-success .gesture-line {

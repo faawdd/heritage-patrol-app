@@ -17,7 +17,7 @@
 					<template v-if="currentTab === 'heritages'">
 						<div class="u-card adm-filter">
 							<div class="adm-search">
-								<AppIcon name="search" :size="36" color="#94A3B8" />
+								<AppIcon name="search" :size="36" color="var(--c-text-4)" />
 								<input
 									v-model.trim="heritageSearchKeyword"
 									class="adm-search-input"
@@ -44,7 +44,7 @@
 						<div v-for="item in heritages" :key="item.id" class="u-card adm-item tappable" @click="openHeritageDetail(item)">
 							<div class="adm-item-head">
 								<span class="adm-item-title">{{ item.name }}</span>
-								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 							<div class="adm-badges">
 								<span v-if="item.category" class="u-badge info">{{ item.category }}</span>
@@ -74,7 +74,7 @@
 
 						<div class="u-card adm-filter">
 							<div class="adm-search">
-								<AppIcon name="search" :size="36" color="#94A3B8" />
+								<AppIcon name="search" :size="36" color="var(--c-text-4)" />
 								<input
 									v-model.trim="projectKeyword"
 									class="adm-search-input"
@@ -123,7 +123,7 @@
 						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.fieldTools') }}</span></div>
 						<div class="u-card adm-tool">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:#E7F6EC"><AppIcon name="map" :size="48" color="#15803D" /></div>
+								<div class="adm-tool-icon" style="background:var(--c-success-bg)"><AppIcon name="map" :size="48" color="var(--c-success)" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.collectTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.collectDesc') }}</span>
@@ -138,22 +138,22 @@
 						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.onlineTools') }}</span></div>
 						<div class="u-card adm-tool tappable" @click="openInspectionManagement">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:#E8F0ED"><AppIcon name="clock" :size="48" color="#245B4A" /></div>
+								<div class="adm-tool-icon" style="background:var(--c-primary-light)"><AppIcon name="clock" :size="48" color="var(--c-primary)" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.patrolManageTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.patrolManageDesc') }}</span>
 								</div>
-								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
 						<div class="u-card adm-tool tappable" @click="openKmlTool">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:#E0F4F8"><AppIcon name="grid" :size="48" color="#0E7490" /></div>
+								<div class="adm-tool-icon" style="background:var(--c-info-bg)"><AppIcon name="grid" :size="48" color="var(--c-info)" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.kmlTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.kmlDesc') }}</span>
 								</div>
-								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
 						<div class="u-card adm-tool tappable" @click="openDjangoCollectTool">
@@ -163,17 +163,17 @@
 									<span class="adm-tool-title">{{ t('admin.collectManageTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.collectManageDesc') }}</span>
 								</div>
-								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
 						<div class="u-card adm-tool tappable" @click="openProjectListOnline">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:#FEF3E2"><AppIcon name="file" :size="48" color="#B45309" /></div>
+								<div class="adm-tool-icon" style="background:var(--c-warning-bg)"><AppIcon name="file" :size="48" color="var(--c-warning)" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.projectOnlineTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.projectOnlineDesc') }}</span>
 								</div>
-								<AppIcon name="chevron-right" :size="36" color="#94A3B8" />
+								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
 						<span class="adm-tip">{{ t('admin.onlineTip') }}</span>
@@ -418,10 +418,10 @@
 	}
 
 	.adm-seg {
-		--van-tabs-nav-background: #E4E9E5;
-		--van-tab-text-color: #4A5D54;
-		--van-tab-active-text-color: #245B4A;
-		--van-tabs-bottom-bar-color: #245B4A;
+		--van-tabs-nav-background: var(--c-line);
+		--van-tab-text-color: var(--c-text-2);
+		--van-tab-active-text-color: var(--c-primary);
+		--van-tabs-bottom-bar-color: var(--c-primary);
 		border-radius: 10px;
 		overflow: hidden;
 	}
@@ -448,7 +448,7 @@
 		height: 44px;
 		padding: 0 12px;
 		border-radius: 10px;
-		background: #F5F7FB;
+		background: var(--c-fill);
 		border: 1px solid var(--c-line);
 	}
 
@@ -458,7 +458,7 @@
 		height: 100%;
 		border: none;
 		background: transparent;
-		font-size: 15px;
+		font-size: 0.9375rem;
 		color: var(--c-text);
 	}
 
@@ -482,8 +482,8 @@
 		padding: 0 30px 0 12px;
 		border-radius: 10px;
 		border: 1px solid var(--c-line);
-		background: #FFFFFF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
-		font-size: 15px;
+		background: var(--c-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
+		font-size: 0.9375rem;
 		color: var(--c-text);
 		-webkit-appearance: none;
 		appearance: none;
@@ -499,20 +499,20 @@
 	}
 
 	.adm-list-title {
-		font-size: 17px;
+		font-size: 1.0625rem;
 		font-weight: 700;
 		color: var(--c-text);
 		white-space: nowrap;
 	}
 
 	.adm-list-count {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		color: var(--c-text-3);
 		text-align: right;
 	}
 
 	.adm-list-link {
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: var(--c-primary);
 		font-weight: 600;
 		white-space: nowrap;
@@ -538,7 +538,7 @@
 	}
 
 	.adm-item-title {
-		font-size: 17px;
+		font-size: 1.0625rem;
 		font-weight: 800;
 		color: var(--c-text);
 		line-height: 1.4;
@@ -553,14 +553,14 @@
 	}
 
 	.adm-badges .u-badge {
-		font-size: 12px;
+		font-size: 0.75rem;
 		padding: 3px 8px;
 	}
 
 	.adm-kv {
 		display: flex;
 		gap: 10px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		line-height: 1.5;
 	}
 
@@ -587,12 +587,12 @@
 		gap: 8px;
 		margin-top: 6px;
 		padding-top: 10px;
-		border-top: 1px solid #EEF2F7;
+		border-top: 1px solid var(--c-fill);
 	}
 
 	.adm-minor {
-		font-size: 12px;
-		color: #94A3B8;
+		font-size: 0.75rem;
+		color: var(--c-text-4);
 	}
 
 	.adm-pager {
@@ -604,7 +604,7 @@
 	}
 
 	.adm-pager-text {
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: var(--c-text-3);
 	}
 
@@ -621,11 +621,11 @@
 	}
 
 	.adm-sum-cell + .adm-sum-cell {
-		border-left: 1px solid #EEF2F7;
+		border-left: 1px solid var(--c-fill);
 	}
 
 	.adm-sum-cell .n {
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 800;
 		color: var(--c-primary);
 		font-variant-numeric: tabular-nums;
@@ -640,7 +640,7 @@
 	}
 
 	.adm-sum-cell .l {
-		font-size: 12px;
+		font-size: 0.75rem;
 		color: var(--c-text-3);
 	}
 
@@ -673,13 +673,13 @@
 	}
 
 	.adm-tool-title {
-		font-size: 16px;
+		font-size: 1rem;
 		font-weight: 700;
 		color: var(--c-text);
 	}
 
 	.adm-tool-desc {
-		font-size: 13px;
+		font-size: 0.8125rem;
 		line-height: 1.5;
 		color: var(--c-text-3);
 	}
@@ -694,9 +694,9 @@
 	.adm-tip {
 		display: block;
 		margin: 6px 4px 0;
-		font-size: 12px;
+		font-size: 0.75rem;
 		line-height: 1.6;
-		color: #94A3B8;
+		color: var(--c-text-4);
 		text-align: center;
 	}
 </style>

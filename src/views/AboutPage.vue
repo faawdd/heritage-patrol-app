@@ -6,7 +6,7 @@
 				<div class="u-body body">
 					<div class="u-card brand">
 						<div class="logo">
-							<AppIcon name="landmark" :size="88" color="#FFFFFF" :stroke="1.8" />
+							<AppIcon name="landmark" :size="88" color="var(--c-on-primary)" :stroke="1.8" />
 						</div>
 						<span class="app-name">鄯善文保巡查</span>
 						<span class="app-ver">版本 {{ version }}</span>
@@ -106,7 +106,7 @@
 		width: 80px;
 		height: 80px;
 		border-radius: 22px;
-		background: linear-gradient(150deg, #2A6BC2, #0F2F5C);
+		background: var(--g-primary);
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -114,15 +114,15 @@
 
 	.app-name {
 		margin-top: 12px;
-		font-size: 22px;
+		font-size: 1.375rem;
 		font-weight: 800;
-		color: #0F172A;
+		color: var(--c-text);
 	}
 
 	.app-ver {
 		margin-top: 3px;
-		font-size: 15px;
-		color: #64748B;
+		font-size: 0.9375rem;
+		color: var(--c-text-3);
 	}
 
 	.row {
@@ -131,7 +131,7 @@
 		justify-content: space-between;
 		gap: 12px;
 		min-height: 52px;
-		border-bottom: 1px solid #EEF2F7;
+		border-bottom: 1px solid var(--c-fill);
 	}
 
 	.row:last-child {
@@ -139,27 +139,27 @@
 	}
 
 	.row-label {
-		font-size: 16px;
-		color: #64748B;
+		font-size: 1rem;
+		color: var(--c-text-3);
 		flex-shrink: 0;
 	}
 
 	.row-value {
-		font-size: 16px;
-		color: #0F172A;
+		font-size: 1rem;
+		color: var(--c-text);
 		text-align: right;
 		word-break: break-all;
 	}
 
 	.row-value.link {
-		color: #1E5AA8;
+		color: var(--c-primary);
 		font-weight: 700;
 	}
 
 	.tip {
 		display: block;
 		text-align: center;
-		font-size: 14px;
-		color: #94A3B8;
+		font-size: 0.875rem;
+		color: var(--c-text-4);
 	}
 </style>

@@ -14,7 +14,7 @@
 						<div class="card-left">
 							<img v-if="item.cover_url" :src="item.cover_url" class="thumb" />
 							<div v-else class="thumb-placeholder">
-								<AppIcon name="landmark" :size="56" color="#94A3B8" />
+								<AppIcon name="landmark" :size="56" color="var(--c-text-4)" />
 							</div>
 						</div>
 						<div class="card-body">
@@ -33,7 +33,7 @@
 					</div>
 
 					<div v-if="!loading && !records.length" class="empty-tip">
-						<AppIcon name="records" :size="80" color="#CBD5E1" />
+						<AppIcon name="records" :size="80" color="var(--c-line-strong)" />
 						<span class="empty-text">暂无采集记录</span>
 						<van-button native-type="button" class="btn-go-collect" @click="goCollect">去采集</van-button>
 					</div>
@@ -174,7 +174,7 @@
 	display: flex;
 	gap: 12px;
 	padding: 12px;
-	background: #fff;
+	background: var(--c-surface);
 	border-radius: var(--r-card);
 	margin-bottom: 10px;
 	box-shadow: var(--shadow-card);
@@ -182,43 +182,43 @@
 .card-left { width: 72px; flex-shrink: 0; }
 .thumb { width: 72px; height: 72px; object-fit: cover; display: block; border-radius: 10px; }
 .thumb-placeholder {
-	width: 72px; height: 72px; background: #F1F5F9; border-radius: 10px;
+	width: 72px; height: 72px; background: var(--c-fill); border-radius: 10px;
 	display: flex; align-items: center; justify-content: center;
 }
 .card-body { flex: 1; min-width: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .card-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
-.card-name { font-size: 16px; font-weight: 800; color: var(--c-text); flex: 1; min-width: 0; line-height: 1.35; }
+.card-name { font-size: 1rem; font-weight: 800; color: var(--c-text); flex: 1; min-width: 0; line-height: 1.35; }
 .level-badge {
-	font-size: 12px; font-weight: 700; color: var(--c-warning); background: var(--c-warning-bg);
+	font-size: 0.75rem; font-weight: 700; color: var(--c-warning); background: var(--c-warning-bg);
 	padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
 }
-.card-code { font-size: 13px; color: var(--c-text-3); font-variant-numeric: tabular-nums; }
-.card-meta { font-size: 13px; color: var(--c-text-2); }
-.card-addr { font-size: 13px; color: var(--c-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-code { font-size: 0.8125rem; color: var(--c-text-3); font-variant-numeric: tabular-nums; }
+.card-meta { font-size: 0.8125rem; color: var(--c-text-2); }
+.card-addr { font-size: 0.8125rem; color: var(--c-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; }
-.card-photos { font-size: 12px; color: var(--c-text-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-photos { font-size: 0.75rem; color: var(--c-text-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .btn-export {
-	flex-shrink: 0; height: 34px; padding: 0 12px; font-size: 14px; font-weight: 700;
+	flex-shrink: 0; height: 34px; padding: 0 12px; font-size: 0.875rem; font-weight: 700;
 	background: var(--c-primary-light); color: var(--c-primary); border: none; border-radius: 9px;
 }
 
 .empty-tip { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; }
-.empty-text { font-size: 15px; color: var(--c-text-3); }
+.empty-text { font-size: 0.9375rem; color: var(--c-text-3); }
 .btn-go-collect {
-	height: 44px; padding: 0 32px; font-size: 16px; font-weight: 700;
-	background: var(--c-primary); color: #fff; border: none; border-radius: 12px;
+	height: 44px; padding: 0 32px; font-size: 1rem; font-weight: 700;
+	background: var(--c-primary); color: var(--c-on-primary); border: none; border-radius: 12px;
 }
 
 .loading-wrap { text-align: center; padding: 30px 0; }
-.loading-text { font-size: 14px; color: var(--c-text-3); }
-.load-more-tip { text-align: center; padding: 10px; font-size: 13px; color: #94A3B8; }
+.loading-text { font-size: 0.875rem; color: var(--c-text-3); }
+.load-more-tip { text-align: center; padding: 10px; font-size: 0.8125rem; color: var(--c-text-4); }
 
 .fab {
 	position: fixed; right: 20px; bottom: calc(24px + env(safe-area-inset-bottom));
 	width: 54px; height: 54px; border-radius: 50%;
-	background: linear-gradient(135deg, #2A6BC2 0%, #1E5AA8 55%, #174B8F 100%);
+	background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-primary) 55%, var(--c-primary-dark) 100%);
 	box-shadow: var(--shadow-btn);
 	display: flex; align-items: center; justify-content: center; z-index: 10;
 }
-.fab-icon { font-size: 30px; color: #fff; line-height: 1; margin-top: -2px; }
+.fab-icon { font-size: 1.875rem; color: var(--c-on-primary); line-height: 1; margin-top: -2px; }
 </style>

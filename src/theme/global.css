@@ -1,46 +1,133 @@
 /* 全局设计系统：专业文物巡查工具 */
 /* 设计理念：低饱和度、清晰层次、精致间距、专业质感 */
+/* 主题切换：<html> 上的 data-theme（light/dark）、data-color（主题色）、data-font（字号）驱动 */
 
+/* ========== 字号档位（rem 基准，由“我的-外观设置”调节） ========== */
+html {
+	font-size: 16px;
+}
+
+html[data-font="small"] {
+	font-size: 15px;
+}
+
+html[data-font="large"] {
+	font-size: 17.5px;
+}
+
+html[data-font="xlarge"] {
+	font-size: 19px;
+}
+
+/* ========== 主题色（亮色取值） ========== */
 :root {
-	/* === 核心色彩系统 === */
-	--c-primary: #245B4A;           /* 主色：深绿色，专业、沉稳 */
-	--c-primary-dark: #1A4236;      /* 主色深色：用于悬停和强调 */
-	--c-primary-light: #E8F0ED;     /* 主色浅色：背景强调 */
-	--c-accent: #3A7D68;            /* 强调色：中等饱和度绿 */
-	
+	/* 黛青（默认）：沉稳专业，呼应青铜与林野 */
+	--c-primary: #245B4A;
+	--c-primary-rgb: 36, 91, 74;
+	--c-primary-dark: #1A4236;
+	--c-accent: #3A7D68;
+	--c-on-primary: #FFFFFF;
+}
+
+[data-color="blue"] {
+	/* 黛蓝：青花与天青 */
+	--c-primary: #2B5DA8;
+	--c-primary-rgb: 43, 93, 168;
+	--c-primary-dark: #1E4480;
+	--c-accent: #4D7FC4;
+}
+
+[data-color="brown"] {
+	/* 赭石：陶土与夯土 */
+	--c-primary: #8C5A2B;
+	--c-primary-rgb: 140, 90, 43;
+	--c-primary-dark: #6B421C;
+	--c-accent: #AA7845;
+}
+
+[data-color="plum"] {
+	/* 紫棠：漆器紫檀 */
+	--c-primary: #6D4F96;
+	--c-primary-rgb: 109, 79, 150;
+	--c-primary-dark: #533A76;
+	--c-accent: #8A6DB3;
+}
+
+/* ========== 深色模式主题色（提亮以保证对比度） ========== */
+[data-theme="dark"] {
+	--c-primary: #58A58A;
+	--c-primary-rgb: 88, 165, 138;
+	--c-primary-dark: #3F8A70;
+	--c-accent: #6DBCA0;
+}
+
+[data-theme="dark"][data-color="blue"] {
+	--c-primary: #6F9EDC;
+	--c-primary-rgb: 111, 158, 220;
+	--c-primary-dark: #5486C8;
+	--c-accent: #8AB2E6;
+}
+
+[data-theme="dark"][data-color="brown"] {
+	--c-primary: #C68F52;
+	--c-primary-rgb: 198, 143, 82;
+	--c-primary-dark: #AD773B;
+	--c-accent: #D6A66F;
+}
+
+[data-theme="dark"][data-color="plum"] {
+	--c-primary: #A98BD0;
+	--c-primary-rgb: 169, 139, 208;
+	--c-primary-dark: #9071BC;
+	--c-accent: #BCA2DD;
+}
+
+/* ========== 中性色与状态色（亮色） ========== */
+:root {
+	/* 主题色衍生 */
+	--c-primary-light: rgba(var(--c-primary-rgb), 0.10);   /* 主题色浅底 */
+	--c-primary-tint: rgba(var(--c-primary-rgb), 0.16);    /* 主题色强调底 */
+	--g-primary: linear-gradient(135deg, var(--c-accent) 0%, var(--c-primary) 100%);
+
 	/* === 状态色 === */
-	--c-success: #2D7A5F;           /* 成功：低饱和绿 */
+	--c-success: #2D7A5F;
+	--c-success-rgb: 45, 122, 95;
 	--c-success-bg: #E8F5F0;
-	--c-warning: #B87333;           /* 警告：克制的橙棕色 */
+	--c-warning: #B87333;
+	--c-warning-rgb: 184, 115, 51;
 	--c-warning-bg: #FDF5ED;
-	--c-danger: #B84A3D;            /* 危险：适度的红棕色 */
+	--c-danger: #B84A3D;
+	--c-danger-rgb: 184, 74, 61;
 	--c-danger-bg: #FDF0EE;
-	--c-info: #3D6B8C;              /* 信息：低饱和蓝 */
+	--c-info: #3D6B8C;
+	--c-info-rgb: 61, 107, 140;
 	--c-info-bg: #EDF3F8;
-	
+
 	/* === 中性色 === */
-	--c-bg: #F4F6F5;                /* 页面背景：浅灰绿 */
+	--c-bg: #F4F6F5;                /* 页面背景 */
 	--c-surface: #FFFFFF;           /* 卡片表面 */
-	--c-text: #26332D;              /* 主文字：深灰绿 */
+	--c-text: #26332D;              /* 主文字 */
 	--c-text-2: #4A5D54;            /* 次级文字 */
-	--c-text-3: #77817B;            /* 辅助文字：灰绿 */
+	--c-text-3: #77817B;            /* 辅助文字 */
 	--c-text-4: #A8B0AB;            /* 占位符文字 */
-	--c-line: #E4E9E5;              /* 边框：浅灰绿 */
+	--c-line: #E4E9E5;              /* 边框 */
 	--c-line-strong: #D1D9D4;       /* 强边框 */
 	--c-fill: #F9FAF9;              /* 输入框填充 */
-	
-	/* === 圆角系统 === */
-	--r-card: 12px;                 /* 卡片圆角 */
-	--r-btn: 10px;                  /* 按钮圆角 */
-	--r-input: 8px;                 /* 输入框圆角 */
-	--r-badge: 6px;                 /* 徽章圆角 */
-	--r-tag: 8px;                   /* 标签圆角 */
-	
+	--c-mask: rgba(22, 28, 25, 0.55);   /* 遮罩 */
+
 	/* === 阴影系统 === */
-	--shadow-sm: 0 1px 3px rgba(36, 91, 74, 0.06);
-	--shadow-md: 0 2px 8px rgba(36, 91, 74, 0.08);
-	--shadow-lg: 0 4px 16px rgba(36, 91, 74, 0.10);
-	
+	--shadow-sm: 0 1px 3px rgba(26, 46, 38, 0.06);
+	--shadow-md: 0 2px 8px rgba(26, 46, 38, 0.08);
+	--shadow-lg: 0 4px 16px rgba(26, 46, 38, 0.10);
+	--shadow-primary: 0 4px 16px rgba(var(--c-primary-rgb), 0.25);
+
+	/* === 圆角系统 === */
+	--r-card: 12px;
+	--r-btn: 10px;
+	--r-input: 8px;
+	--r-badge: 6px;
+	--r-tag: 8px;
+
 	/* === 间距系统 === */
 	--space-xs: 4px;
 	--space-sm: 8px;
@@ -48,15 +135,16 @@
 	--space-lg: 16px;
 	--space-xl: 20px;
 	--space-2xl: 24px;
-	
-	/* === 字号系统 === */
-	--text-xs: 12px;
-	--text-sm: 13px;
-	--text-base: 15px;
-	--text-md: 16px;
-	--text-lg: 18px;
-	--text-xl: 20px;
-	
+
+	/* === 字号系统（rem：随字号档位缩放） === */
+	--text-2xs: 0.6875rem;   /* 11 */
+	--text-xs: 0.75rem;      /* 12 */
+	--text-sm: 0.8125rem;    /* 13 */
+	--text-base: 0.9375rem;  /* 15 */
+	--text-md: 1rem;         /* 16 */
+	--text-lg: 1.125rem;     /* 18 */
+	--text-xl: 1.25rem;      /* 20 */
+
 	/* === 兼容旧变量名（向后兼容） === */
 	--bg-primary: var(--c-bg);
 	--surface: var(--c-surface);
@@ -70,6 +158,54 @@
 	--radius-card: var(--r-card);
 	--radius-pill: 999px;
 	--card-padding: var(--space-lg);
+	--focus-ring: rgba(var(--c-primary-rgb), 0.18);
+	--title-xl: 1.25rem;
+	--title-lg: 1.125rem;
+	--transition-fast: all 150ms ease;
+}
+
+/* ========== 深色模式中性色与状态色 ========== */
+[data-theme="dark"] {
+	--c-on-primary: #10201A;
+	--c-primary-light: rgba(var(--c-primary-rgb), 0.16);
+	--c-primary-tint: rgba(var(--c-primary-rgb), 0.24);
+
+	--c-success: #53B48D;
+	--c-success-rgb: 83, 180, 141;
+	--c-success-bg: rgba(83, 180, 141, 0.16);
+	--c-warning: #D9995C;
+	--c-warning-rgb: 217, 153, 92;
+	--c-warning-bg: rgba(217, 153, 92, 0.16);
+	--c-danger: #DE7A6C;
+	--c-danger-rgb: 222, 122, 108;
+	--c-danger-bg: rgba(222, 122, 108, 0.16);
+	--c-info: #74A5C9;
+	--c-info-rgb: 116, 165, 201;
+	--c-info-bg: rgba(116, 165, 201, 0.16);
+
+	--c-bg: #121614;
+	--c-surface: #1C211E;
+	--c-text: #E7ECE9;
+	--c-text-2: #B8C2BC;
+	--c-text-3: #8B958F;
+	--c-text-4: #606B64;
+	--c-line: #2B332E;
+	--c-line-strong: #3B453F;
+	--c-fill: #242B27;
+	--c-mask: rgba(0, 0, 0, 0.65);
+
+	--shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.30);
+	--shadow-md: 0 2px 8px rgba(0, 0, 0, 0.36);
+	--shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.44);
+	--shadow-primary: 0 4px 16px rgba(0, 0, 0, 0.40);
+}
+
+:root {
+	color-scheme: light;
+}
+
+[data-theme="dark"] {
+	color-scheme: dark;
 }
 
 body {
@@ -170,8 +306,8 @@ button[disabled] {
 
 /* 主要按钮 - 使用渐变增加质感 */
 .u-btn.primary {
-	color: #FFFFFF;
-	background: linear-gradient(135deg, #3A7D68 0%, #245B4A 100%);
+	color: var(--c-on-primary);
+	background: var(--g-primary);
 	box-shadow: var(--shadow-md);
 }
 
@@ -181,37 +317,37 @@ button[disabled] {
 
 /* 成功按钮 */
 .u-btn.success {
-	color: #FFFFFF;
-	background: linear-gradient(135deg, #3A9B7A 0%, #2D7A5F 100%);
+	color: var(--c-on-primary);
+	background: var(--c-success);
 	box-shadow: var(--shadow-md);
 }
 
 /* 危险按钮 */
 .u-btn.danger {
-	color: #FFFFFF;
-	background: linear-gradient(135deg, #D06557 0%, #B84A3D 100%);
+	color: var(--c-on-primary);
+	background: var(--c-danger);
 	box-shadow: var(--shadow-md);
 }
 
 /* 幽灵按钮 */
 .u-btn.ghost {
 	color: var(--c-primary);
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border: 1px solid var(--c-primary);
 }
 
 /* 普通按钮 */
 .u-btn.plain {
 	color: var(--c-text-2);
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border: 1px solid var(--c-line);
 }
 
 /* 危险幽灵按钮 */
 .u-btn.danger-ghost {
 	color: var(--c-danger);
-	background: #FFFFFF;
-	border: 1px solid var(--c-danger-bg);
+	background: var(--c-surface);
+	border: 1px solid rgba(var(--c-danger-rgb), 0.35);
 }
 
 /* 尺寸变体 */
@@ -280,8 +416,8 @@ button[disabled] {
 
 .u-input:focus {
 	border-color: var(--c-primary);
-	background: #FFFFFF;
-	box-shadow: 0 0 0 2px rgba(36, 91, 74, 0.12);
+	background: var(--c-surface);
+	box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .u-placeholder {

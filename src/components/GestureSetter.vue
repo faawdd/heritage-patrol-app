@@ -78,20 +78,20 @@
 	}
 
 	.gs-title {
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 800;
-		color: #0F172A;
+		color: var(--c-text);
 	}
 
 	.gs-tip {
 		margin: 8px 0 16px;
 		min-height: 22px;
-		font-size: 15px;
-		color: #64748B;
+		font-size: 0.9375rem;
+		color: var(--c-text-3);
 	}
 
 	.gs-tip.error {
-		color: #C62828;
+		color: var(--c-danger);
 		font-weight: 700;
 	}
 

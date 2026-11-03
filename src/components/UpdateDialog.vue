@@ -4,7 +4,7 @@
 			<div class="upd-dialog" role="dialog" aria-modal="true">
 				<div class="upd-head">
 					<div class="upd-icon">
-						<AppIcon name="upload" :size="52" color="#FFFFFF" />
+						<AppIcon name="upload" :size="52" color="var(--c-on-primary)" />
 					</div>
 					<div class="upd-head-text">
 						<span class="upd-title">{{ title }}</span>
@@ -119,7 +119,7 @@
 		width: 100%;
 		max-width: 340px;
 		border-radius: 18px;
-		background: #FFFFFF;
+		background: var(--c-surface);
 		box-shadow: 0 20px 48px rgba(15, 23, 42, 0.3);
 		overflow: hidden;
 	}
@@ -129,8 +129,8 @@
 		align-items: center;
 		gap: 12px;
 		padding: 18px 18px 14px;
-		background: linear-gradient(135deg, #2A6BC2 0%, #1E5AA8 55%, #174B8F 100%);
-		color: #FFFFFF;
+		background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-primary) 55%, var(--c-primary-dark) 100%);
+		color: var(--c-on-primary);
 	}
 
 	.upd-icon {
@@ -151,14 +151,14 @@
 	}
 
 	.upd-title {
-		font-size: 18px;
+		font-size: 1.125rem;
 		font-weight: 800;
 		letter-spacing: 0.5px;
 	}
 
 	.upd-sub {
 		margin-top: 2px;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		opacity: 0.85;
 		white-space: nowrap;
 		overflow: hidden;
@@ -171,33 +171,33 @@
 
 	.upd-text {
 		margin: 0 0 8px;
-		font-size: 15px;
+		font-size: 0.9375rem;
 		line-height: 1.6;
-		color: #334155;
+		color: var(--c-text-2);
 	}
 
 	.upd-error {
-		color: #C62828;
+		color: var(--c-danger);
 	}
 
 	.upd-hint {
 		margin: 8px 0;
-		font-size: 13px;
+		font-size: 0.8125rem;
 		line-height: 1.5;
-		color: #64748B;
+		color: var(--c-text-3);
 	}
 
 	.upd-progress {
 		height: 10px;
 		border-radius: 5px;
-		background: #E2E8F0;
+		background: var(--c-line);
 		overflow: hidden;
 	}
 
 	.upd-bar {
 		height: 100%;
 		border-radius: 5px;
-		background: linear-gradient(90deg, #2A6BC2, #174B8F);
+		background: linear-gradient(90deg, var(--c-accent), var(--c-primary-dark));
 		transition: width 0.2s ease;
 	}
 
@@ -205,8 +205,8 @@
 		display: flex;
 		justify-content: space-between;
 		margin-top: 6px;
-		font-size: 13px;
-		color: #475569;
+		font-size: 0.8125rem;
+		color: var(--c-text-2);
 		font-variant-numeric: tabular-nums;
 	}
 
@@ -221,18 +221,18 @@
 		height: 44px;
 		border: none;
 		border-radius: 12px;
-		font-size: 16px;
+		font-size: 1rem;
 		font-weight: 700;
 	}
 
 	.upd-btn.primary {
-		background: linear-gradient(135deg, #2A6BC2 0%, #1E5AA8 55%, #174B8F 100%);
-		color: #FFFFFF;
+		background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-primary) 55%, var(--c-primary-dark) 100%);
+		color: var(--c-on-primary);
 	}
 
 	.upd-btn.ghost {
-		background: #F1F5F9;
-		color: #475569;
+		background: var(--c-fill);
+		color: var(--c-text-2);
 	}
 
 	.upd-btn:active {

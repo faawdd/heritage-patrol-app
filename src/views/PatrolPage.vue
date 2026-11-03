@@ -4,7 +4,7 @@
 			<div class="u-page">
 				<AppHeader title="巡查上报" :subtitle="`第 ${currentStep + 1} 步 / 共 3 步 · ${stepTitles[currentStep]}`" />
 				<div class="u-card" v-if="taskNotice">{{ taskNotice }}</div>
-				<div class="u-card" v-if="draftError" style="color: #C62828">{{ draftError }}</div>
+				<div class="u-card" v-if="draftError" style="color: var(--c-danger)">{{ draftError }}</div>
 
 				<div class="u-body steps">
 					<van-steps :active="currentStep" class="step-progress" aria-label="巡查上报进度">
@@ -18,7 +18,7 @@
 						</div>
 
 						<div v-if="locating && !site" class="locating">
-							<AppIcon name="locate" :size="56" color="#94A3B8" />
+							<AppIcon name="locate" :size="56" color="var(--c-text-4)" />
 							<span>正在定位，查找附近文物点…</span>
 						</div>
 
@@ -37,22 +37,22 @@
 						</div>
 
 						<div v-else class="locating">
-							<AppIcon name="alert" :size="56" color="#B45309" />
+							<AppIcon name="alert" :size="56" color="var(--c-warning)" />
 							<span>{{ locateError || '附近没有找到文物点' }}</span>
 						</div>
 
 						<div v-if="site && isFar" class="far-tip">
-							<AppIcon name="alert" :size="40" color="#B45309" />
+							<AppIcon name="alert" :size="40" color="var(--c-warning)" />
 							<span>您离这个文物点较远，请确认是否在现场。</span>
 						</div>
 
 						<div class="row-btns">
 							<van-button v-if="!site" native-type="button" class="u-btn primary block" @click="openPicker">
-								<AppIcon name="search" :size="44" color="#FFFFFF" />
+								<AppIcon name="search" :size="44" color="var(--c-on-primary)" />
 								<span>选择文物点</span>
 							</van-button>
 							<van-button native-type="button" class="u-btn plain block" :disabled="locating" @click="locate">
-								<AppIcon name="refresh" :size="40" color="#334155" />
+								<AppIcon name="refresh" :size="40" color="var(--c-text-2)" />
 								<span>{{ locating ? '定位中…' : '重新定位' }}</span>
 							</van-button>
 						</div>
@@ -66,7 +66,7 @@
 						</div>
 						<div v-if="!photos.length" class="shoot" @click="takePhoto">
 							<div class="shoot-icon">
-								<AppIcon name="camera" :size="68" color="#FFFFFF" />
+								<AppIcon name="camera" :size="68" color="var(--c-on-primary)" />
 							</div>
 							<span class="shoot-text">{{ processing ? '正在处理照片…' : '点这里拍照' }}</span>
 							<span class="shoot-sub">照片会自动加上时间、地点水印</span>
@@ -77,7 +77,7 @@
 								<van-button native-type="button" class="u-btn sm" :disabled="processing || submitting" @click="removePhoto(index)">删除这张照片</van-button>
 							</div>
 							<van-button native-type="button" class="u-btn plain block" :disabled="processing || submitting" @click="takePhoto">
-								<AppIcon name="camera" :size="44" color="#334155" />
+								<AppIcon name="camera" :size="44" color="var(--c-text-2)" />
 								<span>继续拍照（{{ photos.length }}/20）</span>
 							</van-button>
 						</div>
@@ -92,11 +92,11 @@
 						</div>
 						<div class="status-row">
 							<div class="status-btn ok" :class="{ active: status === 'normal' }" @click="setStatus('normal')">
-								<AppIcon name="check-circle" :size="72" :color="status === 'normal' ? '#FFFFFF' : '#15803D'" />
+								<AppIcon name="check-circle" :size="72" :color="status === 'normal' ? 'var(--c-on-primary)' : 'var(--c-success)'" />
 								<span>正常</span>
 							</div>
 							<div class="status-btn bad" :class="{ active: status === 'problem' }" @click="setStatus('problem')">
-								<AppIcon name="alert" :size="72" :color="status === 'problem' ? '#FFFFFF' : '#C62828'" />
+								<AppIcon name="alert" :size="72" :color="status === 'problem' ? 'var(--c-on-primary)' : 'var(--c-danger)'" />
 								<span>有问题</span>
 							</div>
 						</div>
@@ -120,20 +120,6 @@
 							/>
 						</div>
 					</div>
-
-					<div class="step-actions" :class="{ 'final-step': currentStep === 2 }">
-						<van-button v-if="currentStep > 0" native-type="button" class="u-btn plain previous-step" :disabled="processing || submitting" @click="previousStep">
-							上一步
-						</van-button>
-						<van-button v-if="currentStep < 2" native-type="button" class="u-btn primary xl next-step" :disabled="!canGoNext" @click="nextStep">
-							{{ currentStep === 0 ? '确认文物点，下一步' : '照片已拍好，下一步' }}
-						</van-button>
-						<van-button v-else native-type="button" class="u-btn xl submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="!canSubmit || submitting" @click="submit">
-							<AppIcon name="upload" :size="44" :color="canSubmit ? '#FFFFFF' : '#94A3B8'" />
-							<span>{{ submitting ? '正在上报…' : '提交巡查' }}</span>
-						</van-button>
-					</div>
-					<span class="submit-hint" role="status">{{ stepHint }}</span>
 				</div>
 			</div>
 
@@ -143,11 +129,11 @@
 					<div class="sheet-head">
 						<span class="sheet-title">选择文物点</span>
 						<div class="sheet-close" @click="pickerOpen = false">
-							<AppIcon name="close" :size="48" color="#334155" />
+							<AppIcon name="close" :size="48" color="var(--c-text-2)" />
 						</div>
 					</div>
 					<div class="search">
-						<AppIcon name="search" :size="44" color="#64748B" />
+						<AppIcon name="search" :size="44" color="var(--c-text-3)" />
 						<input
 							v-model.trim="keyword"
 							class="search-input"
@@ -171,7 +157,7 @@
 								<span class="site-option-name">{{ item.name }}</span>
 								<span class="site-option-sub">{{ [item.level, item.address].filter(Boolean).join(' · ') || item.sip_code || '' }}</span>
 							</div>
-							<AppIcon v-if="site && site.id === item.id" name="check" :size="48" color="#1E5AA8" :stroke="3" />
+							<AppIcon v-if="site && site.id === item.id" name="check" :size="48" color="var(--c-primary)" :stroke="3" />
 						</div>
 					</div>
 				</div>
@@ -181,7 +167,7 @@
 			<div v-if="success" class="success-mask">
 				<div class="success u-fade-in">
 					<div class="success-icon">
-						<AppIcon name="check" :size="120" color="#FFFFFF" :stroke="3" />
+						<AppIcon name="check" :size="120" color="var(--c-on-primary)" :stroke="3" />
 					</div>
 					<span class="success-title">{{ success.pending ? '已保存到本机' : '上报成功' }}</span>
 					<span v-if="success.pending" class="success-sub">记录与照片已离线保存，联网后自动上传；可在记录页查看同步状态。</span>
@@ -189,6 +175,23 @@
 					<van-button native-type="button" class="u-btn primary xl block" @click="again">继续巡查</van-button>
 					<van-button native-type="button" class="u-btn ghost block" style="margin-top: 12px" @click="goRecords">查看我的记录</van-button>
 				</div>
+			</div>
+		</div>
+
+		<!-- 固定底部操作栏：始终可见，无需滚动 -->
+		<div class="patrol-footer">
+			<span class="submit-hint" role="status">{{ stepHint }}</span>
+			<div class="step-actions">
+				<van-button v-if="currentStep > 0" native-type="button" class="u-btn plain previous-step" :disabled="processing || submitting" @click="previousStep">
+					上一步
+				</van-button>
+				<van-button v-if="currentStep < 2" native-type="button" class="u-btn primary xl next-step" :disabled="!canGoNext" @click="nextStep">
+					{{ currentStep === 0 ? '确认文物点，下一步' : '照片已拍好，下一步' }}
+				</van-button>
+				<van-button v-else native-type="button" class="u-btn xl submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="!canSubmit || submitting" @click="submit">
+					<AppIcon name="upload" :size="44" :color="canSubmit ? 'var(--c-on-primary)' : 'var(--c-text-4)'" />
+					<span>{{ submitting ? '正在上报…' : '提交巡查' }}</span>
+				</van-button>
 			</div>
 		</div>
 	</div>
@@ -600,8 +603,8 @@
 <style scoped>
 /* ========== 巡查上报页面简约设计 - 专业文物巡查风格 ========== */
 .steps {
-	padding-top: 16px;
-	padding-bottom: 32px;
+	padding-top: 12px;
+	padding-bottom: 16px;
 }
 
 /* 步骤卡片 */
@@ -634,8 +637,8 @@
 	height: 28px;
 	border-radius: 50%;
 	background: var(--c-primary);
-	color: #FFFFFF;
-	font-size: 14px;
+	color: var(--c-on-primary);
+	font-size: 0.875rem;
 	font-weight: 600;
 	display: flex;
 	align-items: center;
@@ -648,7 +651,7 @@
 }
 
 .step-title {
-	font-size: 16px;
+	font-size: 1rem;
 	font-weight: 600;
 	color: var(--c-text);
 }
@@ -660,7 +663,7 @@
 	align-items: center;
 	gap: 10px;
 	padding: 20px 16px;
-	font-size: 14px;
+	font-size: 0.875rem;
 	color: var(--c-text-2);
 	text-align: center;
 }
@@ -685,14 +688,14 @@
 }
 
 .site-name {
-	font-size: 16px;
+	font-size: 1rem;
 	font-weight: 600;
 	color: var(--c-text);
 	line-height: 1.4;
 }
 
 .site-addr {
-	font-size: 13px;
+	font-size: 0.8125rem;
 	color: var(--c-text-2);
 }
 
@@ -717,7 +720,7 @@
 	border-radius: 10px;
 	background: var(--c-warning-bg);
 	color: var(--c-warning);
-	font-size: 13px;
+	font-size: 0.8125rem;
 	font-weight: 500;
 }
 
@@ -742,7 +745,7 @@
 }
 
 .shoot:active {
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border-color: var(--c-primary);
 }
 
@@ -750,23 +753,23 @@
 	width: 64px;
 	height: 64px;
 	border-radius: 50%;
-	background: linear-gradient(135deg, #3A7D68 0%, #245B4A 100%);
+	background: var(--g-primary);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	box-shadow: 0 3px 10px rgba(36, 91, 74, 0.25);
+	box-shadow: 0 3px 10px rgba(var(--c-primary-rgb), 0.25);
 }
 
 .shoot-text {
 	margin-top: 12px;
-	font-size: 16px;
+	font-size: 1rem;
 	font-weight: 600;
 	color: var(--c-text);
 }
 
 .shoot-sub {
 	margin-top: 4px;
-	font-size: 13px;
+	font-size: 0.8125rem;
 	color: var(--c-text-3);
 }
 
@@ -802,7 +805,7 @@
 	align-items: center;
 	justify-content: center;
 	gap: 6px;
-	font-size: 15px;
+	font-size: 0.9375rem;
 	font-weight: 600;
 	border: 2px solid;
 	transition: all 150ms ease;
@@ -822,14 +825,14 @@
 }
 
 .status-btn.ok.active {
-	color: #FFFFFF;
+	color: var(--c-on-primary);
 	background: var(--c-success);
 	border-color: var(--c-success);
 	box-shadow: var(--shadow-md);
 }
 
 .status-btn.bad.active {
-	color: #FFFFFF;
+	color: var(--c-on-primary);
 	background: var(--c-danger);
 	border-color: var(--c-danger);
 	box-shadow: var(--shadow-md);
@@ -846,7 +849,7 @@
 
 .issue-label {
 	display: block;
-	font-size: 14px;
+	font-size: 0.875rem;
 	font-weight: 600;
 	color: var(--c-text);
 	margin-bottom: 10px;
@@ -862,8 +865,8 @@
 	padding: 8px 14px;
 	border-radius: 20px;
 	border: 1px solid var(--c-line);
-	background: #FFFFFF;
-	font-size: 13px;
+	background: var(--c-surface);
+	font-size: 0.8125rem;
 	color: var(--c-text-2);
 	transition: all 150ms ease;
 	cursor: pointer;
@@ -889,7 +892,7 @@
 	border-radius: 10px;
 	border: 1px solid var(--c-line);
 	background: var(--c-fill);
-	font-size: 14px;
+	font-size: 0.875rem;
 	color: var(--c-text);
 	box-sizing: border-box;
 	font-family: inherit;
@@ -900,7 +903,7 @@
 
 .issue-input:focus {
 	border-color: var(--c-primary);
-	background: #FFFFFF;
+	background: var(--c-surface);
 }
 
 .issue-input::placeholder,
@@ -908,17 +911,25 @@
 	color: var(--c-text-4);
 }
 
-/* 提交按钮 */
+/* 固定底部操作栏 */
+.patrol-footer {
+	flex-shrink: 0;
+	padding: 8px 16px 10px;
+	background: var(--c-surface);
+	border-top: 1px solid var(--c-line);
+	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+}
+
 .step-actions {
 	display: flex;
 	align-items: center;
 	gap: 12px;
 	width: 100%;
-	margin-top: 8px;
 }
 
 .previous-step {
 	flex: 0 0 auto;
+	height: 48px;
 }
 
 .next-step,
@@ -926,8 +937,8 @@
 	flex: 1;
 	min-width: 0;
 	margin: 0;
-	height: 52px;
-	font-size: 15px;
+	height: 48px;
+	font-size: 0.9375rem;
 	font-weight: 600;
 	border-radius: var(--r-btn);
 }
@@ -940,26 +951,11 @@
 	gap: 8px;
 }
 
-.step-actions.final-step {
-	flex-direction: column;
-}
-
-.final-step .submit {
-	flex: none;
-	width: 100%;
-	order: 0;
-}
-
-.final-step .previous-step {
-	width: 100%;
-	order: 1;
-}
-
 .submit-hint {
 	display: block;
-	margin: 8px 16px 16px;
+	margin: 0 0 8px;
 	text-align: center;
-	font-size: 13px;
+	font-size: 0.8125rem;
 	color: var(--c-text-3);
 }
 
@@ -972,7 +968,7 @@
 	top: 0;
 	bottom: 0;
 	z-index: 1000;
-	background: rgba(22, 28, 25, 0.55);
+	background: var(--c-mask);
 	display: flex;
 }
 
@@ -984,7 +980,7 @@
 .sheet {
 	width: 100%;
 	height: 85vh;
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border-radius: 16px 16px 0 0;
 	display: flex;
 	flex-direction: column;
@@ -999,7 +995,7 @@
 }
 
 .sheet-title {
-	font-size: 18px;
+	font-size: 1.125rem;
 	font-weight: 600;
 	color: var(--c-text);
 }
@@ -1029,15 +1025,15 @@
 }
 
 .search:focus-within {
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border-color: var(--c-primary);
-	box-shadow: 0 0 0 2px rgba(36, 91, 74, 0.12);
+	box-shadow: 0 0 0 2px rgba(var(--c-primary-rgb), 0.12);
 }
 
 .search-input {
 	flex: 1;
 	height: 100%;
-	font-size: 15px;
+	font-size: 0.9375rem;
 	border: none;
 	outline: none;
 	background: transparent;
@@ -1079,13 +1075,13 @@
 }
 
 .site-option-name {
-	font-size: 15px;
+	font-size: 0.9375rem;
 	font-weight: 600;
 	color: var(--c-text);
 }
 
 .site-option-sub {
-	font-size: 12px;
+	font-size: 0.75rem;
 	color: var(--c-text-3);
 }
 
@@ -1101,7 +1097,7 @@
 	max-width: 360px;
 	padding: 28px 24px 20px;
 	border-radius: 18px;
-	background: #FFFFFF;
+	background: var(--c-surface);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -1122,14 +1118,14 @@
 
 .success-title {
 	margin-top: 18px;
-	font-size: 20px;
+	font-size: 1.25rem;
 	font-weight: 600;
 	color: var(--c-success);
 }
 
 .success-sub {
 	margin: 8px 0 20px;
-	font-size: 14px;
+	font-size: 0.875rem;
 	color: var(--c-text-2);
 	text-align: center;
 	line-height: 1.5;

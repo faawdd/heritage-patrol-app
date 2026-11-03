@@ -18,20 +18,20 @@
 				<!-- 主操作按钮 - 最大最醒目 -->
 				<van-button native-type="button" class="primary-action" @click="goPatrol">
 					<div class="primary-action-icon">
-						<AppIcon name="camera" :size="56" color="#FFFFFF" :stroke="2" />
+						<AppIcon name="camera" :size="56" color="var(--c-on-primary)" :stroke="2" />
 					</div>
 					<div class="primary-action-text">
 						<span class="primary-action-title">开始巡查</span>
 						<span class="primary-action-sub">拍照上报文物点情况</span>
 					</div>
-					<AppIcon name="arrow-right" :size="32" color="#FFFFFF" :stroke="2.5" />
+					<AppIcon name="arrow-right" :size="32" color="var(--c-on-primary)" :stroke="2.5" />
 				</van-button>
 
 				<!-- 今日统计 - 简洁卡片 -->
 				<div class="stats-card">
 					<div class="stats-header" @click="goRecords">
 						<div class="stats-status" :class="todayCount ? 'done' : 'pending'">
-							<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="28" :color="todayCount ? '#10B981' : '#F59E0B'" />
+							<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="28" :color="todayCount ? 'var(--c-success)' : 'var(--c-warning)'" />
 							<span>{{ todayCount ? `今日已巡查 ${todayCount} 次` : '今日待巡查' }}</span>
 						</div>
 						<span class="stats-link">查看记录</span>
@@ -60,7 +60,7 @@
 				<div class="site-card">
 					<div v-if="siteState === 'loading'" class="site-loading">
 						<div class="site-icon">
-							<AppIcon name="locate" :size="36" color="#94A3B8" />
+							<AppIcon name="locate" :size="36" color="var(--c-text-4)" />
 						</div>
 						<div class="site-info">
 							<span class="site-label">最近文物点</span>
@@ -69,7 +69,7 @@
 					</div>
 					<div v-else-if="siteState === 'ok'" class="site-content" @click="goPatrol">
 						<div class="site-icon success">
-							<AppIcon name="landmark" :size="36" color="#2563EB" />
+							<AppIcon name="landmark" :size="36" color="var(--c-primary)" />
 						</div>
 						<div class="site-info">
 							<span class="site-label">最近文物点</span>
@@ -82,7 +82,7 @@
 					</div>
 					<div v-else class="site-error">
 						<div class="site-icon warning">
-							<AppIcon name="alert" :size="36" color="#F59E0B" />
+							<AppIcon name="alert" :size="36" color="var(--c-warning)" />
 						</div>
 						<div class="site-info">
 							<span class="site-label">最近文物点</span>
@@ -129,7 +129,7 @@
 							@click="goRecords"
 						>
 							<div class="recent-status" :class="item.is_normal ? 'ok' : 'bad'">
-								<AppIcon :name="item.is_normal ? 'check-circle' : 'alert'" :size="24" :color="item.is_normal ? '#10B981' : '#EF4444'" />
+								<AppIcon :name="item.is_normal ? 'check-circle' : 'alert'" :size="24" :color="item.is_normal ? 'var(--c-success)' : 'var(--c-danger)'" />
 							</div>
 							<div class="recent-content">
 								<span class="recent-name">{{ item.site_name }}</span>
@@ -155,12 +155,12 @@
 	import { dateLabel, formatDistance, friendlyTime, getLocation, greeting, monthKey, todayKey } from '@/lib/format.js';
 
 	const ADMIN_FEATURES = [
-		{ key: 'heritages', name: '文物点管理', icon: 'landmark', url: '/tabs/admin', color: '#245B4A', bg: '#E8F0ED' },
-		{ key: 'projects', name: '建设项目', icon: 'file', url: '/tabs/admin?tab=projects', color: '#B87333', bg: '#FDF5ED' },
-		{ key: 'collect', name: '现场采集', icon: 'map', url: '/collect', color: '#2D7A5F', bg: '#E8F5F0' },
-		{ key: 'collectRecords', name: '采集记录', icon: 'records', url: '/collect/records', color: '#3D6B8C', bg: '#EDF3F8' },
-		{ key: 'kml', name: 'KML 检查', icon: 'grid', url: '/kml', color: '#5C7A6F', bg: '#EFF2F1' },
-		{ key: 'tools', name: '管理工具', icon: 'chart', url: '/tabs/admin?tab=tools', color: '#B84A3D', bg: '#FDF0EE' },
+		{ key: 'heritages', name: '文物点管理', icon: 'landmark', url: '/tabs/admin', color: 'var(--c-primary)', bg: 'var(--c-primary-light)' },
+		{ key: 'projects', name: '建设项目', icon: 'file', url: '/tabs/admin?tab=projects', color: 'var(--c-warning)', bg: 'var(--c-warning-bg)' },
+		{ key: 'collect', name: '现场采集', icon: 'map', url: '/collect', color: 'var(--c-success)', bg: 'var(--c-success-bg)' },
+		{ key: 'collectRecords', name: '采集记录', icon: 'records', url: '/collect/records', color: 'var(--c-info)', bg: 'var(--c-info-bg)' },
+		{ key: 'kml', name: 'KML 检查', icon: 'grid', url: '/kml', color: '#5C7A6F', bg: 'var(--c-fill)' },
+		{ key: 'tools', name: '管理工具', icon: 'chart', url: '/tabs/admin?tab=tools', color: 'var(--c-danger)', bg: 'var(--c-danger-bg)' },
 	];
 
 	export default {
@@ -307,9 +307,9 @@
 
 /* 简洁头部 - 使用深绿色渐变 */
 .home-header {
-	background: linear-gradient(135deg, #2D7A5F 0%, #245B4A 100%);
-	padding: 20px 16px 24px;
-	padding-top: calc(env(safe-area-inset-top) + 20px);
+	background: var(--g-primary);
+	padding: 12px 16px 16px;
+	padding-top: calc(env(safe-area-inset-top) + 12px);
 }
 
 .header-top {
@@ -326,9 +326,9 @@
 
 .header-title {
 	margin: 0;
-	font-size: 22px;
+	font-size: 1.25rem;
 	font-weight: 600;
-	color: #FFFFFF;
+	color: var(--c-on-primary);
 	line-height: 1.3;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -337,8 +337,9 @@
 
 .header-date {
 	margin: 4px 0 0;
-	font-size: 13px;
-	color: rgba(255, 255, 255, 0.85);
+	font-size: 0.8125rem;
+	color: var(--c-on-primary);
+	opacity: 0.85;
 	font-weight: 400;
 }
 
@@ -348,30 +349,29 @@
 	border-radius: 20px;
 	background: rgba(255, 255, 255, 0.18);
 	border: 1px solid rgba(255, 255, 255, 0.25);
-	font-size: 12px;
+	font-size: 0.75rem;
 	font-weight: 500;
-	color: #FFFFFF;
+	color: var(--c-on-primary);
 	white-space: nowrap;
 }
 
 /* 主体内容 */
 .home-body {
-	padding: 16px;
-	padding-bottom: 32px;
+	padding: 12px 16px 24px;
 }
 
 /* 主操作按钮 - 最大最醒目，使用绿色渐变 */
 .primary-action {
 	display: flex;
 	align-items: center;
-	gap: 16px;
+	gap: 14px;
 	width: 100%;
-	padding: 20px;
-	margin-bottom: 16px;
+	padding: 16px;
+	margin-bottom: 12px;
 	border: none;
 	border-radius: 16px;
-	background: linear-gradient(135deg, #3A7D68 0%, #245B4A 100%);
-	box-shadow: 0 4px 16px rgba(36, 91, 74, 0.25);
+	background: var(--g-primary);
+	box-shadow: 0 4px 16px rgba(var(--c-primary-rgb), 0.25);
 	cursor: pointer;
 	transition: all 150ms ease;
 	text-align: left;
@@ -379,12 +379,12 @@
 
 .primary-action:active {
 	transform: scale(0.98);
-	box-shadow: 0 2px 8px rgba(36, 91, 74, 0.20);
+	box-shadow: 0 2px 8px rgba(var(--c-primary-rgb), 0.20);
 }
 
 .primary-action-icon {
-	width: 60px;
-	height: 60px;
+	width: 52px;
+	height: 52px;
 	border-radius: 14px;
 	background: rgba(255, 255, 255, 0.18);
 	display: flex;
@@ -402,21 +402,22 @@
 }
 
 .primary-action-title {
-	font-size: 20px;
+	font-size: 1.125rem;
 	font-weight: 600;
-	color: #FFFFFF;
+	color: var(--c-on-primary);
 	letter-spacing: 0.3px;
 }
 
 .primary-action-sub {
-	font-size: 13px;
-	color: rgba(255, 255, 255, 0.9);
+	font-size: 0.8125rem;
+	color: var(--c-on-primary);
+	opacity: 0.9;
 	font-weight: 400;
 }
 
 /* 统计卡片 */
 .stats-card {
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border-radius: var(--r-card);
 	padding: 16px;
 	margin-bottom: 12px;
@@ -437,7 +438,7 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	font-size: 14px;
+	font-size: 0.875rem;
 	font-weight: 500;
 }
 
@@ -450,7 +451,7 @@
 }
 
 .stats-link {
-	font-size: 13px;
+	font-size: 0.8125rem;
 	color: var(--c-primary);
 	font-weight: 500;
 	background: none;
@@ -460,12 +461,13 @@
 }
 
 .stats-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+	display: flex;
 	gap: 8px;
 }
 
 .stat-item {
+	flex: 1;
+	min-width: 0;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -475,7 +477,7 @@
 }
 
 .stat-value {
-	font-size: 22px;
+	font-size: 1.25rem;
 	font-weight: 600;
 	color: var(--c-primary);
 	line-height: 1.2;
@@ -488,14 +490,14 @@
 
 .stat-label {
 	margin-top: 2px;
-	font-size: 11px;
+	font-size: 0.6875rem;
 	color: var(--c-text-3);
 	font-weight: 500;
 }
 
 /* 文物点卡片 */
 .site-card {
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border-radius: var(--r-card);
 	padding: 16px;
 	margin-bottom: 12px;
@@ -542,13 +544,13 @@
 }
 
 .site-label {
-	font-size: 11px;
+	font-size: 0.6875rem;
 	color: var(--c-text-3);
 	font-weight: 500;
 }
 
 .site-name {
-	font-size: 15px;
+	font-size: 0.9375rem;
 	font-weight: 600;
 	color: var(--c-text);
 	overflow: hidden;
@@ -557,7 +559,7 @@
 }
 
 .site-address {
-	font-size: 12px;
+	font-size: 0.75rem;
 	color: var(--c-text-3);
 	overflow: hidden;
 	white-space: nowrap;
@@ -565,7 +567,7 @@
 }
 
 .site-status {
-	font-size: 13px;
+	font-size: 0.8125rem;
 	color: var(--c-text-2);
 }
 
@@ -574,7 +576,7 @@
 }
 
 .distance-value {
-	font-size: 14px;
+	font-size: 0.875rem;
 	font-weight: 600;
 	color: var(--c-primary);
 }
@@ -584,8 +586,8 @@
 	padding: 8px 16px;
 	border: 1px solid var(--c-line);
 	border-radius: 8px;
-	background: #FFFFFF;
-	font-size: 13px;
+	background: var(--c-surface);
+	font-size: 0.8125rem;
 	font-weight: 500;
 	color: var(--c-primary);
 	cursor: pointer;
@@ -602,24 +604,24 @@
 	display: flex;
 	align-items: baseline;
 	justify-content: space-between;
-	margin: 20px 4px 10px;
+	margin: 14px 4px 8px;
 }
 
 .section-title {
 	margin: 0;
-	font-size: 17px;
+	font-size: 1.0625rem;
 	font-weight: 600;
 	color: var(--c-text);
 }
 
 .section-summary {
-	font-size: 12px;
+	font-size: 0.75rem;
 	color: var(--c-text-3);
 	font-weight: 400;
 }
 
 .section-link {
-	font-size: 13px;
+	font-size: 0.8125rem;
 	color: var(--c-primary);
 	font-weight: 500;
 	background: none;
@@ -643,7 +645,7 @@
 	padding: 14px 8px;
 	border: none;
 	border-radius: var(--r-card);
-	background: #FFFFFF;
+	background: var(--c-surface);
 	box-shadow: var(--shadow-sm);
 	cursor: pointer;
 	transition: all 150ms ease;
@@ -651,7 +653,7 @@
 
 .admin-item:active {
 	transform: scale(0.97);
-	box-shadow: 0 1px 3px rgba(36, 91, 74, 0.06);
+	box-shadow: 0 1px 3px rgba(var(--c-primary-rgb), 0.06);
 }
 
 .admin-icon {
@@ -664,7 +666,7 @@
 }
 
 .admin-name {
-	font-size: 12px;
+	font-size: 0.75rem;
 	font-weight: 500;
 	color: var(--c-text);
 	text-align: center;
@@ -672,7 +674,7 @@
 
 /* 最近巡查列表 */
 .recent-list {
-	background: #FFFFFF;
+	background: var(--c-surface);
 	border-radius: var(--r-card);
 	box-shadow: var(--shadow-sm);
 	overflow: hidden;
@@ -726,7 +728,7 @@
 }
 
 .recent-name {
-	font-size: 14px;
+	font-size: 0.875rem;
 	font-weight: 600;
 	color: var(--c-text);
 	overflow: hidden;
@@ -735,7 +737,7 @@
 }
 
 .recent-time {
-	font-size: 12px;
+	font-size: 0.75rem;
 	color: var(--c-text-3);
 }
 
@@ -743,7 +745,7 @@
 	flex-shrink: 0;
 	padding: 3px 8px;
 	border-radius: var(--r-badge);
-	font-size: 11px;
+	font-size: 0.6875rem;
 	font-weight: 500;
 }
 

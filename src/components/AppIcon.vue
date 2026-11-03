@@ -5,7 +5,8 @@
 		:height="px"
 		viewBox="0 0 24 24"
 		fill="none"
-		:stroke="color"
+		stroke="currentColor"
+		:style="{ color }"
 		:stroke-width="stroke"
 		stroke-linecap="round"
 		stroke-linejoin="round"
@@ -62,7 +63,7 @@
 		props: {
 			name: { type: String, required: true },
 			size: { type: Number, default: 44 },
-			color: { type: String, default: '#1E5AA8' },
+			color: { type: String, default: 'currentColor' },
 			stroke: { type: Number, default: 2 },
 		},
 		computed: {

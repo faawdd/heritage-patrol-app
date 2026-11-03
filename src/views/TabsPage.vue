@@ -18,9 +18,9 @@
 			<van-tabbar-item v-for="item in navItems" :key="item.key" :name="item.key" :class="{ main: item.main }">
 				<template #icon="{ active }">
 					<div v-if="item.main" class="tab-main">
-						<AppIcon name="camera" :size="48" color="#FFFFFF" :stroke="2" />
+						<AppIcon name="camera" :size="48" color="var(--c-on-primary)" :stroke="2" />
 					</div>
-					<AppIcon v-else :name="item.icon" :size="40" :color="active ? '#2563EB' : '#94A3B8'" :stroke="active ? 2.2 : 1.8" />
+					<AppIcon v-else :name="item.icon" :size="40" :color="active ? 'var(--c-primary)' : 'var(--c-text-4)'" :stroke="active ? 2.2 : 1.8" />
 				</template>
 				{{ item.name }}
 			</van-tabbar-item>
@@ -76,14 +76,14 @@
 	.app-tabbar {
 		flex-shrink: 0;
 		--van-tabbar-height: 60px;
-		--van-tabbar-item-font-size: 12px;
-		--van-tabbar-item-text-color: #77817B;
-		--van-tabbar-item-active-color: #245B4A;
+		--van-tabbar-item-font-size: 0.75rem;
+		--van-tabbar-item-text-color: var(--c-text-3);
+		--van-tabbar-item-active-color: var(--c-primary);
 		border-top: 1px solid var(--c-line);
 		z-index: 2;
 	}
 	.app-tabbar .van-tabbar-item {
-		font-size: 12px;
+		font-size: 0.75rem;
 		font-weight: 500;
 		min-width: 0;
 	}
@@ -98,8 +98,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: linear-gradient(135deg, #3A7D68 0%, #245B4A 100%);
-		border: 2.5px solid #FFFFFF;
-		box-shadow: 0 3px 10px rgba(36, 91, 74, 0.25);
+		background: var(--g-primary);
+		border: 2.5px solid var(--c-surface);
+		box-shadow: 0 3px 10px rgba(var(--c-primary-rgb), 0.25);
 	}
 </style>

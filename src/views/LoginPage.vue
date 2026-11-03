@@ -4,7 +4,7 @@
 			<div class="login-page">
 				<div class="login-hero" :class="{ 'has-avatar': mode === 'gesture' || mode === 'biometric' }" style="padding-top: calc(env(safe-area-inset-top) + 40px)">
 					<div class="brand-mark">
-						<AppIcon name="landmark" :size="76" color="#FFFFFF" :stroke="1.8" />
+						<AppIcon name="landmark" :size="76" color="var(--c-on-primary)" :stroke="1.8" />
 					</div>
 					<span class="brand-title">鄯善文保巡查</span>
 					<span class="brand-sub">文物看护 · 日常巡查上报</span>
@@ -23,7 +23,7 @@
 
 						<template v-else>
 							<div class="bio-btn" @click="startBiometric">
-								<AppIcon :name="quick.biometric === 'facial' ? 'face' : 'fingerprint'" :size="140" color="#1E5AA8" :stroke="1.6" />
+								<AppIcon :name="quick.biometric === 'facial' ? 'face' : 'fingerprint'" :size="140" color="var(--c-primary)" :stroke="1.6" />
 							</div>
 							<span class="unlock-tip" :class="{ error: tipError }">{{ tip || `点击上方图标，验证${bioLabel}登录` }}</span>
 						</template>
@@ -47,16 +47,16 @@
 					<!-- 登录后开启快捷登录 -->
 					<div v-else-if="mode === 'setup'" class="setup">
 						<div class="setup-icon">
-							<AppIcon name="shield" :size="88" color="#15803D" />
+							<AppIcon name="shield" :size="88" color="var(--c-success)" />
 						</div>
 						<span class="setup-title">开启快捷登录</span>
 						<span class="setup-desc">开启后，下次打开软件不用再输入密码，画一下手势或按一下指纹就能登录。</span>
 						<van-button native-type="button" v-if="bio.fingerprint || bio.facial" class="u-btn primary xl block setup-btn" :disabled="busy" @click="setupBiometric">
-							<AppIcon :name="bio.fingerprint ? 'fingerprint' : 'face'" :size="56" color="#FFFFFF" />
+							<AppIcon :name="bio.fingerprint ? 'fingerprint' : 'face'" :size="56" color="var(--c-on-primary)" />
 							<span>使用{{ bio.fingerprint ? '指纹' : '面容' }}登录</span>
 						</van-button>
 						<van-button native-type="button" class="u-btn xl block setup-btn" :class="bio.fingerprint || bio.facial ? 'ghost' : 'primary'" :disabled="busy" @click="mode = 'setGesture'">
-							<AppIcon name="gesture" :size="56" :color="bio.fingerprint || bio.facial ? '#1E5AA8' : '#FFFFFF'" />
+							<AppIcon name="gesture" :size="56" :color="bio.fingerprint || bio.facial ? 'var(--c-primary)' : '#FFFFFF'" />
 							<span>设置手势密码</span>
 						</van-button>
 						<div class="skip" @click="finishLogin">以后再说</div>
@@ -70,13 +70,13 @@
 					<div v-else class="form">
 						<span class="form-title">账号登录</span>
 						<div v-if="expired" class="notice">
-							<AppIcon name="info" :size="40" color="#B45309" />
+							<AppIcon name="info" :size="40" color="var(--c-warning)" />
 							<span>登录已过期，请重新输入密码</span>
 						</div>
 
 						<span class="label">账号</span>
 						<div class="field" :class="{ focus: focus === 'u' }">
-							<AppIcon name="user" :size="48" color="#64748B" />
+							<AppIcon name="user" :size="48" color="var(--c-text-3)" />
 							<van-field
 								v-model="form.username"
 								:formatter="value => value.trim()"
@@ -90,7 +90,7 @@
 
 						<span class="label">密码</span>
 						<div class="field" :class="{ focus: focus === 'p' }">
-							<AppIcon name="lock" :size="48" color="#64748B" />
+							<AppIcon name="lock" :size="48" color="var(--c-text-3)" />
 							<van-field
 								v-model="form.password"
 								:border="false"
@@ -103,7 +103,7 @@
 								@keyup.enter="handleLogin"
 							/>
 							<div class="eye" @click="showPwd = !showPwd">
-								<AppIcon :name="showPwd ? 'eye' : 'eye-off'" :size="48" color="#64748B" />
+								<AppIcon :name="showPwd ? 'eye' : 'eye-off'" :size="48" color="var(--c-text-3)" />
 							</div>
 						</div>
 
@@ -437,7 +437,7 @@
 <style scoped>
 	.login-page {
 		min-height: 100%;
-		background: var(--c-bg, #F4F6F5);
+		background: var(--c-bg, var(--c-bg));
 		display: flex;
 		flex-direction: column;
 	}
@@ -447,8 +447,8 @@
 		flex-direction: column;
 		align-items: center;
 		padding-bottom: 70px;
-		background: linear-gradient(135deg, #3A7D68 0%, #245B4A 100%);
-		color: #FFFFFF;
+		background: var(--g-primary);
+		color: var(--c-on-primary);
 		position: relative;
 		overflow: hidden;
 	}
@@ -464,7 +464,7 @@
 		right: 0;
 		bottom: 0;
 		height: 20px;
-		background: var(--c-bg, #F4F6F5);
+		background: var(--c-bg, var(--c-bg));
 	}
 
 	.brand-mark {
@@ -480,14 +480,14 @@
 
 	.brand-title {
 		margin-top: 12px;
-		font-size: 26px;
+		font-size: 1.625rem;
 		font-weight: 600;
 		letter-spacing: 2px;
 	}
 
 	.brand-sub {
 		margin-top: 4px;
-		font-size: 14px;
+		font-size: 0.875rem;
 		color: rgba(255, 255, 255, 0.85);
 		letter-spacing: 1px;
 	}
@@ -497,16 +497,16 @@
 		z-index: 2;
 		margin: -48px 16px 0;
 		padding: 20px 18px;
-		background: #FFFFFF;
+		background: var(--c-surface);
 		border-radius: var(--r-card, 12px);
-		box-shadow: var(--shadow-lg, 0 4px 16px rgba(36, 91, 74, 0.10));
+		box-shadow: var(--shadow-lg, 0 4px 16px rgba(var(--c-primary-rgb), 0.10));
 	}
 
 	.form-title {
 		display: block;
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 600;
-		color: var(--c-text, #26332D);
+		color: var(--c-text, var(--c-text));
 		margin-bottom: 6px;
 	}
 
@@ -517,18 +517,18 @@
 		margin: 8px 0 4px;
 		padding: 10px 12px;
 		border-radius: 10px;
-		background: var(--c-warning-bg, #FDF5ED);
-		color: var(--c-warning, #B87333);
-		font-size: 14px;
+		background: var(--c-warning-bg, var(--c-warning-bg));
+		color: var(--c-warning, var(--c-warning));
+		font-size: 0.875rem;
 		font-weight: 500;
 	}
 
 	.label {
 		display: block;
 		margin: 14px 0 6px;
-		font-size: 15px;
+		font-size: 0.9375rem;
 		font-weight: 600;
-		color: var(--c-text, #26332D);
+		color: var(--c-text, var(--c-text));
 	}
 
 	.field {
@@ -538,14 +538,14 @@
 		height: 54px;
 		padding: 0 14px;
 		border-radius: var(--r-input, 8px);
-		background: var(--c-fill, #F9FAF9);
-		border: 1px solid var(--c-line, #E4E9E5);
+		background: var(--c-fill, var(--c-fill));
+		border: 1px solid var(--c-line, var(--c-line));
 	}
 
 	.field.focus {
-		border-color: var(--c-primary, #245B4A);
-		background: #FFFFFF;
-		box-shadow: 0 0 0 2px rgba(36, 91, 74, 0.12);
+		border-color: var(--c-primary, var(--c-primary));
+		background: var(--c-surface);
+		box-shadow: 0 0 0 2px rgba(var(--c-primary-rgb), 0.12);
 	}
 
 	.field-input {
@@ -556,8 +556,8 @@
 		font-family: inherit;
 		flex: 1;
 		height: 100%;
-		font-size: 16px;
-		color: var(--c-text, #26332D);
+		font-size: 1rem;
+		color: var(--c-text, var(--c-text));
 	}
 
 	.eye {
@@ -575,13 +575,13 @@
 	}
 
 	.link {
-		font-size: 14px;
-		color: var(--c-text-3, #77817B);
+		font-size: 0.875rem;
+		color: var(--c-text-3, var(--c-text-3));
 		padding: 6px 0;
 	}
 
 	.link.strong {
-		color: var(--c-primary, #245B4A);
+		color: var(--c-primary, var(--c-primary));
 		font-weight: 600;
 	}
 
@@ -595,35 +595,35 @@
 		width: 60px;
 		height: 60px;
 		border-radius: 50%;
-		background: linear-gradient(135deg, #3A7D68, #245B4A);
-		color: #FFFFFF;
-		font-size: 20px;
+		background: var(--g-primary);
+		color: var(--c-on-primary);
+		font-size: 1.25rem;
 		font-weight: 600;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		margin-top: -50px;
 		border: 3px solid #FFFFFF;
-		box-shadow: var(--shadow-md, 0 2px 8px rgba(36, 91, 74, 0.08));
+		box-shadow: var(--shadow-md, 0 2px 8px rgba(var(--c-primary-rgb), 0.08));
 	}
 
 	.welcome {
 		margin-top: 10px;
-		font-size: 18px;
+		font-size: 1.125rem;
 		font-weight: 600;
-		color: var(--c-text, #26332D);
+		color: var(--c-text, var(--c-text));
 	}
 
 	.unlock-tip {
 		margin: 8px 0 12px;
 		min-height: 22px;
-		font-size: 14px;
-		color: var(--c-text-2, #4A5D54);
+		font-size: 0.875rem;
+		color: var(--c-text-2, var(--c-text-2));
 		text-align: center;
 	}
 
 	.unlock-tip.error {
-		color: var(--c-danger, #B84A3D);
+		color: var(--c-danger, var(--c-danger));
 		font-weight: 600;
 	}
 
@@ -632,11 +632,11 @@
 		width: 110px;
 		height: 110px;
 		border-radius: 50%;
-		background: var(--c-primary-light, #E8F0ED);
+		background: var(--c-primary-light, var(--c-primary-light));
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		box-shadow: 0 0 0 8px rgba(36, 91, 74, 0.08);
+		box-shadow: 0 0 0 8px rgba(var(--c-primary-rgb), 0.08);
 	}
 
 	.bio-btn:active {
@@ -657,9 +657,9 @@
 		gap: 5px;
 		padding: 8px 14px;
 		border-radius: 20px;
-		background: var(--c-primary-light, #E8F0ED);
-		color: var(--c-primary, #245B4A);
-		font-size: 14px;
+		background: var(--c-primary-light, var(--c-primary-light));
+		color: var(--c-primary, var(--c-primary));
+		font-size: 0.875rem;
 		font-weight: 500;
 	}
 
@@ -674,7 +674,7 @@
 		width: 70px;
 		height: 70px;
 		border-radius: 50%;
-		background: var(--c-success-bg, #E8F5F0);
+		background: var(--c-success-bg, var(--c-success-bg));
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -682,15 +682,15 @@
 
 	.setup-title {
 		margin-top: 12px;
-		font-size: 20px;
+		font-size: 1.25rem;
 		font-weight: 600;
-		color: var(--c-text, #26332D);
+		color: var(--c-text, var(--c-text));
 	}
 
 	.setup-desc {
 		margin: 8px 0 18px;
-		font-size: 14px;
-		color: var(--c-text-2, #4A5D54);
+		font-size: 0.875rem;
+		color: var(--c-text-2, var(--c-text-2));
 		line-height: 1.6;
 	}
 
@@ -700,15 +700,15 @@
 
 	.skip {
 		padding: 10px 20px;
-		font-size: 14px;
-		color: var(--c-text-3, #77817B);
+		font-size: 0.875rem;
+		color: var(--c-text-3, var(--c-text-3));
 	}
 
 	.version {
 		margin: auto 0 0;
 		padding: 20px 0 calc(14px + env(safe-area-inset-bottom));
 		text-align: center;
-		font-size: 12px;
-		color: var(--c-text-4, #A8B0AB);
+		font-size: 0.75rem;
+		color: var(--c-text-4, var(--c-text-4));
 	}
 </style>

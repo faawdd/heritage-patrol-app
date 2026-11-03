@@ -156,18 +156,18 @@ const activePointId = ref('');
 const surveyRef = ref(null);
 
 const pointThemes = [
-  { bg: '#FFFBE6', border: '#FFE58F' },
-  { bg: '#F6FFED', border: '#B7EB8F' },
-  { bg: '#E6F7FF', border: '#91D5FF' },
+  { bg: 'var(--c-warning-bg)', border: 'rgba(var(--c-warning-rgb), 0.45)' },
+  { bg: 'var(--c-success-bg)', border: 'rgba(var(--c-success-rgb), 0.45)' },
+  { bg: 'var(--c-info-bg)', border: 'rgba(var(--c-info-rgb), 0.45)' },
   { bg: '#F9F0FF', border: '#D3ADF7' },
-  { bg: '#FFF1F0', border: '#FFA39E' },
+  { bg: 'var(--c-danger-bg)', border: 'rgba(var(--c-danger-rgb), 0.45)' },
   { bg: '#FCFFE6', border: '#D3F261' },
   { bg: '#E6FFFB', border: '#87E8DE' },
-  { bg: '#F0F5FF', border: '#ADC6FF' },
-  { bg: '#FFF7E6', border: '#FFD591' },
+  { bg: 'var(--c-primary-light)', border: 'rgba(var(--c-primary-rgb), 0.45)' },
+  { bg: 'var(--c-warning-bg)', border: 'rgba(var(--c-warning-rgb), 0.45)' },
   { bg: '#F4FFB8', border: '#D3F261' },
   { bg: '#FFF0F6', border: '#FFADD2' },
-  { bg: '#E6F4FF', border: '#69B1FF' },
+  { bg: 'var(--c-info-bg)', border: 'rgba(var(--c-info-rgb), 0.45)' },
 ];
 let uidSeed = 0;
 
@@ -450,10 +450,10 @@ defineExpose({
 
 <style scoped>
 .coord-card {
-  background: #ffffff;
+  background: var(--c-surface);
   border-radius: 7px;
   padding: 10px 10px 5px;
-  border: 0.5px solid #eef1f5;
+  border: 0.5px solid var(--c-fill);
 }
 
 .card-head {
@@ -465,14 +465,14 @@ defineExpose({
 }
 
 .card-title {
-  font-size: 15px;
-  color: #595959;
+  font-size: 0.9375rem;
+  color: var(--c-text-2);
   font-weight: 700;
 }
 
 .card-subtitle {
-  font-size: 11px;
-  color: #8c8c8c;
+  font-size: 0.6875rem;
+  color: var(--c-text-3);
 }
 
 .head-actions {
@@ -483,10 +483,10 @@ defineExpose({
   min-height: 35px;
   line-height: 35px;
   border-radius: 5px;
-  border: 0.5px solid #c6e6ff;
-  background: #f5fbff;
-  color: #003a8c;
-  font-size: 13px;
+  border: 0.5px solid rgba(var(--c-info-rgb), 0.35);
+  background: var(--c-info-bg);
+  color: var(--c-info);
+  font-size: 0.8125rem;
   padding: 0 10px;
   font-weight: 700;
 }
@@ -496,13 +496,13 @@ defineExpose({
 }
 
 .empty-text {
-  font-size: 12px;
-  color: #8c8c8c;
+  font-size: 0.75rem;
+  color: var(--c-text-3);
 }
 
 .point-brief {
   margin-bottom: 5px;
-  border: 0.5px solid #d9d9d9;
+  border: 0.5px solid var(--c-line-strong);
   border-radius: 6px;
   padding: 6px;
 }
@@ -514,14 +514,14 @@ defineExpose({
 }
 
 .brief-title {
-  font-size: 14px;
-  color: #1f1f1f;
+  font-size: 0.875rem;
+  color: var(--c-text);
   font-weight: 700;
 }
 
 .brief-type {
-  font-size: 11px;
-  color: #8c8c8c;
+  font-size: 0.6875rem;
+  color: var(--c-text-3);
 }
 
 .brief-body {
@@ -532,8 +532,8 @@ defineExpose({
 }
 
 .brief-row {
-  font-size: 12px;
-  color: #434343;
+  font-size: 0.75rem;
+  color: var(--c-text-2);
 }
 
 .brief-actions {
@@ -548,19 +548,19 @@ defineExpose({
   min-height: 30px;
   line-height: 30px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .btn-open {
-  border: 0.5px solid #91d5ff;
-  background: #e6f7ff;
-  color: #0958d9;
+  border: 0.5px solid rgba(var(--c-info-rgb), 0.45);
+  background: var(--c-info-bg);
+  color: var(--c-info);
 }
 
 .btn-delete {
-  border: 0.5px solid #ffa39e;
-  background: #fff1f0;
-  color: #cf1322;
+  border: 0.5px solid rgba(var(--c-danger-rgb), 0.45);
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
 }
 
 .point-overlay {
@@ -579,7 +579,7 @@ defineExpose({
 
 .point-window {
   width: calc(100% - 12px);
-  border: 1px solid #d9d9d9;
+  border: 1px solid var(--c-line-strong);
   border-radius: 8px;
   padding: 8px;
   max-height: 82vh;
@@ -594,8 +594,8 @@ defineExpose({
 }
 
 .window-title {
-  font-size: 15px;
-  color: #262626;
+  font-size: 0.9375rem;
+  color: var(--c-text);
   font-weight: 700;
 }
 
@@ -604,10 +604,10 @@ defineExpose({
   height: 29px;
   line-height: 29px;
   border-radius: 4px;
-  border: 0.5px solid #d9d9d9;
-  background: #ffffff;
-  color: #595959;
-  font-size: 12px;
+  border: 0.5px solid var(--c-line-strong);
+  background: var(--c-surface);
+  color: var(--c-text-2);
+  font-size: 0.75rem;
 }
 
 .form-row {
@@ -622,14 +622,14 @@ defineExpose({
 .row-label {
   width: 100px;
   flex-shrink: 0;
-  font-size: 15px;
-  color: #001529;
+  font-size: 0.9375rem;
+  color: var(--c-text);
   line-height: 1.4;
 }
 
 .row-label.required::after {
   content: ' *';
-  color: #cf1322;
+  color: var(--c-danger);
 }
 
 .row-right {
@@ -642,14 +642,14 @@ defineExpose({
   width: 100%;
   min-height: 32px;
   line-height: 32px;
-  border: 0.5px solid #d9d9d9;
+  border: 0.5px solid var(--c-line-strong);
   border-radius: 5px;
-  background: #ffffff;
+  background: var(--c-surface);
   box-sizing: border-box;
   padding: 0 8px;
   text-align: right;
-  font-size: 14px;
-  color: #262626;
+  font-size: 0.875rem;
+  color: var(--c-text);
   outline: none;
 }
 
@@ -663,10 +663,10 @@ defineExpose({
   min-height: 32px;
   line-height: 32px;
   border-radius: 5px;
-  border: 0.5px solid #bcdcff;
-  background: #e6f7ff;
-  color: #003a8c;
-  font-size: 12px;
+  border: 0.5px solid rgba(var(--c-info-rgb), 0.35);
+  background: var(--c-info-bg);
+  color: var(--c-info);
+  font-size: 0.75rem;
   font-weight: 700;
   padding: 0 6px;
 }
@@ -686,10 +686,10 @@ defineExpose({
   min-height: 32px;
   line-height: 32px;
   border-radius: 5px;
-  border: 0.5px solid #95de64;
-  background: #f6ffed;
-  color: #237804;
-  font-size: 12px;
+  border: 0.5px solid rgba(var(--c-success-rgb), 0.45);
+  background: var(--c-success-bg);
+  color: var(--c-success);
+  font-size: 0.75rem;
   font-weight: 700;
 }
 
@@ -699,10 +699,10 @@ defineExpose({
 }
 
 .source-tag-text {
-  font-size: 12px;
-  color: #595959;
-  background: #f5f7fa;
-  border: 0.5px solid #d9d9d9;
+  font-size: 0.75rem;
+  color: var(--c-text-2);
+  background: var(--c-fill);
+  border: 0.5px solid var(--c-line-strong);
   border-radius: 4px;
   padding: 3px 6px;
 }
@@ -715,13 +715,13 @@ defineExpose({
 }
 
 .tip-text {
-  font-size: 12px;
-  color: #595959;
+  font-size: 0.75rem;
+  color: var(--c-text-2);
 }
 
 .tip-warn {
-  font-size: 12px;
-  color: #cf1322;
+  font-size: 0.75rem;
+  color: var(--c-danger);
 }
 
 @media screen and (max-width: 430px) {
@@ -731,17 +731,17 @@ defineExpose({
 
   .row-label {
     width: 83px;
-    font-size: 14px;
+    font-size: 0.875rem;
   }
 
   .row-input,
   .picker-value {
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 
   .btn-grab {
     min-width: 75px;
-    font-size: 11px;
+    font-size: 0.6875rem;
   }
 }
 </style>

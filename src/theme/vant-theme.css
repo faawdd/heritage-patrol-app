@@ -1,51 +1,80 @@
 /* Vant 组件主题定制 - 专业文物巡查风格 */
+/* 颜色全部引用设计令牌（--c-*），随 data-theme / data-color 自动切换 */
 
 :root {
 	/* === Vant 全局变量 === */
-	--van-primary-color: #245B4A;
-	--van-success-color: #2D7A5F;
-	--van-danger-color: #B84A3D;
-	--van-warning-color: #B87333;
-	--van-text-color: #26332D;
-	--van-text-color-2: #4A5D54;
-	--van-text-color-3: #77817B;
-	--van-background: #F4F6F5;
-	--van-background-2: #FFFFFF;
-	--van-border-color: #E4E9E5;
-	--van-active-color: #F0F4F2;
-	
-	/* === 字体 === */
-	--van-font-size-xs: 12px;
-	--van-font-size-sm: 13px;
-	--van-font-size-md: 15px;
-	--van-font-size-lg: 18px;
-	--van-font-size-xl: 20px;
-	
+	--van-primary-color: var(--c-primary);
+	--van-success-color: var(--c-success);
+	--van-danger-color: var(--c-danger);
+	--van-warning-color: var(--c-warning);
+	--van-text-color: var(--c-text);
+	--van-text-color-2: var(--c-text-2);
+	--van-text-color-3: var(--c-text-3);
+	--van-background: var(--c-bg);
+	--van-background-2: var(--c-surface);
+	--van-background-3: var(--c-surface);
+	--van-border-color: var(--c-line);
+	--van-active-color: var(--c-fill);
+
+	/* === 字体（rem：随字号档位缩放） === */
+	--van-font-size-xs: 0.75rem;
+	--van-font-size-sm: 0.8125rem;
+	--van-font-size-md: 0.9375rem;
+	--van-font-size-lg: 1.125rem;
+	--van-font-size-xl: 1.25rem;
+
 	/* === 按钮 === */
 	--van-button-default-height: 48px;
 	--van-button-border-radius: 10px;
-	--van-button-font-size: 15px;
-	
+	--van-button-font-size: 0.9375rem;
+
 	/* === 导航栏 === */
 	--van-nav-bar-height: 56px;
-	--van-nav-bar-background: #FFFFFF;
-	--van-nav-bar-title-text-color: #26332D;
-	--van-nav-bar-title-font-size: 17px;
-	--van-nav-bar-icon-color: #26332D;
-	
+	--van-nav-bar-background: var(--c-surface);
+	--van-nav-bar-title-text-color: var(--c-text);
+	--van-nav-bar-title-font-size: 1.0625rem;
+	--van-nav-bar-icon-color: var(--c-text);
+
 	/* === 标签页 === */
 	--van-tabbar-height: 60px;
-	--van-tabbar-background: #FFFFFF;
-	--van-tabbar-item-font-size: 12px;
-	--van-tabbar-item-text-color: #77817B;
-	--van-tabbar-item-active-color: #245B4A;
-	
+	--van-tabbar-background: var(--c-surface);
+	--van-tabbar-item-font-size: 0.75rem;
+	--van-tabbar-item-text-color: var(--c-text-3);
+	--van-tabbar-item-active-color: var(--c-primary);
+	--van-tabbar-item-active-background: var(--c-surface);
+
 	/* === 对话框 === */
 	--van-dialog-border-radius: 14px;
-	
+
 	/* === Toast === */
 	--van-toast-background: rgba(38, 51, 45, 0.92);
-	--van-toast-font-size: 14px;
+	--van-toast-font-size: 0.875rem;
+}
+
+/* === 深色模式下的 Vant 基础色板 === */
+[data-theme="dark"] {
+	--van-black: #F5F7F6;
+	--van-white: #1C211E;
+	--van-gray-1: #242B27;
+	--van-gray-2: #2B332E;
+	--van-gray-3: #3B453F;
+	--van-gray-4: #4C5750;
+	--van-gray-5: #606B64;
+	--van-gray-6: #8B958F;
+	--van-gray-7: #B8C2BC;
+	--van-gray-8: #E7ECE9;
+
+	--van-cell-background: var(--c-surface);
+	--van-popup-background: var(--c-surface);
+	--van-dialog-background: var(--c-surface);
+	--van-action-sheet-item-background: var(--c-surface);
+	--van-picker-background: var(--c-surface);
+	--van-field-input-text-color: var(--c-text);
+	--van-search-background: var(--c-surface);
+	--van-search-content-background: var(--c-fill);
+	--van-step-finish-text-color: var(--c-text);
+	--van-toast-background: rgba(12, 16, 14, 0.92);
+	--van-overlay-background: var(--c-mask);
 }
 
 /* === 导航栏样式优化 === */
@@ -101,11 +130,11 @@
 /* === 步骤条优化 === */
 .van-steps {
 	padding: 12px 16px;
-	background: #FFFFFF;
+	background: var(--c-surface);
 }
 
 .van-step__title {
-	font-size: 13px;
+	font-size: 0.8125rem;
 	font-weight: 500;
 }
 

@@ -26,8 +26,8 @@
 	import { Capacitor } from '@capacitor/core';
 	import { ScreenOrientation } from '@capacitor/screen-orientation';
 	import { SplashScreen } from '@capacitor/splash-screen';
-	import { StatusBar, Style } from '@capacitor/status-bar';
 	import { canGoBack, navigateBack } from '@/lib/nav.js';
+	import { applySettings } from '@/lib/settings.js';
 	import { initAutoUpdate } from '@/lib/updater.js';
 	import UpdateDialog from '@/components/UpdateDialog.vue';
 	import { loadTasks, syncPatrols } from '@/lib/patrol.js';
@@ -79,8 +79,8 @@
 		}
 		resumeListener = await CapApp.addListener('appStateChange', ({ isActive }) => { if (isActive) syncOnline(); });
 		ScreenOrientation.lock({ orientation: 'portrait' }).catch(() => {});
-		StatusBar.setStyle({ style: Style.Dark }).catch(() => {});
-		StatusBar.setBackgroundColor({ color: '#1E5AA8' }).catch(() => {});
+		// 状态栏颜色由外观设置统一管理（含深色模式）。
+		applySettings();
 		SplashScreen.hide().catch(() => {});
 		initAutoUpdate();
 	});
