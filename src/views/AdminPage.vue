@@ -50,7 +50,7 @@
 								<span v-if="item.category" class="u-badge info">{{ item.category }}</span>
 								<span v-if="item.level" class="u-badge warn">{{ item.level }}</span>
 							</div>
-							<div class="adm-kv"><span class="k">四普编号</span><span class="v mono">{{ item.sip_code || t('common.notAvailable') }}</span></div>
+							<div class="adm-kv adm-code-row"><span class="k">四普编号</span><span class="v mono adm-sip-code">{{ item.sip_code || t('common.notAvailable') }}</span></div>
 							<div class="adm-kv"><span class="k">地址</span><span class="v">{{ item.address || t('common.notAvailable') }}</span></div>
 							<div v-if="item.longitude && item.latitude" class="adm-kv"><span class="k">坐标</span><span class="v mono">{{ item.longitude }}, {{ item.latitude }}</span></div>
 						</div>
@@ -123,7 +123,7 @@
 						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.fieldTools') }}</span></div>
 						<div class="u-card adm-tool">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:var(--c-success-bg)"><AppIcon name="map" :size="48" color="var(--c-success)" /></div>
+								<div class="adm-tool-icon"><AppIcon name="map" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.collectTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.collectDesc') }}</span>
@@ -138,7 +138,7 @@
 						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.onlineTools') }}</span></div>
 						<div class="u-card adm-tool tappable" @click="openInspectionManagement">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:var(--c-primary-light)"><AppIcon name="clock" :size="48" color="var(--c-primary)" /></div>
+								<div class="adm-tool-icon"><AppIcon name="clock" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.patrolManageTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.patrolManageDesc') }}</span>
@@ -148,7 +148,7 @@
 						</div>
 						<div class="u-card adm-tool tappable" @click="openKmlTool">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:var(--c-info-bg)"><AppIcon name="grid" :size="48" color="var(--c-info)" /></div>
+								<div class="adm-tool-icon"><AppIcon name="grid" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.kmlTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.kmlDesc') }}</span>
@@ -158,7 +158,7 @@
 						</div>
 						<div class="u-card adm-tool tappable" @click="openDjangoCollectTool">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:#F1EAFE"><AppIcon name="records" :size="48" color="#7C3AED" /></div>
+								<div class="adm-tool-icon"><AppIcon name="records" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.collectManageTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.collectManageDesc') }}</span>
@@ -168,7 +168,7 @@
 						</div>
 						<div class="u-card adm-tool tappable" @click="openProjectListOnline">
 							<div class="adm-tool-main">
-								<div class="adm-tool-icon" style="background:var(--c-warning-bg)"><AppIcon name="file" :size="48" color="var(--c-warning)" /></div>
+								<div class="adm-tool-icon"><AppIcon name="file" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="adm-tool-text">
 									<span class="adm-tool-title">{{ t('admin.projectOnlineTitle') }}</span>
 									<span class="adm-tool-desc">{{ t('admin.projectOnlineDesc') }}</span>
@@ -576,8 +576,22 @@
 		word-break: break-all;
 	}
 
+	.adm-kv .adm-sip-code {
+		display: inline-flex;
+		align-items: center;
+		width: fit-content;
+		flex: 0 1 auto;
+		padding: 2px 7px;
+		border: 1px solid var(--c-line);
+		border-radius: 5px;
+		background: var(--c-fill);
+		color: var(--c-text-2);
+		letter-spacing: 0.02em;
+	}
+
 	.adm-kv .mono {
 		font-variant-numeric: tabular-nums;
+		font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 	}
 
 	.adm-item-foot {
@@ -657,11 +671,12 @@
 	.adm-tool-icon {
 		width: 44px;
 		height: 44px;
-		border-radius: 12px;
+		border-radius: 10px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		flex-shrink: 0;
+		background: var(--c-primary-light);
 	}
 
 	.adm-tool-text {

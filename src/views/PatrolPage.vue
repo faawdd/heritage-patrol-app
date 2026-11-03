@@ -25,6 +25,7 @@
 						<div v-else-if="site" class="site">
 							<div class="site-main">
 								<span class="site-name">{{ site.name }}</span>
+								<span v-if="site.sip_code" class="site-code">{{ site.sip_code }}</span>
 								<span v-if="site.address" class="site-addr">{{ site.address }}</span>
 								<div class="site-tags">
 									<span v-if="site.due_at" class="u-badge" :class="site.overdue ? 'warn' : 'ok'">到期：{{ new Date(site.due_at).toLocaleString() }}</span>
@@ -42,8 +43,13 @@
 						</div>
 
 						<div v-if="site && isFar" class="far-tip">
-							<AppIcon name="alert" :size="40" color="var(--c-warning)" />
-							<span>您离这个文物点较远，请确认是否在现场。</span>
+							<div class="far-tip-icon">
+								<AppIcon name="alert" :size="40" color="var(--c-warning)" :stroke="2.2" />
+							</div>
+							<div class="far-tip-copy">
+								<strong>定位偏移提醒</strong>
+								<span>您离该文物点约 {{ distanceText }}，请确认已到达现场后再提交。</span>
+							</div>
 						</div>
 
 						<div class="row-btns">
@@ -155,7 +161,8 @@
 						>
 							<div class="site-option-main">
 								<span class="site-option-name">{{ item.name }}</span>
-								<span class="site-option-sub">{{ [item.level, item.address].filter(Boolean).join(' · ') || item.sip_code || '' }}</span>
+								<span v-if="item.sip_code" class="site-option-code">{{ item.sip_code }}</span>
+								<span class="site-option-sub">{{ [item.level, item.address].filter(Boolean).join(' · ') || '' }}</span>
 							</div>
 							<AppIcon v-if="site && site.id === item.id" name="check" :size="48" color="var(--c-primary)" :stroke="3" />
 						</div>
@@ -689,14 +696,32 @@
 
 .site-name {
 	font-size: 1rem;
-	font-weight: 600;
+	font-weight: 700;
 	color: var(--c-text);
 	line-height: 1.4;
 }
 
+.site-code,
+.site-option-code {
+	width: fit-content;
+	max-width: 100%;
+	padding: 2px 7px;
+	border: 1px solid var(--c-line);
+	border-radius: 5px;
+	background: var(--c-surface);
+	color: var(--c-text-2);
+	font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+	font-size: 0.75rem;
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.02em;
+	overflow-wrap: anywhere;
+}
+
 .site-addr {
 	font-size: 0.8125rem;
-	color: var(--c-text-2);
+	color: var(--c-text-3);
+	line-height: 1.5;
+	overflow-wrap: anywhere;
 }
 
 .site-tags {
@@ -713,15 +738,45 @@
 
 .far-tip {
 	display: flex;
-	align-items: center;
-	gap: 8px;
+	align-items: flex-start;
+	gap: 10px;
 	margin: 0 16px 12px;
-	padding: 10px 12px;
-	border-radius: 10px;
+	padding: 11px 12px;
+	border: 1px solid rgba(var(--c-warning-rgb), 0.28);
+	border-left: 4px solid var(--c-warning);
+	border-radius: 8px;
 	background: var(--c-warning-bg);
-	color: var(--c-warning);
+	color: var(--c-text);
 	font-size: 0.8125rem;
-	font-weight: 500;
+	line-height: 1.5;
+}
+
+.far-tip-icon {
+	flex: 0 0 28px;
+	width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 7px;
+	background: rgba(var(--c-warning-rgb), 0.14);
+}
+
+.far-tip-copy {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.far-tip-copy strong {
+	color: var(--c-warning);
+	font-size: 0.875rem;
+	font-weight: 700;
+}
+
+.far-tip-copy span {
+	color: var(--c-text-2);
 }
 
 .row-btns {
@@ -1076,13 +1131,21 @@
 
 .site-option-name {
 	font-size: 0.9375rem;
-	font-weight: 600;
+	font-weight: 700;
 	color: var(--c-text);
+}
+
+.site-option-code {
+	margin-top: 2px;
+	background: var(--c-fill);
+	font-size: 0.6875rem;
 }
 
 .site-option-sub {
 	font-size: 0.75rem;
 	color: var(--c-text-3);
+	line-height: 1.45;
+	overflow-wrap: anywhere;
 }
 
 /* 成功弹窗 */

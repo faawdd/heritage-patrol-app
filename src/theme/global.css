@@ -27,6 +27,8 @@ html[data-font="xlarge"] {
 	--c-primary-dark: #1A4236;
 	--c-accent: #3A7D68;
 	--c-on-primary: #FFFFFF;
+	--c-on-hero: #FFFFFF;
+	--g-hero: linear-gradient(135deg, var(--c-primary-dark) 0%, var(--c-primary) 62%, var(--c-accent) 100%);
 }
 
 [data-color="blue"] {
@@ -167,8 +169,10 @@ html[data-font="xlarge"] {
 /* ========== 深色模式中性色与状态色 ========== */
 [data-theme="dark"] {
 	--c-on-primary: #10201A;
+	--c-on-hero: #F4F7F5;
 	--c-primary-light: rgba(var(--c-primary-rgb), 0.16);
 	--c-primary-tint: rgba(var(--c-primary-rgb), 0.24);
+	--g-hero: linear-gradient(135deg, #1D332B 0%, #2B5746 62%, #356B56 100%);
 
 	--c-success: #53B48D;
 	--c-success-rgb: 83, 180, 141;
@@ -254,6 +258,7 @@ button[disabled] {
 	border-radius: var(--r-card);
 	padding: var(--space-lg);
 	box-shadow: var(--shadow-sm);
+	border: 1px solid var(--c-line);
 	margin-bottom: var(--space-md);
 	box-sizing: border-box;
 }

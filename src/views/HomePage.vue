@@ -7,6 +7,7 @@
 			<div class="home-header">
 				<div class="header-top">
 					<div class="header-text">
+						<span class="header-kicker">基层文物巡查 · 野外作业终端</span>
 						<h1 class="header-title">{{ greet }}，{{ displayName }}</h1>
 						<p class="header-date">{{ today }}</p>
 					</div>
@@ -37,7 +38,7 @@
 						<span class="stats-link">查看记录</span>
 					</div>
 					<div class="stats-grid">
-						<div class="stat-item">
+						<div class="stat-item featured">
 							<span class="stat-value">{{ todayCount }}</span>
 							<span class="stat-label">今天</span>
 						</div>
@@ -106,8 +107,8 @@
 							class="admin-item" 
 							@click="open(item.url)"
 						>
-							<div class="admin-icon" :style="{ background: item.bg }">
-								<AppIcon :name="item.icon" :size="32" :color="item.color" :stroke="2" />
+							<div class="admin-icon">
+								<AppIcon :name="item.icon" :size="36" color="var(--c-primary)" :stroke="1.9" />
 							</div>
 							<span class="admin-name">{{ item.name }}</span>
 						</van-button>
@@ -155,12 +156,12 @@
 	import { dateLabel, formatDistance, friendlyTime, getLocation, greeting, monthKey, todayKey } from '@/lib/format.js';
 
 	const ADMIN_FEATURES = [
-		{ key: 'heritages', name: '文物点管理', icon: 'landmark', url: '/tabs/admin', color: 'var(--c-primary)', bg: 'var(--c-primary-light)' },
-		{ key: 'projects', name: '建设项目', icon: 'file', url: '/tabs/admin?tab=projects', color: 'var(--c-warning)', bg: 'var(--c-warning-bg)' },
-		{ key: 'collect', name: '现场采集', icon: 'map', url: '/collect', color: 'var(--c-success)', bg: 'var(--c-success-bg)' },
-		{ key: 'collectRecords', name: '采集记录', icon: 'records', url: '/collect/records', color: 'var(--c-info)', bg: 'var(--c-info-bg)' },
-		{ key: 'kml', name: 'KML 检查', icon: 'grid', url: '/kml', color: '#5C7A6F', bg: 'var(--c-fill)' },
-		{ key: 'tools', name: '管理工具', icon: 'chart', url: '/tabs/admin?tab=tools', color: 'var(--c-danger)', bg: 'var(--c-danger-bg)' },
+		{ key: 'heritages', name: '文物点管理', icon: 'landmark', url: '/tabs/admin' },
+		{ key: 'projects', name: '建设项目', icon: 'file', url: '/tabs/admin?tab=projects' },
+		{ key: 'collect', name: '现场采集', icon: 'map', url: '/collect' },
+		{ key: 'collectRecords', name: '采集记录', icon: 'records', url: '/collect/records' },
+		{ key: 'kml', name: 'KML 检查', icon: 'grid', url: '/kml' },
+		{ key: 'tools', name: '管理工具', icon: 'chart', url: '/tabs/admin?tab=tools' },
 	];
 
 	export default {
@@ -300,16 +301,33 @@
 </script>
 
 <style scoped>
-/* ========== 首页简约设计 - 专业文物巡查风格 ========== */
+/* ========== 首页：专业野外作业工作台 ========== */
 .home-content {
 	background: var(--c-bg);
 }
 
-/* 简洁头部 - 使用深绿色渐变 */
 .home-header {
-	background: var(--g-primary);
-	padding: 12px 16px 16px;
+	position: relative;
+	isolation: isolate;
+	overflow: hidden;
+	background: var(--g-hero);
+	padding: 14px 18px 20px;
 	padding-top: calc(env(safe-area-inset-top) + 12px);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.home-header::after {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	width: 190px;
+	height: 190px;
+	right: -74px;
+	top: -90px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 50%;
+	box-shadow: 0 0 0 18px rgba(255, 255, 255, 0.035), 0 0 0 38px rgba(255, 255, 255, 0.025);
+	pointer-events: none;
 }
 
 .header-top {
@@ -324,11 +342,21 @@
 	min-width: 0;
 }
 
+.header-kicker {
+	display: block;
+	margin-bottom: 7px;
+	font-size: 0.6875rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	color: var(--c-on-hero);
+	opacity: 0.72;
+}
+
 .header-title {
 	margin: 0;
-	font-size: 1.25rem;
-	font-weight: 600;
-	color: var(--c-on-primary);
+	font-size: 1.3125rem;
+	font-weight: 700;
+	color: var(--c-on-hero);
 	line-height: 1.3;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -338,7 +366,7 @@
 .header-date {
 	margin: 4px 0 0;
 	font-size: 0.8125rem;
-	color: var(--c-on-primary);
+	color: var(--c-on-hero);
 	opacity: 0.85;
 	font-weight: 400;
 }
@@ -351,7 +379,7 @@
 	border: 1px solid rgba(255, 255, 255, 0.25);
 	font-size: 0.75rem;
 	font-weight: 500;
-	color: var(--c-on-primary);
+	color: var(--c-on-hero);
 	white-space: nowrap;
 }
 
@@ -422,6 +450,7 @@
 	padding: 16px;
 	margin-bottom: 12px;
 	box-shadow: var(--shadow-sm);
+	border: 1px solid var(--c-line);
 }
 
 .stats-header {
@@ -462,7 +491,7 @@
 
 .stats-grid {
 	display: flex;
-	gap: 8px;
+	gap: 0;
 }
 
 .stat-item {
@@ -471,14 +500,27 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	padding: 8px 4px;
-	border-radius: 10px;
-	background: var(--c-fill);
+	justify-content: center;
+	min-height: 58px;
+	padding: 7px 4px;
+	border-right: 1px solid var(--c-line);
+	background: transparent;
+}
+
+.stat-item:last-child {
+	border-right: 0;
+}
+
+.stat-item.featured {
+	margin-right: 4px;
+	border-right: 0;
+	border-radius: 9px;
+	background: var(--c-primary-light);
 }
 
 .stat-value {
 	font-size: 1.25rem;
-	font-weight: 600;
+	font-weight: 700;
 	color: var(--c-primary);
 	line-height: 1.2;
 	font-variant-numeric: tabular-nums;
@@ -502,6 +544,7 @@
 	padding: 16px;
 	margin-bottom: 12px;
 	box-shadow: var(--shadow-sm);
+	border: 1px solid var(--c-line);
 }
 
 .site-loading,
@@ -643,7 +686,7 @@
 	align-items: center;
 	gap: 6px;
 	padding: 14px 8px;
-	border: none;
+	border: 1px solid var(--c-line);
 	border-radius: var(--r-card);
 	background: var(--c-surface);
 	box-shadow: var(--shadow-sm);
@@ -659,10 +702,11 @@
 .admin-icon {
 	width: 44px;
 	height: 44px;
-	border-radius: 10px;
+	border-radius: 11px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
+	background: var(--c-primary-light);
 }
 
 .admin-name {
