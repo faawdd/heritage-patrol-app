@@ -146,3 +146,47 @@
 .van-cell__title {
 	font-weight: 500;
 }
+
+/* === 对话框：更大的按钮，便于点按 === */
+.van-dialog {
+	width: min(86vw, 340px);
+}
+.van-dialog__header {
+	padding-top: 22px;
+	font-size: 1.125rem;
+	font-weight: 600;
+}
+.van-dialog__message {
+	font-size: 1rem;
+	line-height: 1.6;
+	padding: 12px 24px 22px;
+}
+.van-dialog__footer {
+	padding: 0 16px 16px;
+	gap: 12px;
+}
+.van-dialog .van-dialog__confirm,
+.van-dialog .van-dialog__cancel {
+	flex: 1;
+	height: 48px;
+	border-radius: 10px;
+	font-size: 1rem;
+	font-weight: 600;
+}
+.van-dialog .van-dialog__cancel {
+	background: var(--c-fill);
+	color: var(--c-text-2);
+}
+.van-dialog .van-dialog__confirm {
+	background: var(--c-primary);
+	color: var(--c-on-primary) !important;
+}
+.van-dialog .van-dialog__confirm.is-danger {
+	background: var(--c-danger);
+	color: #fff !important;
+}
+.van-dialog .van-dialog__confirm::after,
+.van-dialog .van-dialog__cancel::after,
+.van-hairline--top::after {
+	border: 0;
+}

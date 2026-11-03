@@ -54,6 +54,7 @@ export function showModal({ title = '提示', content = '', showCancel = true, c
 			showCancelButton: showCancel,
 			confirmButtonText: confirmText,
 			cancelButtonText: cancelText,
+			confirmButtonClass: danger || confirmColor ? 'is-danger' : '',
 			confirmButtonColor: danger ? '#C62828' : confirmColor,
 			closeOnClickOverlay: showCancel,
 			closeOnPopstate: false,

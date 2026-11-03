@@ -2,12 +2,9 @@
 	<div class="app-page">
 		<div class="app-content">
 			<div class="login-page">
-				<div class="login-hero" :class="{ 'has-avatar': mode === 'gesture' || mode === 'biometric' }" style="padding-top: calc(env(safe-area-inset-top) + 40px)">
-					<div class="brand-mark">
-						<AppIcon name="landmark" :size="76" color="var(--c-on-primary)" :stroke="1.8" />
-					</div>
+				<div class="login-hero" :class="{ compact: mode === 'gesture' || mode === 'biometric' }" style="padding-top: calc(env(safe-area-inset-top) + 56px)">
+					<img class="brand-logo" :src="logoUrl" alt="" />
 					<span class="brand-title">鄯善文保巡查</span>
-					<span class="brand-sub">文物看护 · 日常巡查上报</span>
 				</div>
 
 				<div class="login-panel u-fade-in">
@@ -68,15 +65,13 @@
 
 					<!-- 密码登录 -->
 					<div v-else class="form">
-						<span class="form-title">账号登录</span>
-						<div v-if="expired" class="notice">
+												<div v-if="expired" class="notice">
 							<AppIcon name="info" :size="40" color="var(--c-warning)" />
 							<span>登录已过期，请重新输入密码</span>
 						</div>
 
-						<span class="label">账号</span>
 						<div class="field" :class="{ focus: focus === 'u' }">
-							<AppIcon name="user" :size="48" color="var(--c-text-3)" />
+							<span class="field-label">账号</span>
 							<van-field
 								v-model="form.username"
 								:formatter="value => value.trim()"
@@ -88,9 +83,8 @@
 							/>
 						</div>
 
-						<span class="label">密码</span>
 						<div class="field" :class="{ focus: focus === 'p' }">
-							<AppIcon name="lock" :size="48" color="var(--c-text-3)" />
+							<span class="field-label">密码</span>
 							<van-field
 								v-model="form.password"
 								:border="false"
@@ -116,7 +110,7 @@
 							<span v-if="hasQuick" class="link strong" @click="backToQuick">使用{{ quickName }}登录</span>
 						</div>
 						<van-button v-if="offlineAvailable && !hasQuick" native-type="button" class="u-btn ghost block" @click="enterOffline">使用本机已登录账号离线巡查</van-button>
-						<p>首次登录必须联网。离线任务需在联网登录后下载。</p>
+						<p class="hint">首次登录必须联网。离线任务需在联网登录后下载。</p>
 					</div>
 				</div>
 
@@ -156,6 +150,7 @@
 		components: { AppIcon, GestureLock, GestureSetter },
 		data() {
 			return {
+				logoUrl: `${import.meta.env.BASE_URL}logo.png`,
 				mode: 'password',
 				expired: false,
 				busy: false,
@@ -437,7 +432,7 @@
 <style scoped>
 	.login-page {
 		min-height: 100%;
-		background: var(--c-bg, var(--c-bg));
+		background: var(--c-surface);
 		display: flex;
 		flex-direction: column;
 	}
@@ -446,68 +441,33 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		padding-bottom: 70px;
-		background: var(--g-primary);
-		color: var(--c-on-primary);
-		position: relative;
-		overflow: hidden;
+		padding-bottom: 36px;
 	}
 
-	.login-hero.has-avatar {
-		padding-bottom: 95px;
+	.login-hero.compact {
+		padding-bottom: 12px;
 	}
 
-	.login-hero::after {
-		content: '';
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		height: 20px;
-		background: var(--c-bg, var(--c-bg));
-	}
-
-	.brand-mark {
-		width: 68px;
-		height: 68px;
-		border-radius: 16px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: rgba(255, 255, 255, 0.18);
-		border: 1px solid rgba(255, 255, 255, 0.25);
+	.brand-logo {
+		width: 84px;
+		height: 84px;
+		border-radius: 20px;
+		object-fit: cover;
+		background: #FFFFFF;
+		border: 1px solid var(--c-line);
 	}
 
 	.brand-title {
-		margin-top: 12px;
-		font-size: 1.625rem;
+		margin-top: 14px;
+		font-size: 1.375rem;
 		font-weight: 600;
 		letter-spacing: 2px;
-	}
-
-	.brand-sub {
-		margin-top: 4px;
-		font-size: 0.875rem;
-		color: rgba(255, 255, 255, 0.85);
-		letter-spacing: 1px;
+		color: var(--c-text);
 	}
 
 	.login-panel {
 		position: relative;
-		z-index: 2;
-		margin: -48px 16px 0;
-		padding: 20px 18px;
-		background: var(--c-surface);
-		border-radius: var(--r-card, 12px);
-		box-shadow: var(--shadow-lg, 0 4px 16px rgba(var(--c-primary-rgb), 0.10));
-	}
-
-	.form-title {
-		display: block;
-		font-size: 1.25rem;
-		font-weight: 600;
-		color: var(--c-text, var(--c-text));
-		margin-bottom: 6px;
+		padding: 8px 32px 0;
 	}
 
 	.notice {
@@ -523,41 +483,44 @@
 		font-weight: 500;
 	}
 
-	.label {
-		display: block;
-		margin: 14px 0 6px;
-		font-size: 0.9375rem;
-		font-weight: 600;
-		color: var(--c-text, var(--c-text));
-	}
-
 	.field {
 		display: flex;
 		align-items: center;
-		gap: 10px;
-		height: 54px;
-		padding: 0 14px;
-		border-radius: var(--r-input, 8px);
-		background: var(--c-fill, var(--c-fill));
-		border: 1px solid var(--c-line, var(--c-line));
+		gap: 8px;
+		height: 56px;
+		border-bottom: 1px solid var(--c-line);
 	}
 
 	.field.focus {
-		border-color: var(--c-primary, var(--c-primary));
-		background: var(--c-surface);
-		box-shadow: 0 0 0 2px rgba(var(--c-primary-rgb), 0.12);
+		border-bottom-color: var(--c-primary);
+	}
+
+	.field-label {
+		flex: 0 0 3em;
+		font-size: 1rem;
+		font-weight: 500;
+		color: var(--c-text);
 	}
 
 	.field-input {
-		min-width: 0;
-		border: 0;
-		outline: none;
-		background: transparent;
-		font-family: inherit;
 		flex: 1;
-		height: 100%;
+		min-width: 0;
+		padding: 0 !important;
+		background: transparent;
 		font-size: 1rem;
-		color: var(--c-text, var(--c-text));
+		color: var(--c-text);
+	}
+
+	.field-input :deep(.van-field__body) {
+		height: 100%;
+		align-items: center;
+	}
+
+	.field-input :deep(.van-field__control) {
+		height: 100%;
+		line-height: normal;
+		padding: 0;
+		font-size: 1rem;
 	}
 
 	.eye {
@@ -565,7 +528,14 @@
 	}
 
 	.login-btn {
-		margin-top: 24px !important;
+		margin-top: 36px !important;
+	}
+
+	.hint {
+		margin: 14px 0 0;
+		text-align: center;
+		font-size: 0.75rem;
+		color: var(--c-text-4);
 	}
 
 	.form-links {
@@ -602,8 +572,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-top: -50px;
-		border: 3px solid #FFFFFF;
+		border: 3px solid var(--c-surface);
 		box-shadow: var(--shadow-md, 0 2px 8px rgba(var(--c-primary-rgb), 0.08));
 	}
 
