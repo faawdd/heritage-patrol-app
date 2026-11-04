@@ -1,7 +1,7 @@
 <template>
 	<div class="app-page">
 		<!-- 固定头部 -->
-		<div class="home-header relative isolate shrink-0 overflow-hidden bg-gradient-hero px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
+		<div class="home-header relative isolate shrink-0 overflow-hidden px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
 			<div class="flex items-start justify-between gap-3">
 				<div class="min-w-0 flex-1">
 					<span class="mb-0.5 block text-[0.6875rem] font-semibold tracking-[0.12em] text-on-hero/75">基层文物巡查 · 野外作业终端</span>
@@ -252,17 +252,18 @@
 
 <style scoped>
 @reference "../theme/tailwind.css";
-.home-header::after {
+.home-header {
+	background-color: var(--c-primary);
+}
+.home-header::before {
 	content: "";
 	position: absolute;
 	z-index: -1;
-	width: 11.875rem;
-	height: 11.875rem;
-	right: -4.625rem;
-	top: -5.625rem;
-	border: 2px solid var(--c-accent);
-	border-radius: 0;
-	box-shadow: none;
+	inset: 0;
+	background-image:
+		linear-gradient(to right, rgb(255 255 255 / 14%) 1px, transparent 1px),
+		linear-gradient(to bottom, rgb(255 255 255 / 14%) 1px, transparent 1px);
+	background-size: 20px 20px;
 	pointer-events: none;
 }
 .home-content :deep(.van-pull-refresh),
