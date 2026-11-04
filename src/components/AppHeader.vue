@@ -1,18 +1,18 @@
 <template>
-	<div class="app-header" :class="{ tall }">
-		<div class="app-header-bar">
-			<van-button v-if="back" native-type="button" class="app-header-back" aria-label="返回" @click="goBack">
-				<AppIcon name="chevron-right" :size="48" color="var(--c-text)" :stroke="2.6" class="flip" />
+	<div class="relative overflow-hidden border-b border-line bg-surface px-4 pt-[calc(env(safe-area-inset-top,0px)+0.5rem)] text-ink" :class="tall ? 'pb-14' : 'pb-3.5'">
+		<div class="relative z-[1] flex min-h-11 items-center gap-2">
+			<van-button v-if="back" native-type="button" class="!m-0 !-ml-2 !flex !h-11 !w-11 !shrink-0 !items-center !justify-center !border-0 !bg-transparent !p-0" aria-label="返回" @click="goBack">
+				<AppIcon name="chevron-right" :size="48" color="var(--c-text)" :stroke="2.6" class="rotate-180" />
 			</van-button>
-			<div class="app-header-text">
-				<span class="app-header-title">{{ title }}</span>
-				<span v-if="subtitle" class="app-header-sub">{{ subtitle }}</span>
+			<div class="flex min-w-0 flex-1 flex-col">
+				<span class="overflow-hidden text-ellipsis whitespace-nowrap text-[1.0625rem] font-semibold leading-[1.3] tracking-[0.0125rem]">{{ title }}</span>
+				<span v-if="subtitle" class="mt-0.5 text-xs text-ink-3">{{ subtitle }}</span>
 			</div>
-			<div class="app-header-right">
+			<div class="flex items-center">
 				<slot name="right" />
 			</div>
 		</div>
-		<slot />
+		<div class="relative z-[1]"><slot /></div>
 	</div>
 </template>
 
@@ -38,80 +38,3 @@
 	};
 </script>
 
-<style>
-	.app-header {
-		position: relative;
-		padding: calc(env(safe-area-inset-top, 0px) + 8px) 16px 14px;
-		background: var(--c-surface);
-		border-bottom: 1px solid var(--c-line, var(--c-line));
-		color: var(--c-text, var(--c-text));
-		overflow: hidden;
-	}
-
-	.app-header.tall {
-		padding-bottom: 56px;
-	}
-
-	.app-header-bar {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		align-items: center;
-		min-height: 44px;
-		gap: 8px;
-	}
-
-	.app-header-back {
-		width: 40px;
-		height: 40px;
-		margin-left: -8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: transparent;
-		border: none;
-		padding: 0;
-	}
-
-	.app-header-back .flip {
-		transform: rotate(180deg);
-	}
-
-	.app-header-back .van-icon {
-		color: var(--c-text, var(--c-text)) !important;
-	}
-
-	.app-header-text {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.app-header-title {
-		font-size: 1.0625rem;
-		font-weight: 600;
-		letter-spacing: 0.2px;
-		line-height: 1.3;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		color: var(--c-text, var(--c-text));
-	}
-
-	.app-header-sub {
-		margin-top: 2px;
-		font-size: 0.75rem;
-		color: var(--c-text-3, var(--c-text-3));
-	}
-
-	.app-header-right {
-		display: flex;
-		align-items: center;
-	}
-
-	.app-header > :not(.app-header-bar) {
-		position: relative;
-		z-index: 1;
-	}
-</style>

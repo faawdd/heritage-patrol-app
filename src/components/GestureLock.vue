@@ -1,7 +1,7 @@
 <template>
-	<div class="gesture-wrap">
+	<div class="flex justify-center">
 		<div
-			class="gesture-pad"
+			class="relative touch-none select-none"
 			:class="{ 'is-error': status === 'error', 'is-success': status === 'success' }"
 			:style="padStyle"
 			ref="pad"
@@ -13,18 +13,18 @@
 			<div
 				v-for="line in lines"
 				:key="line.key"
-				class="gesture-line"
+				class="absolute z-[1] h-2 rounded-full bg-primary/75 [transform-origin:0_50%]" :class="status === 'error' ? 'bg-danger/75' : status === 'success' ? 'bg-success/75' : ''"
 				:style="line.style"
 			/>
-			<div v-if="tailStyle" class="gesture-line" :style="tailStyle" />
+			<div v-if="tailStyle" class="absolute z-[1] h-2 rounded-full bg-primary/75 [transform-origin:0_50%]" :class="status === 'error' ? 'bg-danger/75' : status === 'success' ? 'bg-success/75' : ''" :style="tailStyle" />
 			<div
 				v-for="dot in dots"
 				:key="dot.index"
-				class="gesture-dot"
-				:class="{ active: selected.indexOf(dot.index) > -1 }"
+				class="absolute z-[2] flex box-border items-center justify-center rounded-full border-[3px] border-[var(--c-line-strong)] bg-surface transition-[border-color,transform] duration-150"
+				:class="selected.includes(dot.index) ? (status === 'error' ? 'border-danger bg-danger-bg scale-[1.08]' : status === 'success' ? 'border-success bg-success-bg scale-[1.08]' : 'border-primary bg-primary-light scale-[1.08]') : ''"
 				:style="dot.style"
 			>
-				<div class="gesture-dot-core" />
+				<div class="h-[26%] w-[26%] rounded-full bg-[var(--c-line-strong)]" :class="selected.includes(dot.index) ? (status === 'error' ? '!h-[36%] !w-[36%] !bg-danger' : status === 'success' ? '!h-[36%] !w-[36%] !bg-success' : '!h-[36%] !w-[36%] !bg-primary') : ''" />
 			</div>
 		</div>
 	</div>
@@ -218,82 +218,5 @@
 </script>
 
 <style scoped>
-	.gesture-wrap {
-		display: flex;
-		justify-content: center;
-	}
-
-	.gesture-pad {
-		position: relative;
-		touch-action: none;
-		user-select: none;
-		-webkit-user-select: none;
-	}
-
-	.gesture-dot {
-		position: absolute;
-		border-radius: 50%;
-		border: 3px solid var(--c-line-strong);
-		background: var(--c-surface);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-sizing: border-box;
-		z-index: 2;
-		transition: border-color 0.15s, transform 0.15s;
-	}
-
-	.gesture-dot-core {
-		width: 26%;
-		height: 26%;
-		border-radius: 50%;
-		background: var(--c-line-strong);
-	}
-
-	.gesture-dot.active {
-		border-color: var(--c-primary);
-		background: var(--c-primary-light);
-		transform: scale(1.08);
-	}
-
-	.gesture-dot.active .gesture-dot-core {
-		background: var(--c-primary);
-		width: 36%;
-		height: 36%;
-	}
-
-	.gesture-line {
-		position: absolute;
-		height: 8px;
-		border-radius: 4px;
-		background: rgba(30, 90, 168, 0.75);
-		transform-origin: 0 50%;
-		z-index: 1;
-	}
-
-	.is-error .gesture-dot.active {
-		border-color: var(--c-danger);
-		background: var(--c-danger-bg);
-	}
-
-	.is-error .gesture-dot.active .gesture-dot-core {
-		background: var(--c-danger);
-	}
-
-	.is-error .gesture-line {
-		background: rgba(198, 40, 40, 0.75);
-	}
-
-	.is-success .gesture-dot.active {
-		border-color: var(--c-success);
-		background: var(--c-success-bg);
-	}
-
-	.is-success .gesture-dot.active .gesture-dot-core {
-		background: var(--c-success);
-	}
-
-	.is-success .gesture-line {
-		background: rgba(21, 128, 61, 0.75);
-	}
+	.gesture-pad { -webkit-user-select: none; }
 </style>

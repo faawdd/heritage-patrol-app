@@ -1,40 +1,40 @@
 <template>
 	<div class="app-page">
 		<div class="app-content">
-			<div class="login-page">
-				<div class="login-hero" :class="{ compact: mode === 'gesture' || mode === 'biometric' }" style="padding-top: calc(env(safe-area-inset-top) + 56px)">
-					<img class="brand-logo" :src="logoUrl" alt="" />
-					<span class="brand-title">鄯善文保巡查</span>
+			<div class="flex min-h-full flex-col bg-surface">
+				<div class="flex flex-col items-center pb-9" :class="mode === 'gesture' || mode === 'biometric' ? 'pb-3' : ''" style="padding-top: calc(env(safe-area-inset-top) + 3.5rem)">
+					<img class="h-[5.25rem] w-[5.25rem] rounded-[1.25rem] border border-line bg-surface object-cover" :src="logoUrl" alt="" />
+					<span class="mt-3.5 text-[1.375rem] font-semibold tracking-[0.125rem] text-ink">鄯善文保巡查</span>
 				</div>
 
-				<div class="login-panel u-fade-in">
+				<div class="relative px-8 pt-2">
 					<!-- 快捷解锁 -->
-					<div v-if="mode === 'gesture' || mode === 'biometric'" class="unlock">
-						<div class="avatar">{{ avatarText }}</div>
-						<span class="welcome">欢迎回来，{{ quick.fullName || quick.username }}</span>
+					<div v-if="mode === 'gesture' || mode === 'biometric'" class="flex flex-col items-center">
+						<div class="flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[3px] border-surface bg-gradient-primary text-xl font-semibold text-on-primary shadow-card">{{ avatarText }}</div>
+						<span class="mt-2.5 text-lg font-semibold text-ink">欢迎回来，{{ quick.fullName || quick.username }}</span>
 
 						<template v-if="mode === 'gesture'">
-							<span class="unlock-tip" :class="{ error: tipError }">{{ tip || '请画出手势密码登录' }}</span>
+							<span class="my-2 min-h-[1.375rem] text-center text-sm text-ink-2" :class="tipError ? 'font-semibold text-danger' : ''">{{ tip || '请画出手势密码登录' }}</span>
 							<GestureLock ref="lock" :size="560" :disabled="busy" @complete="onGesture" />
 						</template>
 
 						<template v-else>
-							<div class="bio-btn" @click="startBiometric">
+							<div class="mt-5 flex h-[6.875rem] w-[6.875rem] items-center justify-center rounded-full bg-primary-light shadow-[0_0_0_0.5rem_rgba(var(--c-primary-rgb),0.08)] transition active:scale-[0.96]" @click="startBiometric">
 								<AppIcon :name="quick.biometric === 'facial' ? 'face' : 'fingerprint'" :size="140" color="var(--c-primary)" :stroke="1.6" />
 							</div>
-							<span class="unlock-tip" :class="{ error: tipError }">{{ tip || `点击上方图标，验证${bioLabel}登录` }}</span>
+							<span class="my-2 min-h-[1.375rem] text-center text-sm text-ink-2" :class="tipError ? 'font-semibold text-danger' : ''">{{ tip || `点击上方图标，验证${bioLabel}登录` }}</span>
 						</template>
 
-						<div class="switch-row">
-							<div v-if="mode === 'gesture' && quick.biometric && bioReady" class="switch-link" @click="switchMode('biometric')">
+						<div class="mt-2.5 flex flex-wrap justify-center gap-2.5">
+							<div v-if="mode === 'gesture' && quick.biometric && bioReady" class="flex min-h-11 items-center gap-1 rounded-full bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="switchMode('biometric')">
 								<AppIcon :name="quick.biometric === 'facial' ? 'face' : 'fingerprint'" :size="40" />
 								<span>{{ bioLabel }}登录</span>
 							</div>
-							<div v-if="mode === 'biometric' && quick.gestureHash" class="switch-link" @click="switchMode('gesture')">
+							<div v-if="mode === 'biometric' && quick.gestureHash" class="flex min-h-11 items-center gap-1 rounded-full bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="switchMode('gesture')">
 								<AppIcon name="gesture" :size="40" />
 								<span>手势登录</span>
 							</div>
-							<div class="switch-link" @click="usePassword">
+							<div class="flex min-h-11 items-center gap-1 rounded-full bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="usePassword">
 								<AppIcon name="key" :size="40" />
 								<span>密码登录</span>
 							</div>
@@ -42,36 +42,36 @@
 					</div>
 
 					<!-- 登录后开启快捷登录 -->
-					<div v-else-if="mode === 'setup'" class="setup">
-						<div class="setup-icon">
+					<div v-else-if="mode === 'setup'" class="flex flex-col items-center text-center">
+						<div class="flex h-[4.375rem] w-[4.375rem] items-center justify-center rounded-full bg-success-bg">
 							<AppIcon name="shield" :size="88" color="var(--c-success)" />
 						</div>
-						<span class="setup-title">开启快捷登录</span>
-						<span class="setup-desc">开启后，下次打开软件不用再输入密码，画一下手势或按一下指纹就能登录。</span>
+						<span class="mt-3 text-xl font-semibold text-ink">开启快捷登录</span>
+						<span class="my-2 mb-[1.125rem] text-sm leading-relaxed text-ink-2">开启后，下次打开软件不用再输入密码，画一下手势或按一下指纹就能登录。</span>
 						<van-button native-type="button" v-if="bio.fingerprint || bio.facial" class="u-btn primary xl block setup-btn" :disabled="busy" @click="setupBiometric">
 							<AppIcon :name="bio.fingerprint ? 'fingerprint' : 'face'" :size="56" color="var(--c-on-primary)" />
 							<span>使用{{ bio.fingerprint ? '指纹' : '面容' }}登录</span>
 						</van-button>
 						<van-button native-type="button" class="u-btn xl block setup-btn" :class="bio.fingerprint || bio.facial ? 'ghost' : 'primary'" :disabled="busy" @click="mode = 'setGesture'">
-							<AppIcon name="gesture" :size="56" :color="bio.fingerprint || bio.facial ? 'var(--c-primary)' : '#FFFFFF'" />
+							<AppIcon name="gesture" :size="56" :color="bio.fingerprint || bio.facial ? 'var(--c-primary)' : 'var(--c-on-primary)'" />
 							<span>设置手势密码</span>
 						</van-button>
-						<div class="skip" @click="finishLogin">以后再说</div>
+						<div class="px-5 py-2.5 text-sm text-ink-3" @click="finishLogin">以后再说</div>
 					</div>
 
-					<div v-else-if="mode === 'setGesture'" class="setup">
+					<div v-else-if="mode === 'setGesture'" class="flex flex-col items-center text-center">
 						<GestureSetter cancel-text="返回" @confirm="onGestureSet" @cancel="mode = 'setup'" />
 					</div>
 
 					<!-- 密码登录 -->
 					<div v-else class="form">
-												<div v-if="expired" class="notice">
+												<div v-if="expired" class="my-2 mb-1 flex items-center gap-1.5 rounded-[0.625rem] bg-warning-bg px-3 py-2.5 text-sm font-medium text-warning">
 							<AppIcon name="info" :size="40" color="var(--c-warning)" />
 							<span>登录已过期，请重新输入密码</span>
 						</div>
 
-						<div class="field" :class="{ focus: focus === 'u' }">
-							<span class="field-label">账号</span>
+						<div class="flex h-14 items-center gap-2 border-b border-line" :class="focus === 'u' ? 'border-primary' : ''">
+							<span class="w-[3em] shrink-0 text-base font-medium text-ink">账号</span>
 							<van-field
 								v-model="form.username"
 								:formatter="value => value.trim()"
@@ -83,8 +83,8 @@
 							/>
 						</div>
 
-						<div class="field" :class="{ focus: focus === 'p' }">
-							<span class="field-label">密码</span>
+						<div class="flex h-14 items-center gap-2 border-b border-line" :class="focus === 'p' ? 'border-primary' : ''">
+							<span class="w-[3em] shrink-0 text-base font-medium text-ink">密码</span>
 							<van-field
 								v-model="form.password"
 								:border="false"
@@ -96,25 +96,25 @@
 								@blur="focus = ''"
 								@keyup.enter="handleLogin"
 							/>
-							<div class="eye" @click="showPwd = !showPwd">
+							<div class="py-2 pl-2" @click="showPwd = !showPwd">
 								<AppIcon :name="showPwd ? 'eye' : 'eye-off'" :size="48" color="var(--c-text-3)" />
 							</div>
 						</div>
 
-						<van-button native-type="button" class="u-btn primary xl block login-btn" :disabled="busy" @click="handleLogin">
+						<van-button native-type="button" class="u-btn primary xl block mt-9" :disabled="busy" @click="handleLogin">
 							{{ busy ? '正在登录…' : '登 录' }}
 						</van-button>
 
-						<div class="form-links">
-							<span class="link" @click="handleForgotPassword">忘记密码？</span>
-							<span v-if="hasQuick" class="link strong" @click="backToQuick">使用{{ quickName }}登录</span>
+						<div class="mt-4 flex justify-between">
+							<span class="py-1.5 text-sm text-ink-3" @click="handleForgotPassword">忘记密码？</span>
+							<span v-if="hasQuick" class="py-1.5 text-sm font-semibold text-primary" @click="backToQuick">使用{{ quickName }}登录</span>
 						</div>
 						<van-button v-if="offlineAvailable && !hasQuick" native-type="button" class="u-btn ghost block" @click="enterOffline">使用本机已登录账号离线巡查</van-button>
-						<p class="hint">首次登录必须联网。离线任务需在联网登录后下载。</p>
+						<p class="mt-3.5 text-center text-xs text-ink-4">首次登录必须联网。离线任务需在联网登录后下载。</p>
 					</div>
 				</div>
 
-				<span class="version">{{ appVersion }} · 鄯善县文化体育广播电视和旅游局</span>
+				<span class="mt-auto px-0 pt-5 pb-[calc(0.875rem+env(safe-area-inset-bottom))] text-center text-xs text-ink-4">{{ appVersion }} · 鄯善县文化体育广播电视和旅游局</span>
 			</div>
 		</div>
 	</div>
@@ -430,254 +430,7 @@
 </script>
 
 <style scoped>
-	.login-page {
-		min-height: 100%;
-		background: var(--c-surface);
-		display: flex;
-		flex-direction: column;
-	}
-
-	.login-hero {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding-bottom: 36px;
-	}
-
-	.login-hero.compact {
-		padding-bottom: 12px;
-	}
-
-	.brand-logo {
-		width: 84px;
-		height: 84px;
-		border-radius: 20px;
-		object-fit: cover;
-		background: #FFFFFF;
-		border: 1px solid var(--c-line);
-	}
-
-	.brand-title {
-		margin-top: 14px;
-		font-size: 1.375rem;
-		font-weight: 600;
-		letter-spacing: 2px;
-		color: var(--c-text);
-	}
-
-	.login-panel {
-		position: relative;
-		padding: 8px 32px 0;
-	}
-
-	.notice {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin: 8px 0 4px;
-		padding: 10px 12px;
-		border-radius: 10px;
-		background: var(--c-warning-bg, var(--c-warning-bg));
-		color: var(--c-warning, var(--c-warning));
-		font-size: 0.875rem;
-		font-weight: 500;
-	}
-
-	.field {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		height: 56px;
-		border-bottom: 1px solid var(--c-line);
-	}
-
-	.field.focus {
-		border-bottom-color: var(--c-primary);
-	}
-
-	.field-label {
-		flex: 0 0 3em;
-		font-size: 1rem;
-		font-weight: 500;
-		color: var(--c-text);
-	}
-
-	.field-input {
-		flex: 1;
-		min-width: 0;
-		padding: 0 !important;
-		background: transparent;
-		font-size: 1rem;
-		color: var(--c-text);
-	}
-
-	.field-input :deep(.van-field__body) {
-		height: 100%;
-		align-items: center;
-	}
-
-	.field-input :deep(.van-field__control) {
-		height: 100%;
-		line-height: normal;
-		padding: 0;
-		font-size: 1rem;
-	}
-
-	.eye {
-		padding: 8px 0 8px 8px;
-	}
-
-	.login-btn {
-		margin-top: 36px !important;
-	}
-
-	.hint {
-		margin: 14px 0 0;
-		text-align: center;
-		font-size: 0.75rem;
-		color: var(--c-text-4);
-	}
-
-	.form-links {
-		display: flex;
-		justify-content: space-between;
-		margin-top: 16px;
-	}
-
-	.link {
-		font-size: 0.875rem;
-		color: var(--c-text-3, var(--c-text-3));
-		padding: 6px 0;
-	}
-
-	.link.strong {
-		color: var(--c-primary, var(--c-primary));
-		font-weight: 600;
-	}
-
-	.unlock {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.avatar {
-		width: 60px;
-		height: 60px;
-		border-radius: 50%;
-		background: var(--g-primary);
-		color: var(--c-on-primary);
-		font-size: 1.25rem;
-		font-weight: 600;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border: 3px solid var(--c-surface);
-		box-shadow: var(--shadow-md, 0 2px 8px rgba(var(--c-primary-rgb), 0.08));
-	}
-
-	.welcome {
-		margin-top: 10px;
-		font-size: 1.125rem;
-		font-weight: 600;
-		color: var(--c-text, var(--c-text));
-	}
-
-	.unlock-tip {
-		margin: 8px 0 12px;
-		min-height: 22px;
-		font-size: 0.875rem;
-		color: var(--c-text-2, var(--c-text-2));
-		text-align: center;
-	}
-
-	.unlock-tip.error {
-		color: var(--c-danger, var(--c-danger));
-		font-weight: 600;
-	}
-
-	.bio-btn {
-		margin-top: 20px;
-		width: 110px;
-		height: 110px;
-		border-radius: 50%;
-		background: var(--c-primary-light, var(--c-primary-light));
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		box-shadow: 0 0 0 8px rgba(var(--c-primary-rgb), 0.08);
-	}
-
-	.bio-btn:active {
-		transform: scale(0.96);
-	}
-
-	.switch-row {
-		display: flex;
-		justify-content: center;
-		flex-wrap: wrap;
-		gap: 10px;
-		margin-top: 10px;
-	}
-
-	.switch-link {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		padding: 8px 14px;
-		border-radius: 20px;
-		background: var(--c-primary-light, var(--c-primary-light));
-		color: var(--c-primary, var(--c-primary));
-		font-size: 0.875rem;
-		font-weight: 500;
-	}
-
-	.setup {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-	}
-
-	.setup-icon {
-		width: 70px;
-		height: 70px;
-		border-radius: 50%;
-		background: var(--c-success-bg, var(--c-success-bg));
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.setup-title {
-		margin-top: 12px;
-		font-size: 1.25rem;
-		font-weight: 600;
-		color: var(--c-text, var(--c-text));
-	}
-
-	.setup-desc {
-		margin: 8px 0 18px;
-		font-size: 0.875rem;
-		color: var(--c-text-2, var(--c-text-2));
-		line-height: 1.6;
-	}
-
-	.setup-btn {
-		margin-bottom: 12px !important;
-	}
-
-	.skip {
-		padding: 10px 20px;
-		font-size: 0.875rem;
-		color: var(--c-text-3, var(--c-text-3));
-	}
-
-	.version {
-		margin: auto 0 0;
-		padding: 20px 0 calc(14px + env(safe-area-inset-bottom));
-		text-align: center;
-		font-size: 0.75rem;
-		color: var(--c-text-4, var(--c-text-4));
-	}
+	.field-input { flex: 1; min-width: 0; padding: 0 !important; background: transparent; }
+	.field-input :deep(.van-field__body) { height: 100%; align-items: center; }
+	.field-input :deep(.van-field__control) { height: 100%; line-height: normal; padding: 0; font-size: 1rem; }
 </style>

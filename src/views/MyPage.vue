@@ -5,129 +5,135 @@
 				<AppHeader title="我的" tall />
 
 				<div class="u-body overlap">
-					<div class="u-card profile">
-						<div class="avatar">{{ avatarText }}</div>
-						<div class="profile-info">
-							<span class="name">{{ user.full_name || user.username || '-' }}</span>
-							<span class="account">账号：{{ user.username || '-' }}</span>
-							<span class="u-badge info role">{{ roleText }}</span>
+					<div class="u-card flex items-center gap-3.5">
+						<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-[1.375rem] font-semibold text-on-primary">{{ avatarText }}</div>
+						<div class="flex min-w-0 flex-1 flex-col items-start">
+							<span class="text-xl font-semibold text-ink">{{ user.full_name || user.username || '-' }}</span>
+							<span class="my-0.5 mb-1.5 text-sm text-ink-3">账号：{{ user.username || '-' }}</span>
+							<span class="u-badge info text-[0.8125rem]">{{ roleText }}</span>
 						</div>
-						<button type="button" class="logout" @click="logout">
+						<van-button native-type="button" class="ml-auto inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-danger bg-danger-bg px-3 text-xs font-semibold text-danger" @click="logout">
 							<AppIcon name="logout" :size="40" color="var(--c-danger)" />
 							<span>退出登录</span>
-						</button>
+						</van-button>
 					</div>
 
 					<div class="u-card menu">
-						<div class="menu-item" @click="goSecurity">
-							<div class="menu-icon" style="background: var(--c-success-bg)">
+						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="goSecurity">
+							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-success-bg">
 								<AppIcon name="shield" :size="52" color="var(--c-success)" />
 							</div>
-							<div class="menu-text">
-								<span class="menu-title">快捷登录</span>
-								<span class="menu-sub">{{ quickText }}</span>
+							<div class="flex min-w-0 flex-1 flex-col">
+								<span class="text-base font-semibold text-ink">快捷登录</span>
+								<span class="mt-0.5 text-[0.8125rem] text-ink-3">{{ quickText }}</span>
 							</div>
 							<AppIcon name="chevron-right" :size="44" color="var(--c-text-4)" />
 						</div>
 
-						<div class="menu-item" @click="pwdOpen = !pwdOpen">
-							<div class="menu-icon" style="background: var(--c-primary-light)">
+						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="pwdOpen = !pwdOpen">
+							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light">
 								<AppIcon name="key" :size="52" color="var(--c-primary)" />
 							</div>
-							<div class="menu-text">
-								<span class="menu-title">修改密码</span>
-								<span class="menu-sub">定期修改密码更安全</span>
+							<div class="flex min-w-0 flex-1 flex-col">
+								<span class="text-base font-semibold text-ink">修改密码</span>
+								<span class="mt-0.5 text-[0.8125rem] text-ink-3">定期修改密码更安全</span>
 							</div>
 							<AppIcon :name="pwdOpen ? 'chevron-down' : 'chevron-right'" :size="44" color="var(--c-text-4)" />
 						</div>
 
-						<div v-if="pwdOpen" class="pwd u-fade-in">
-							<input v-model="pwd.current" class="u-input" type="password" placeholder="当前密码" />
-							<input v-model="pwd.next" class="u-input" type="password" placeholder="新密码（至少 6 位）" />
-							<input v-model="pwd.confirm" class="u-input" type="password" placeholder="再输一次新密码" />
+						<div v-if="pwdOpen" class="pwd u-fade-in flex flex-col gap-2.5 border-b border-line px-0 pt-1 pb-3.5">
+							<van-field v-model="pwd.current" class="u-input" type="password" placeholder="当前密码" :border="false" />
+							<van-field v-model="pwd.next" class="u-input" type="password" placeholder="新密码（至少 6 位）" :border="false" />
+							<van-field v-model="pwd.confirm" class="u-input" type="password" placeholder="再输一次新密码" :border="false" />
 							<van-button native-type="button" class="u-btn primary block" :disabled="saving" @click="changePassword">{{ saving ? '正在保存…' : '保存新密码' }}</van-button>
 						</div>
 
-						<div class="menu-item" @click="callAdmin">
-							<div class="menu-icon" style="background: var(--c-warning-bg)">
+						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="callAdmin">
+							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-warning-bg">
 								<AppIcon name="phone" :size="52" color="var(--c-warning)" />
 							</div>
-							<div class="menu-text">
-								<span class="menu-title">联系管理员</span>
-								<span class="menu-sub">13899665458</span>
+							<div class="flex min-w-0 flex-1 flex-col">
+								<span class="text-base font-semibold text-ink">联系管理员</span>
+								<span class="mt-0.5 text-[0.8125rem] text-ink-3">13899665458</span>
 							</div>
 							<AppIcon name="chevron-right" :size="44" color="var(--c-text-4)" />
 						</div>
 
-						<div class="menu-item" @click="goAbout">
-							<div class="menu-icon" style="background: var(--c-fill)">
+						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="goAbout">
+							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-fill">
 								<AppIcon name="info" :size="52" color="var(--c-text-2)" />
 							</div>
-							<div class="menu-text">
-								<span class="menu-title">关于软件</span>
-								<span class="menu-sub">版本信息与反馈方式</span>
+							<div class="flex min-w-0 flex-1 flex-col">
+								<span class="text-base font-semibold text-ink">关于软件</span>
+								<span class="mt-0.5 text-[0.8125rem] text-ink-3">版本信息与反馈方式</span>
 							</div>
 							<AppIcon name="chevron-right" :size="44" color="var(--c-text-4)" />
 						</div>
 					</div>
 
-					<div class="u-card appearance">
-						<div class="appearance-head">
-							<div class="menu-icon" style="background: var(--c-primary-light)">
+					<div class="u-card flex flex-col gap-3.5">
+						<div class="flex items-center gap-3">
+							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light">
 								<AppIcon name="edit" :size="52" color="var(--c-primary)" />
 							</div>
-							<div class="menu-text">
-								<span class="menu-title">外观设置</span>
-								<span class="menu-sub">主题、颜色与字体大小</span>
+							<div class="flex min-w-0 flex-1 flex-col">
+								<span class="text-base font-semibold text-ink">外观设置</span>
+								<span class="mt-0.5 text-[0.8125rem] text-ink-3">主题、颜色与字体大小</span>
 							</div>
 						</div>
 
-						<div class="setting-row">
-							<span class="setting-label">深色模式</span>
-							<div class="seg">
-								<button
-									v-for="mode in themeModes"
+						<div class="flex flex-col gap-2">
+							<span class="text-sm font-semibold text-ink">深色模式</span>
+							<div class="flex overflow-hidden rounded-[var(--r-input)] border border-line bg-fill">
+								<van-button
+									v-for="(mode, index) in themeModes"
 									:key="mode.key"
-									type="button"
-									class="seg-item"
-									:class="{ active: prefs.theme === mode.key }"
+									native-type="button"
+									plain
+									class="min-h-11 min-w-0 flex-1 !border-0 !border-r !border-line px-1 text-[0.8125rem] font-medium text-ink-2 transition last:!border-r-0"
+									:class="[index === themeModes.length - 1 ? '!border-r-0' : '', prefs.theme === mode.key ? '!bg-primary !font-semibold !text-on-primary' : '!bg-transparent']"
+									:aria-pressed="prefs.theme === mode.key"
 									@click="setPref('theme', mode.key)"
-								>{{ mode.name }}</button>
+								>{{ mode.name }}</van-button>
 							</div>
-							<span class="setting-hint">「跟随系统」会随手机深色模式自动切换</span>
+							<span class="text-xs text-ink-3">「跟随系统」会随手机深色模式自动切换</span>
 						</div>
 
-						<div class="setting-row">
-							<span class="setting-label">主题色</span>
-							<div class="swatches">
-								<button
+						<div class="flex flex-col gap-2">
+							<span class="text-sm font-semibold text-ink">主题色</span>
+							<div class="flex gap-3.5">
+								<van-button
 									v-for="color in themeColors"
 									:key="color.key"
-									type="button"
-									class="swatch"
-									:class="{ active: prefs.color === color.key }"
+									native-type="button"
+									plain
+									class="h-11 w-11 !min-w-11 !border-0 !p-0 transition active:scale-95"
+									:class="prefs.color === color.key ? 'rounded-full ring-2 ring-primary ring-offset-2 ring-offset-surface' : 'rounded-full'"
 									:style="{ background: color.hex }"
 									:aria-label="color.name"
+									:aria-pressed="prefs.color === color.key"
 									@click="setPref('color', color.key)"
 								>
-									<AppIcon v-if="prefs.color === color.key" name="check" :size="32" color="#FFFFFF" :stroke="3" />
-								</button>
+									<AppIcon v-if="prefs.color === color.key" name="check" :size="32" color="var(--c-on-primary)" :stroke="3" />
+								</van-button>
 							</div>
 						</div>
 
-						<div class="setting-row">
-							<span class="setting-label">字体大小</span>
-							<div class="seg">
-								<button
-									v-for="font in fontSizes"
+						<div class="flex flex-col gap-2">
+							<span class="text-sm font-semibold text-ink">字体大小</span>
+							<div class="flex overflow-hidden rounded-[var(--r-input)] border border-line bg-fill">
+								<van-button
+									v-for="(font, index) in fontSizes"
 									:key="font.key"
-									type="button"
-									class="seg-item"
-									:class="{ active: prefs.fontSize === font.key }"
+									native-type="button"
+									plain
+									class="min-h-11 min-w-0 flex-1 !border-0 !border-r !border-line px-1 text-[0.8125rem] font-medium text-ink-2 transition last:!border-r-0"
+									:class="[index === fontSizes.length - 1 ? '!border-r-0' : '', prefs.fontSize === font.key ? '!bg-primary !font-semibold !text-on-primary' : '!bg-transparent']"
+									:aria-pressed="prefs.fontSize === font.key"
 									@click="setPref('fontSize', font.key)"
-								>{{ font.name }}</button>
+								>{{ font.name }}</van-button>
 							</div>
-							<span class="setting-preview">巡查上报，记录文物点情况</span>
+							<span class="rounded-[var(--r-input)] border border-dashed border-[var(--c-line-strong)] bg-fill px-3 py-2 text-base text-ink-2">巡查上报，记录文物点情况</span>
 						</div>
 					</div>
 
@@ -276,221 +282,20 @@
 </script>
 
 <style scoped>
-	.overlap {
-		margin-top: -48px;
-		position: relative;
-		z-index: 2;
-	}
-
-	.profile {
-		display: flex;
-		align-items: center;
-		gap: 14px;
-	}
-
-	.avatar {
-		width: 64px;
-		height: 64px;
-		border-radius: 50%;
-		background: var(--g-primary);
-		color: var(--c-on-primary);
-		font-size: 1.375rem;
-		font-weight: 600;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.profile-info {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		min-width: 0;
-	}
-
-	.name {
-		font-size: 1.25rem;
-		font-weight: 600;
-		color: var(--c-text);
-	}
-
-	.account {
-		margin: 2px 0 6px;
-		font-size: 0.875rem;
-		color: var(--c-text-3);
-	}
-
-	.role {
-		font-size: 0.8125rem;
-	}
-
-	.menu {
-		padding-top: 4px;
-		padding-bottom: 4px;
-	}
-
-	.menu-item {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		min-height: 64px;
-		border-bottom: 1px solid var(--c-line);
-	}
-
-	.menu-item:last-child {
-		border-bottom: none;
-	}
-
-	.menu-item:active {
-		opacity: 0.7;
-	}
-
-	.menu-icon {
-		width: 40px;
-		height: 40px;
-		border-radius: 10px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.menu-text {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.menu-title {
-		font-size: 1rem;
-		font-weight: 600;
-		color: var(--c-text);
-	}
-
-	.menu-sub {
-		margin-top: 2px;
-		font-size: 0.8125rem;
-		color: var(--c-text-3);
-	}
-
-	.pwd {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		padding: 4px 0 14px;
-		border-bottom: 1px solid var(--c-line);
-	}
-
-	/* 外观设置 */
-	.appearance {
-		display: flex;
-		flex-direction: column;
-		gap: 14px;
-	}
-
-	.appearance-head {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-	}
-
-	.setting-row {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-
-	.setting-label {
-		font-size: 0.875rem;
-		font-weight: 600;
-		color: var(--c-text);
-	}
-
-	.setting-hint {
-		font-size: 0.75rem;
-		color: var(--c-text-3);
-	}
-
-	.setting-preview {
-		font-size: 1rem;
-		color: var(--c-text-2);
-		padding: 8px 12px;
-		border-radius: var(--r-input);
-		background: var(--c-fill);
-		border: 1px dashed var(--c-line-strong);
-	}
-
-	.seg {
-		display: flex;
-		gap: 0;
+	.pwd :deep(.van-field) {
+		min-height: 3rem;
 		border: 1px solid var(--c-line);
 		border-radius: var(--r-input);
-		overflow: hidden;
 		background: var(--c-fill);
+		transition: background-color 150ms ease, border-color 150ms ease;
 	}
-
-	.seg-item {
-		flex: 1;
-		min-width: 0;
-		padding: 10px 4px;
-		font-size: 0.8125rem;
-		font-weight: 500;
-		color: var(--c-text-2);
-		background: transparent;
-		border: none;
-		border-right: 1px solid var(--c-line);
-		transition: all 150ms ease;
+	.pwd :deep(.van-field:focus-within) {
+		border-color: var(--c-primary);
+		background: var(--c-surface);
+		box-shadow: 0 0 0 2px var(--focus-ring);
 	}
-
-	.seg-item:last-child {
-		border-right: none;
-	}
-
-	.seg-item.active {
-		color: var(--c-on-primary, #FFFFFF);
-		background: var(--c-primary);
-		font-weight: 600;
-	}
-
-	.swatches {
-		display: flex;
-		gap: 14px;
-	}
-
-	.swatch {
-		width: 40px;
-		height: 40px;
-		border-radius: 50%;
-		border: 2px solid transparent;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0;
-		transition: all 150ms ease;
-	}
-
-	.swatch.active {
-		box-shadow: 0 0 0 2px var(--c-surface), 0 0 0 4px var(--c-primary);
-	}
-
-	.swatch:active {
-		transform: scale(0.94);
-	}
-
-	.logout {
-		margin-left: auto;
-		flex-shrink: 0;
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-		padding: 8px 12px;
-		border: 1px solid var(--c-danger);
-		border-radius: 999px;
-		background: var(--c-danger-bg);
-		color: var(--c-danger);
-		font-size: 0.8125rem;
-		font-weight: 600;
+	.pwd :deep(.van-field__control) {
+		font-size: var(--text-base);
+		color: var(--c-text);
 	}
 </style>

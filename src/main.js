@@ -12,6 +12,9 @@ import './theme/vant-theme.css';
 import './theme/variables.css';
 import './theme/global.css';
 
+/* Tailwind 工具类（无 preflight，最后引入以覆盖 Vant 与全局样式） */
+import './theme/tailwind.css';
+
 import { initSettings } from './lib/settings.js';
 
 initSettings();

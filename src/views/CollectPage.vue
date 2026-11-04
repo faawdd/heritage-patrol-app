@@ -2,7 +2,7 @@
 	<div class="app-page">
 		<van-nav-bar title="不可移动文物现场采集" left-arrow safe-area-inset-top @click-left="navigateBack('/tabs/admin')" />
 		<div class="app-content">
-			<div class="page-wrap">
+			<div class="page-wrap h-full">
 				<HeritageCollectRefactor ref="collectRef" :loading="submitting" :meta="formMeta" @submit="handleSubmit" />
 			</div>
 		</div>
@@ -182,8 +182,4 @@
 	}
 </script>
 
-<style scoped>
-.page-wrap {
-	height: 100%;
-}
-</style>
+

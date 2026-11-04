@@ -1,6 +1,6 @@
 <template>
-	<div class="app-page tabs-page">
-		<div class="tabs-content">
+	<div class="app-page flex min-h-0 flex-col">
+		<div class="min-h-0 flex-1 overflow-hidden">
 			<router-view v-slot="{ Component, route }">
 				<KeepAlive>
 					<component :is="Component" :key="route.path" />
@@ -9,7 +9,7 @@
 		</div>
 		<van-tabbar
 			:model-value="current"
-			class="app-tabbar"
+			class="app-tabbar border-t border-line"
 			:fixed="false"
 			:border="false"
 			safe-area-inset-bottom
@@ -17,7 +17,7 @@
 		>
 			<van-tabbar-item v-for="item in navItems" :key="item.key" :name="item.key" :class="{ main: item.main }">
 				<template #icon="{ active }">
-					<div v-if="item.main" class="tab-main">
+					<div v-if="item.main" class="flex h-[1.875rem] w-11 items-center justify-center rounded-full bg-gradient-primary shadow-[0_0.125rem_0.5rem_rgb(var(--c-primary-rgb)/0.3)]">
 						<AppIcon name="camera" :size="40" color="var(--c-on-primary)" :stroke="2" />
 					</div>
 					<AppIcon v-else :name="item.icon" :size="40" :color="active ? 'var(--c-primary)' : 'var(--c-text-4)'" :stroke="active ? 2.2 : 1.8" />
@@ -67,41 +67,30 @@
 	};
 </script>
 
-<style>
-	.tabs-content {
-		flex: 1;
-		min-height: 0;
-		overflow: hidden;
-	}
+<style scoped>
+	@reference "../theme/tailwind.css";
+
 	.app-tabbar {
 		flex-shrink: 0;
-		--van-tabbar-height: 58px;
+		--van-tabbar-height: 3.625rem;
 		--van-tabbar-item-font-size: 0.75rem;
 		--van-tabbar-item-text-color: var(--c-text-3);
 		--van-tabbar-item-active-color: var(--c-primary);
 		border-top: 1px solid var(--c-line);
 		z-index: 2;
 	}
-	.app-tabbar .van-tabbar-item {
+
+	.app-tabbar :deep(.van-tabbar-item) {
+		min-width: 0;
 		font-size: 0.75rem;
 		font-weight: 600;
-		min-width: 0;
 	}
-	.app-tabbar .van-tabbar-item__icon {
-		margin-bottom: 2px;
-		height: 32px;
+
+	.app-tabbar :deep(.van-tabbar-item__icon) {
 		display: flex;
+		height: 2rem;
 		align-items: center;
 		justify-content: center;
-	}
-	.tab-main {
-		width: 44px;
-		height: 30px;
-		border-radius: 15px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: var(--g-primary);
-		box-shadow: 0 2px 8px rgba(var(--c-primary-rgb), 0.3);
+		margin-bottom: 0.125rem;
 	}
 </style>

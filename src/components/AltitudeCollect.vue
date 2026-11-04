@@ -1,52 +1,64 @@
 <template>
-	<!--
-	AltitudeCollect.vue — 高精度海拔采集组件
-	用法：<AltitudeCollect v-model="form.altitude" />
-	-->
-	<div class="alt-widget">
-
-		<!-- ① 标签行（含数据来源徽标） -->
-		<div class="alt-header">
-			<span class="alt-label">海拔高程（米）</span>
-			<div v-if="sourceLabel" :class="['alt-badge', sourceBadgeClass]">
-				<span class="alt-badge-text">{{ sourceLabel }}</span>
+	<div class="rounded-lg bg-surface py-0.5 pb-1">
+		<div class="mb-2 flex flex-wrap items-center justify-between gap-1">
+			<span class="text-sm font-semibold text-ink">海拔高程（米）</span>
+			<div v-if="sourceLabel" :class="['flex items-center rounded-full px-2 py-0.5', {
+				'bg-primary-light': sourceBadgeClass === 'badge--gps',
+				'bg-success-bg': ['badge--dem', 'badge--fused'].includes(sourceBadgeClass),
+				'bg-warning-bg': sourceBadgeClass === 'badge--hardware',
+				'bg-danger-bg': sourceBadgeClass === 'badge--critical',
+				'bg-fill': sourceBadgeClass === 'badge--manual',
+			}]">
+				<span :class="['text-[0.625rem] font-semibold', {
+					'text-primary': sourceBadgeClass === 'badge--gps',
+					'text-success': ['badge--dem', 'badge--fused'].includes(sourceBadgeClass),
+					'text-warning': sourceBadgeClass === 'badge--hardware',
+					'text-danger': sourceBadgeClass === 'badge--critical',
+					'text-ink-3': sourceBadgeClass === 'badge--manual',
+			}]">{{ sourceLabel }}</span>
 			</div>
 		</div>
 
-		<!-- ② 输入框 + 自动采集按钮
-		     ⚠ 输入框严禁设为 readonly/disabled，
-		       普查员随时可手动录入专业 RTK 读数覆盖自动值！ -->
-		<div class="alt-row">
-			<input
-				:value="altitude"
+		<div class="flex items-center gap-2">
+			<van-field
+				:model-value="altitude"
 				type="number"
 				inputmode="decimal"
 				step="any"
-				class="alt-input"
+				class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-fill !px-3 !py-0 text-base text-ink"
 				placeholder="自动采集 或 手动填写"
-				@input="onManualInput"
+				input-align="right"
+				:border="false"
+				@update:model-value="onManualInput"
 			/>
 			<van-button
 				native-type="button"
-				:class="['alt-btn', collecting ? 'alt-btn--loading' : '']"
+				:class="['!min-h-11 !min-w-[5.875rem] !shrink-0 !rounded-md !border-0 !px-3 !text-[0.8125rem] !font-semibold !text-on-primary', collecting ? '!bg-primary/60' : '!bg-primary']"
 				:disabled="collecting"
 				@click="startCollect"
 			>
 				<span v-if="!collecting">📡 一键采集</span>
-				<span v-else class="alt-pulse">采集中…</span>
+				<span v-else class="animate-pulse">采集中…</span>
 			</van-button>
 		</div>
 
-		<!-- ③ 状态提示行 -->
-		<div v-if="statusMsg" :class="['alt-status', statusClass]">
-			<span class="alt-status-text">{{ statusMsg }}</span>
+		<div v-if="statusMsg" :class="['mt-1.5 rounded px-2 py-1.5', {
+			'bg-primary-light': statusClass === 'alt-status--info',
+			'bg-success-bg': statusClass === 'alt-status--success',
+			'bg-danger-bg': statusClass === 'alt-status--error',
+			'bg-warning-bg': statusClass === 'alt-status--warn',
+		}]">
+			<span :class="['text-xs leading-relaxed', {
+				'text-primary': statusClass === 'alt-status--info',
+				'text-success': statusClass === 'alt-status--success',
+				'text-danger': statusClass === 'alt-status--error',
+				'text-warning': statusClass === 'alt-status--warn',
+			}]">{{ statusMsg }}</span>
 		</div>
 
-		<!-- ④ 技术详情（供专业人员核查） -->
-		<div v-if="detailText" class="alt-detail">
-			<span class="alt-detail-text">{{ detailText }}</span>
+		<div v-if="detailText" class="mt-1 rounded border-l-2 border-line bg-fill px-2 py-1.5">
+			<span class="font-mono text-[0.625rem] leading-loose text-ink-4">{{ detailText }}</span>
 		</div>
-
 	</div>
 </template>
 
@@ -113,8 +125,8 @@ watch(
 	}
 );
 
-function onManualInput(e) {
-	altitude.value = e.target.value;
+function onManualInput(value) {
+	altitude.value = value == null ? '' : String(value);
 	sourceLabel.value = '手动录入';
 	sourceBadgeClass.value = 'badge--manual';
 	statusMsg.value = '已切换为手动输入，可录入 RTK 手簿高程';
@@ -395,155 +407,3 @@ defineExpose({
 	startCollect,
 });
 </script>
-
-<style scoped>
-.alt-widget {
-	background: var(--c-surface);
-	border-radius: 8px;
-	padding: 2px 0 4px;
-}
-
-.alt-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 7px;
-	flex-wrap: wrap;
-	gap: 4px;
-}
-
-.alt-label {
-	font-size: 0.875rem;
-	color: var(--c-text);
-	font-weight: 600;
-}
-
-.alt-badge {
-	display: flex;
-	align-items: center;
-	padding: 2px 8px;
-	border-radius: 10px;
-}
-
-.alt-badge-text {
-	font-size: 0.625rem;
-	font-weight: 600;
-}
-
-.badge--gps { background: var(--c-primary-light); }
-.badge--gps .alt-badge-text { color: var(--c-primary-dark); }
-
-.badge--dem { background: var(--c-success-bg); }
-.badge--dem .alt-badge-text { color: var(--c-success); }
-
-.badge--hardware { background: var(--c-warning-bg); }
-.badge--hardware .alt-badge-text { color: var(--c-warning); }
-
-.badge--critical { background: var(--c-danger-bg); }
-.badge--critical .alt-badge-text { color: var(--c-danger); }
-
-.badge--fused { background: var(--c-success-bg); }
-.badge--fused .alt-badge-text { color: var(--c-success); }
-
-.badge--manual { background: var(--c-fill); }
-.badge--manual .alt-badge-text { color: var(--c-text-3); }
-
-.alt-row {
-	display: flex;
-	gap: 8px;
-	align-items: center;
-}
-
-/* ⚠ 重要：绝不设置 pointer-events:none、opacity:0.5 或 disabled，
-   普查员必须能随时点击输入框手动录入 RTK 读数覆盖自动值！ */
-.alt-input {
-	flex: 1;
-	min-width: 0;
-	min-height: 42px;
-	background: var(--c-fill);
-	border: 1px solid var(--c-line);
-	border-radius: 6px;
-	padding: 0 12px;
-	font-size: 1rem;
-	color: var(--c-text);
-	box-sizing: border-box;
-	outline: none;
-}
-
-.alt-btn {
-	flex-shrink: 0;
-	min-width: 94px;
-	min-height: 42px;
-	background: var(--c-primary);
-	color: var(--c-on-primary);
-	border-radius: 6px;
-	font-size: 0.8125rem;
-	font-weight: 600;
-	border: none;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0 10px;
-	box-sizing: border-box;
-	line-height: 1;
-}
-
-.alt-btn:active {
-	background: var(--c-primary-dark);
-	opacity: 0.9;
-}
-
-.alt-btn--loading {
-	background: #93c5fd;
-}
-
-.alt-pulse {
-	animation: alt-pulse-anim 1.2s ease-in-out infinite;
-	display: inline-block;
-}
-
-@keyframes alt-pulse-anim {
-	0%   { opacity: 1; }
-	50%  { opacity: 0.35; }
-	100% { opacity: 1; }
-}
-
-.alt-status {
-	margin-top: 6px;
-	padding: 6px 9px;
-	border-radius: 5px;
-}
-
-.alt-status-text {
-	font-size: 0.75rem;
-	line-height: 1.6;
-}
-
-.alt-status--info { background: var(--c-primary-light); }
-.alt-status--info .alt-status-text { color: var(--c-primary-dark); }
-
-.alt-status--success { background: var(--c-success-bg); }
-.alt-status--success .alt-status-text { color: var(--c-success); }
-
-.alt-status--error { background: var(--c-danger-bg); }
-.alt-status--error .alt-status-text { color: var(--c-danger); }
-
-.alt-status--warn { background: var(--c-warning-bg); }
-.alt-status--warn .alt-status-text { color: var(--c-warning); }
-
-.alt-detail {
-	margin-top: 5px;
-	padding: 5px 8px;
-	background: var(--c-fill);
-	border-radius: 4px;
-	border-left: 2px solid var(--c-line-strong);
-}
-
-.alt-detail-text {
-	font-size: 0.625rem;
-	color: var(--c-text-4);
-	line-height: 1.8;
-	/* 等宽字体便于数字对齐阅读 */
-	font-family: 'Courier New', Courier, monospace;
-}
-</style>

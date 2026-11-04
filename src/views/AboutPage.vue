@@ -3,38 +3,38 @@
 		<div class="app-content">
 			<div class="u-page">
 				<AppHeader title="关于软件" back />
-				<div class="u-body body">
-					<div class="u-card brand">
-						<div class="logo">
+				<div class="u-body pt-3.5">
+					<div class="u-card flex flex-col items-center px-4 py-6">
+						<div class="flex h-20 w-20 items-center justify-center rounded-[1.375rem] bg-gradient-primary">
 							<AppIcon name="landmark" :size="88" color="var(--c-on-primary)" :stroke="1.8" />
 						</div>
-						<span class="app-name">鄯善文保巡查</span>
-						<span class="app-ver">版本 {{ version }}</span>
+						<span class="mt-3 text-[1.375rem] font-extrabold text-ink">鄯善文保巡查</span>
+						<span class="mt-1 text-[0.9375rem] text-ink-3">版本 {{ version }}</span>
 					</div>
 
-					<div class="u-card list">
-						<div v-if="updateSupported" class="row" @click="checkUpdate">
-							<span class="row-label">检查更新</span>
-							<span class="row-value" :class="{ link: !checking }">{{ checking ? '正在检查…' : updateHint }}</span>
+					<div class="u-card">
+						<div v-if="updateSupported" class="flex min-h-[3.25rem] items-center justify-between gap-3 border-b border-fill last:border-0" @click="checkUpdate">
+							<span class="shrink-0 text-base text-ink-3">检查更新</span>
+							<span class="break-all text-right text-base text-ink" :class="!checking ? 'font-bold text-primary' : ''">{{ checking ? '正在检查…' : updateHint }}</span>
 						</div>
-						<div class="row">
-							<span class="row-label">作者</span>
-							<span class="row-value">北辰</span>
+						<div class="flex min-h-[3.25rem] items-center justify-between gap-3 border-b border-fill last:border-0">
+							<span class="shrink-0 text-base text-ink-3">作者</span>
+							<span class="break-all text-right text-base text-ink">北辰</span>
 						</div>
-						<div class="row" @click="call">
-							<span class="row-label">手机</span>
-							<span class="row-value link">13899665458</span>
+						<div class="flex min-h-[3.25rem] items-center justify-between gap-3 border-b border-fill last:border-0" @click="call">
+							<span class="shrink-0 text-base text-ink-3">手机</span>
+							<span class="break-all text-right text-base font-bold text-primary">13899665458</span>
 						</div>
-						<div class="row">
-							<span class="row-label">邮箱</span>
-							<span class="row-value">w1443469207@163.com</span>
+						<div class="flex min-h-[3.25rem] items-center justify-between gap-3 border-b border-fill last:border-0">
+							<span class="shrink-0 text-base text-ink-3">邮箱</span>
+							<span class="break-all text-right text-base text-ink">w1443469207@163.com</span>
 						</div>
-						<div class="row">
-							<span class="row-label">说明</span>
-							<span class="row-value">本软件仅供内部使用</span>
+						<div class="flex min-h-[3.25rem] items-center justify-between gap-3 border-b border-fill last:border-0">
+							<span class="shrink-0 text-base text-ink-3">说明</span>
+							<span class="break-all text-right text-base text-ink">本软件仅供内部使用</span>
 						</div>
 					</div>
-					<span class="tip">如有建议或发现问题，欢迎联系反馈</span>
+					<span class="block text-center text-sm text-ink-4">如有建议或发现问题，欢迎联系反馈</span>
 				</div>
 			</div>
 		</div>
@@ -90,76 +90,4 @@
 	};
 </script>
 
-<style scoped>
-	.body {
-		padding-top: 14px;
-	}
 
-	.brand {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 24px 16px;
-	}
-
-	.logo {
-		width: 80px;
-		height: 80px;
-		border-radius: 22px;
-		background: var(--g-primary);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.app-name {
-		margin-top: 12px;
-		font-size: 1.375rem;
-		font-weight: 800;
-		color: var(--c-text);
-	}
-
-	.app-ver {
-		margin-top: 3px;
-		font-size: 0.9375rem;
-		color: var(--c-text-3);
-	}
-
-	.row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
-		min-height: 52px;
-		border-bottom: 1px solid var(--c-fill);
-	}
-
-	.row:last-child {
-		border-bottom: none;
-	}
-
-	.row-label {
-		font-size: 1rem;
-		color: var(--c-text-3);
-		flex-shrink: 0;
-	}
-
-	.row-value {
-		font-size: 1rem;
-		color: var(--c-text);
-		text-align: right;
-		word-break: break-all;
-	}
-
-	.row-value.link {
-		color: var(--c-primary);
-		font-weight: 700;
-	}
-
-	.tip {
-		display: block;
-		text-align: center;
-		font-size: 0.875rem;
-		color: var(--c-text-4);
-	}
-</style>

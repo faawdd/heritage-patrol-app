@@ -3,24 +3,24 @@
 		<div class="app-content">
 			<div class="u-page">
 				<AppHeader :title="pageTitle || t('kml.title')" :subtitle="t('kml.headerSubtitle')" back />
-				<div class="u-body kml-body">
-					<div class="u-card kml-intro">
-						<div class="kml-intro-icon"><AppIcon name="grid" :size="52" color="var(--c-info)" /></div>
-						<div class="kml-intro-text">
-							<span class="kml-intro-title">{{ t('kml.introTitle') }}</span>
-							<span class="kml-intro-desc">{{ t('kml.subtitle') }}</span>
+				<div class="u-body pt-3.5 pb-6">
+					<div class="u-card mb-2.5 flex items-start gap-3">
+						<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-info-bg"><AppIcon name="grid" :size="52" color="var(--c-info)" /></div>
+						<div class="flex min-w-0 flex-col gap-1">
+							<span class="text-[1.0625rem] font-bold text-ink">{{ t('kml.introTitle') }}</span>
+							<span class="text-sm leading-[1.6] text-ink-3">{{ t('kml.subtitle') }}</span>
 						</div>
 					</div>
 
-					<div v-if="enableLocation" class="u-card kml-loc">
-						<div class="kml-loc-head">
-							<span class="kml-loc-label">{{ t('kml.locationTitle') }}</span>
+					<div v-if="enableLocation" class="u-card mb-2.5 flex flex-col gap-2">
+						<div class="flex items-center justify-between">
+							<span class="text-base font-bold text-ink">{{ t('kml.locationTitle') }}</span>
 							<span :class="['u-badge', location ? 'ok' : (locating ? 'info' : 'warn')]">
 								{{ location ? t('kml.locationReady') : (locating ? t('kml.locating') : t('kml.locationNone')) }}
 							</span>
 						</div>
-						<span class="kml-loc-value">{{ lastLocationText || t('kml.locationHint') }}</span>
-						<van-button native-type="button" class="u-btn plain sm kml-loc-btn" :disabled="locating" @click="showCurrentLocation()">
+						<span class="break-all font-mono text-sm tabular-nums text-ink-2">{{ lastLocationText || t('kml.locationHint') }}</span>
+						<van-button native-type="button" class="u-btn plain sm self-start min-h-11" :disabled="locating" @click="showCurrentLocation()">
 							{{ locating ? t('kml.locating') : t('kml.refreshLocation') }}
 						</van-button>
 					</div>
@@ -28,7 +28,7 @@
 					<van-button native-type="button" class="u-btn primary block" :disabled="opening" @click="openTool">
 						{{ opening ? t('kml.opening') : t('kml.openButton') }}
 					</van-button>
-					<span class="kml-tip">{{ t('kml.openTip') }}</span>
+					<span class="mt-2.5 block text-center text-[0.8125rem] leading-[1.6] text-ink-3">{{ t('kml.openTip') }}</span>
 				</div>
 			</div>
 		</div>
@@ -184,70 +184,5 @@
 </script>
 
 <style scoped>
-	.kml-body {
-		padding-top: 14px;
-		padding-bottom: 24px;
-	}
-	.kml-intro {
-		display: flex;
-		gap: 12px;
-		align-items: flex-start;
-	}
-	.kml-intro-icon {
-		flex: 0 0 44px;
-		height: 44px;
-		border-radius: 12px;
-		background: var(--c-info-bg);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.kml-intro-text {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		min-width: 0;
-	}
-	.kml-intro-title {
-		font-size: 1.0625rem;
-		font-weight: 700;
-		color: var(--c-text);
-	}
-	.kml-intro-desc {
-		font-size: 0.875rem;
-		line-height: 1.6;
-		color: var(--c-text-3);
-	}
-	.kml-loc {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
-	.kml-loc-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.kml-loc-label {
-		font-size: 1rem;
-		font-weight: 700;
-		color: var(--c-text);
-	}
-	.kml-loc-value {
-		font-size: 0.875rem;
-		color: var(--c-text-2);
-		font-variant-numeric: tabular-nums;
-		word-break: break-all;
-	}
-	.kml-loc-btn {
-		align-self: flex-start;
-	}
-	.kml-tip {
-		display: block;
-		margin-top: 10px;
-		font-size: 0.8125rem;
-		line-height: 1.6;
-		color: var(--c-text-3);
-		text-align: center;
-	}
+@reference "../theme/tailwind.css";
 </style>

@@ -1,9 +1,9 @@
 <template>
-	<div class="gs">
-		<span class="gs-title">{{ step === 1 ? '请画出新的手势密码' : '请再画一次，确认手势' }}</span>
-		<span class="gs-tip" :class="{ error: isError }">{{ tip }}</span>
+	<div class="flex flex-col items-center">
+		<span class="text-xl font-extrabold text-ink">{{ step === 1 ? '请画出新的手势密码' : '请再画一次，确认手势' }}</span>
+		<span class="my-2 mb-4 min-h-[1.375rem] text-[0.9375rem] text-ink-3" :class="isError ? 'font-bold text-danger' : ''">{{ tip }}</span>
 		<GestureLock ref="lock" :size="size" @complete="onComplete" />
-		<div class="gs-actions">
+		<div class="mt-4 flex gap-3">
 			<van-button native-type="button" v-if="step === 2" class="u-btn plain sm" @click="restart">重新画</van-button>
 			<van-button native-type="button" class="u-btn plain sm" @click="$emit('cancel')">{{ cancelText }}</van-button>
 		</div>
@@ -70,34 +70,4 @@
 	};
 </script>
 
-<style scoped>
-	.gs {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
 
-	.gs-title {
-		font-size: 1.25rem;
-		font-weight: 800;
-		color: var(--c-text);
-	}
-
-	.gs-tip {
-		margin: 8px 0 16px;
-		min-height: 22px;
-		font-size: 0.9375rem;
-		color: var(--c-text-3);
-	}
-
-	.gs-tip.error {
-		color: var(--c-danger);
-		font-weight: 700;
-	}
-
-	.gs-actions {
-		display: flex;
-		gap: 12px;
-		margin-top: 16px;
-	}
-</style>

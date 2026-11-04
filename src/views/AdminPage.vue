@@ -4,7 +4,7 @@
 			<div class="u-page">
 				<AppHeader :title="t('admin.title')" :subtitle="t('admin.headerSubtitle')" />
 
-				<div class="adm-seg-wrap">
+				<div class="sticky top-0 z-[5] bg-page px-3.5 py-2.5">
 					<van-tabs v-model:active="currentTab" class="adm-seg">
 						<van-tab name="heritages" :title="t('admin.tabHeritages')" />
 						<van-tab name="projects" :title="t('admin.tabProjects')" />
@@ -12,106 +12,120 @@
 					</van-tabs>
 				</div>
 
-				<div class="u-body adm-body">
+				<div class="u-body pb-5">
 					<!-- 文物点数据 -->
 					<template v-if="currentTab === 'heritages'">
-						<div class="u-card adm-filter">
-							<div class="adm-search">
+						<div class="u-card mb-2.5 flex flex-col gap-2.5 p-3">
+							<div class="flex h-11 items-center gap-1.5 rounded-[0.625rem] border border-line bg-fill px-3">
 								<AppIcon name="search" :size="36" color="var(--c-text-4)" />
-								<input
+								<van-field
 									v-model.trim="heritageSearchKeyword"
-									class="adm-search-input"
+									class="adm-search-field min-w-0 flex-1 !h-11 !bg-transparent !px-0 !py-0 text-[0.9375rem] text-ink"
 									type="search"
 									:placeholder="t('admin.searchHeritagePlaceholder')"
 									enterkeyhint="search"
+									:border="false"
+									input-align="left"
 									@keyup.enter="applyHeritageFilters"
 								/>
 							</div>
-							<div class="adm-filter-row">
-								<select class="adm-select" :value="heritageCategoryIndex" @change="onHeritageCategoryChange({ detail: { value: Number($event.target.value) } })">
-									<option v-for="(l, i) in heritageCategoryLabels" :key="i" :value="i">{{ l }}</option>
-								</select>
+							<div class="flex gap-2">
+								<AppSelect
+									class="min-w-0 min-h-11 flex-1 self-stretch rounded-[0.625rem] border border-line bg-surface px-3"
+									:options="heritageCategoryLabels"
+									:model-value="heritageCategoryIndex"
+									:placeholder="t('admin.allCategoriesOption')"
+									:title="t('admin.allCategoriesOption')"
+									@change="onHeritageCategoryChange"
+								/>
 								<van-button native-type="button" class="u-btn plain sm" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</van-button>
 								<van-button native-type="button" class="u-btn primary sm" @click="applyHeritageFilters">{{ t('common.search') }}</van-button>
 							</div>
 						</div>
 
-						<div class="adm-list-head">
-							<span class="adm-list-title">{{ t('admin.allHeritages') }}</span>
-							<span class="adm-list-count">{{ showHeritageFilterSummary ? t('admin.filterResultSummary', { count: heritageTotal, page: heritagePage }) : t('admin.recordCount', { count: heritageDisplayCount }) }}</span>
+						<div class="my-1 flex items-baseline justify-between gap-2">
+							<span class="text-[1.0625rem] font-bold text-ink whitespace-nowrap">{{ t('admin.allHeritages') }}</span>
+							<span class="text-[0.8125rem] text-ink-3 text-right">{{ showHeritageFilterSummary ? t('admin.filterResultSummary', { count: heritageTotal, page: heritagePage }) : t('admin.recordCount', { count: heritageDisplayCount }) }}</span>
 						</div>
 
-						<div v-for="item in heritages" :key="item.id" class="u-card adm-item tappable" @click="openHeritageDetail(item)">
-							<div class="adm-item-head">
-								<span class="adm-item-title">{{ item.name }}</span>
+						<div v-for="item in heritages" :key="item.id" class="u-card mb-2.5 flex flex-col gap-1 p-3.5 active:scale-[0.99] active:opacity-90" @click="openHeritageDetail(item)">
+							<div class="flex items-center justify-between gap-2">
+								<span class="text-[1.0625rem] font-extrabold leading-[1.4] text-ink break-all">{{ item.name }}</span>
 								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
-							<div class="adm-badges">
+							<div class="my-0.5 mb-1 flex flex-wrap gap-1.5">
 								<span v-if="item.category" class="u-badge info">{{ item.category }}</span>
 								<span v-if="item.level" class="u-badge warn">{{ item.level }}</span>
 							</div>
-							<div class="adm-kv adm-code-row"><span class="k">四普编号</span><span class="v mono adm-sip-code">{{ item.sip_code || t('common.notAvailable') }}</span></div>
-							<div class="adm-kv"><span class="k">地址</span><span class="v">{{ item.address || t('common.notAvailable') }}</span></div>
-							<div v-if="item.longitude && item.latitude" class="adm-kv"><span class="k">坐标</span><span class="v mono">{{ item.longitude }}, {{ item.latitude }}</span></div>
+							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">四普编号</span><span class="inline-flex w-fit min-w-0 flex-[0_1_auto] items-center break-all rounded-[0.3125rem] border border-line bg-fill px-2 py-0.5 font-mono tabular-nums tracking-[0.02em] text-ink-2">{{ item.sip_code || t('common.notAvailable') }}</span></div>
+							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">地址</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.address || t('common.notAvailable') }}</span></div>
+							<div v-if="item.longitude && item.latitude" class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">坐标</span><span class="min-w-0 flex-1 break-all font-mono tabular-nums text-ink-2">{{ item.longitude }}, {{ item.latitude }}</span></div>
 						</div>
 						<div v-if="!heritages.length" class="u-card u-empty">{{ t('admin.noHeritageMatched') }}</div>
 
-						<div v-if="heritageTotalPages > 1" class="adm-pager">
+						<div v-if="heritageTotalPages > 1" class="mt-1 flex items-center justify-between gap-2">
 							<van-button native-type="button" class="u-btn plain sm" :disabled="heritagePage <= 1" @click="changeHeritagePage(-1)">{{ t('admin.prevPage') }}</van-button>
-							<span class="adm-pager-text">{{ t('admin.pageInfo', { page: heritagePage, total: heritageTotalPages }) }}</span>
+							<span class="text-sm text-ink-3">{{ t('admin.pageInfo', { page: heritagePage, total: heritageTotalPages }) }}</span>
 							<van-button native-type="button" class="u-btn plain sm" :disabled="heritagePage >= heritageTotalPages" @click="changeHeritagePage(1)">{{ t('admin.nextPage') }}</van-button>
 						</div>
 					</template>
 
 					<!-- 项目管理 -->
 					<template v-if="currentTab === 'projects'">
-						<div v-if="projectSummary" class="u-card adm-summary">
-							<div class="adm-sum-cell"><span class="n">{{ projectSummary.total || 0 }}</span><span class="l">全部项目</span></div>
-							<div class="adm-sum-cell"><span class="n">{{ projectSummary.in_progress || 0 }}</span><span class="l">在办</span></div>
-							<div class="adm-sum-cell"><span class="n ok">{{ projectSummary.archived || 0 }}</span><span class="l">已归档</span></div>
-							<div class="adm-sum-cell"><span class="n warn">{{ projectSummary.overlap || 0 }}</span><span class="l">涉及文物</span></div>
+						<div v-if="projectSummary" class="u-card grid grid-cols-4 divide-x divide-fill px-1.5 py-3">
+							<div class="flex flex-col items-center"><span class="text-xl font-extrabold tabular-nums text-primary">{{ projectSummary.total || 0 }}</span><span class="text-xs text-ink-3">全部项目</span></div>
+							<div class="flex flex-col items-center"><span class="text-xl font-extrabold tabular-nums text-primary">{{ projectSummary.in_progress || 0 }}</span><span class="text-xs text-ink-3">在办</span></div>
+							<div class="flex flex-col items-center"><span class="text-xl font-extrabold tabular-nums text-success">{{ projectSummary.archived || 0 }}</span><span class="text-xs text-ink-3">已归档</span></div>
+							<div class="flex flex-col items-center"><span class="text-xl font-extrabold tabular-nums text-warning">{{ projectSummary.overlap || 0 }}</span><span class="text-xs text-ink-3">涉及文物</span></div>
 						</div>
 
-						<div class="u-card adm-filter">
-							<div class="adm-search">
+						<div class="u-card mb-2.5 flex flex-col gap-2.5 p-3">
+							<div class="flex h-11 items-center gap-1.5 rounded-[0.625rem] border border-line bg-fill px-3">
 								<AppIcon name="search" :size="36" color="var(--c-text-4)" />
-								<input
+								<van-field
 									v-model.trim="projectKeyword"
-									class="adm-search-input"
+									class="adm-search-field min-w-0 flex-1 !h-11 !bg-transparent !px-0 !py-0 text-[0.9375rem] text-ink"
 									type="search"
 									:placeholder="t('admin.searchProjectPlaceholder')"
 									enterkeyhint="search"
+									:border="false"
+									input-align="left"
 									@keyup.enter="loadProjects()"
 								/>
 							</div>
-							<div class="adm-filter-row">
-								<select class="adm-select" :value="projectStatusIndex" @change="onProjectStatusChange({ detail: { value: Number($event.target.value) } })">
-									<option v-for="(l, i) in projectStatusLabels" :key="i" :value="i">{{ l }}</option>
-								</select>
+							<div class="flex gap-2">
+								<AppSelect
+									class="min-w-0 min-h-11 flex-1 self-stretch rounded-[0.625rem] border border-line bg-surface px-3"
+									:options="projectStatusLabels"
+									:model-value="projectStatusIndex"
+									:placeholder="t('admin.allStatusOption')"
+									:title="t('admin.allStatusOption')"
+									@change="onProjectStatusChange"
+								/>
 								<van-button native-type="button" class="u-btn primary sm" @click="loadProjects()">{{ t('common.search') }}</van-button>
 							</div>
 						</div>
 
-						<div class="adm-list-head">
-							<span class="adm-list-title">{{ t('admin.projectsTitle') }}</span>
-							<span class="adm-list-link" @click="openProjectListOnline">{{ t('admin.openProjectListOnline') }} ›</span>
+						<div class="my-1 flex items-baseline justify-between gap-2">
+							<span class="text-[1.0625rem] font-bold text-ink whitespace-nowrap">{{ t('admin.projectsTitle') }}</span>
+							<span class="text-sm font-semibold text-primary whitespace-nowrap" @click="openProjectListOnline">{{ t('admin.openProjectListOnline') }} ›</span>
 						</div>
 
-						<div v-for="item in projects" :key="item.id" class="u-card adm-item">
-							<span class="adm-item-title">{{ item.project_name }}</span>
-							<div class="adm-badges">
+						<div v-for="item in projects" :key="item.id" class="u-card mb-2.5 flex flex-col gap-1 p-3.5">
+							<span class="text-[1.0625rem] font-extrabold leading-[1.4] text-ink break-all">{{ item.project_name }}</span>
+							<div class="my-0.5 mb-1 flex flex-wrap gap-1.5">
 								<span :class="['u-badge', item.is_archived ? 'ok' : 'info']">{{ item.status_label }}</span>
 								<span v-if="item.is_overlap_artifact" class="u-badge bad">{{ t('admin.projectOverlapBadge', { count: item.overlap_count }) }}</span>
 								<span v-else-if="item.spatial_check_at" class="u-badge ok">{{ t('admin.projectNoOverlap') }}</span>
 								<span v-else class="u-badge warn">{{ t('admin.projectNotChecked') }}</span>
 							</div>
-							<div class="adm-kv"><span class="k">建设单位</span><span class="v">{{ item.company_name || t('common.notFilled') }}</span></div>
-							<div class="adm-kv"><span class="k">来函日期</span><span class="v">{{ item.incoming_doc_date || '-' }}</span></div>
-							<div class="adm-kv"><span class="k">收文日期</span><span class="v">{{ item.receive_date || '-' }}</span></div>
-							<div v-if="item.is_overlap_artifact" class="adm-kv"><span class="k">涉及文物</span><span class="v">{{ overlapNames(item) }}</span></div>
-							<div v-if="item.final_reply_to_company" class="adm-kv"><span class="k">复函号</span><span class="v">{{ item.final_reply_to_company }}</span></div>
-							<div class="adm-item-foot">
-								<span class="adm-minor">{{ item.updated_at ? t('admin.projectUpdatedAt', { value: item.updated_at }) : '' }}</span>
+							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">建设单位</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.company_name || t('common.notFilled') }}</span></div>
+							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">来函日期</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.incoming_doc_date || '-' }}</span></div>
+							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">收文日期</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.receive_date || '-' }}</span></div>
+							<div v-if="item.is_overlap_artifact" class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">涉及文物</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ overlapNames(item) }}</span></div>
+							<div v-if="item.final_reply_to_company" class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">复函号</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.final_reply_to_company }}</span></div>
+							<div class="mt-1.5 flex items-center justify-between gap-2 border-t border-fill pt-2.5">
+								<span class="text-xs text-ink-4">{{ item.updated_at ? t('admin.projectUpdatedAt', { value: item.updated_at }) : '' }}</span>
 								<van-button native-type="button" class="u-btn primary sm" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</van-button>
 							</div>
 						</div>
@@ -120,63 +134,63 @@
 
 					<!-- 工具入口 -->
 					<template v-if="currentTab === 'tools'">
-						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.fieldTools') }}</span></div>
-						<div class="u-card adm-tool">
-							<div class="adm-tool-main">
-								<div class="adm-tool-icon"><AppIcon name="map" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
-								<div class="adm-tool-text">
-									<span class="adm-tool-title">{{ t('admin.collectTitle') }}</span>
-									<span class="adm-tool-desc">{{ t('admin.collectDesc') }}</span>
+						<div class="my-1 flex items-baseline justify-between gap-2"><span class="text-[1.0625rem] font-bold text-ink whitespace-nowrap">{{ t('admin.fieldTools') }}</span></div>
+						<div class="u-card mb-2.5 p-3">
+							<div class="flex items-center gap-3">
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="map" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+									<span class="text-base font-bold text-ink">{{ t('admin.collectTitle') }}</span>
+									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.collectDesc') }}</span>
 								</div>
 							</div>
-							<div class="adm-tool-actions">
+							<div class="mt-3 grid grid-cols-2 gap-2">
 								<van-button native-type="button" class="u-btn plain sm" @click="goMyRecords">{{ t('admin.myCollectRecords') }}</van-button>
 								<van-button native-type="button" class="u-btn primary sm" @click="goCollect">{{ t('admin.startCollect') }}</van-button>
 							</div>
 						</div>
 
-						<div class="adm-list-head"><span class="adm-list-title">{{ t('admin.onlineTools') }}</span></div>
-						<div class="u-card adm-tool tappable" @click="openInspectionManagement">
-							<div class="adm-tool-main">
-								<div class="adm-tool-icon"><AppIcon name="clock" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
-								<div class="adm-tool-text">
-									<span class="adm-tool-title">{{ t('admin.patrolManageTitle') }}</span>
-									<span class="adm-tool-desc">{{ t('admin.patrolManageDesc') }}</span>
+						<div class="my-1 flex items-baseline justify-between gap-2"><span class="text-[1.0625rem] font-bold text-ink whitespace-nowrap">{{ t('admin.onlineTools') }}</span></div>
+						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openInspectionManagement">
+							<div class="flex items-center gap-3">
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="clock" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+									<span class="text-base font-bold text-ink">{{ t('admin.patrolManageTitle') }}</span>
+									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.patrolManageDesc') }}</span>
 								</div>
 								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
-						<div class="u-card adm-tool tappable" @click="openKmlTool">
-							<div class="adm-tool-main">
-								<div class="adm-tool-icon"><AppIcon name="grid" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
-								<div class="adm-tool-text">
-									<span class="adm-tool-title">{{ t('admin.kmlTitle') }}</span>
-									<span class="adm-tool-desc">{{ t('admin.kmlDesc') }}</span>
+						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openKmlTool">
+							<div class="flex items-center gap-3">
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="grid" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+									<span class="text-base font-bold text-ink">{{ t('admin.kmlTitle') }}</span>
+									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.kmlDesc') }}</span>
 								</div>
 								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
-						<div class="u-card adm-tool tappable" @click="openDjangoCollectTool">
-							<div class="adm-tool-main">
-								<div class="adm-tool-icon"><AppIcon name="records" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
-								<div class="adm-tool-text">
-									<span class="adm-tool-title">{{ t('admin.collectManageTitle') }}</span>
-									<span class="adm-tool-desc">{{ t('admin.collectManageDesc') }}</span>
+						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openDjangoCollectTool">
+							<div class="flex items-center gap-3">
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="records" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+									<span class="text-base font-bold text-ink">{{ t('admin.collectManageTitle') }}</span>
+									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.collectManageDesc') }}</span>
 								</div>
 								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
-						<div class="u-card adm-tool tappable" @click="openProjectListOnline">
-							<div class="adm-tool-main">
-								<div class="adm-tool-icon"><AppIcon name="file" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
-								<div class="adm-tool-text">
-									<span class="adm-tool-title">{{ t('admin.projectOnlineTitle') }}</span>
-									<span class="adm-tool-desc">{{ t('admin.projectOnlineDesc') }}</span>
+						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openProjectListOnline">
+							<div class="flex items-center gap-3">
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="file" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
+									<span class="text-base font-bold text-ink">{{ t('admin.projectOnlineTitle') }}</span>
+									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.projectOnlineDesc') }}</span>
 								</div>
 								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
 							</div>
 						</div>
-						<span class="adm-tip">{{ t('admin.onlineTip') }}</span>
+						<span class="mx-1 mt-1.5 block text-xs leading-[1.6] text-center text-ink-4">{{ t('admin.onlineTip') }}</span>
 					</template>
 				</div>
 			</div>
@@ -187,6 +201,7 @@
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
+	import AppSelect from '@/components/AppSelect.vue';
 	import { openApiEntry } from '@/lib/webview.js';
 	import config from '@/lib/config.js';
 	import { getUser, isAdminUser } from '@/lib/auth.js';
@@ -196,7 +211,7 @@
 	import { t } from '@/lib/i18n.js';
 
 	export default {
-		components: { AppHeader, AppIcon },
+		components: { AppHeader, AppIcon, AppSelect },
 		data() {
 			return {
 				currentTab: 'heritages',
@@ -409,309 +424,25 @@
 </script>
 
 <style scoped>
-	.adm-seg-wrap {
-		position: sticky;
-		top: 0;
-		z-index: 5;
-		padding: 10px 14px;
-		background: var(--c-bg);
-	}
+@reference "../theme/tailwind.css";
 
-	.adm-seg {
-		--van-tabs-nav-background: var(--c-line);
-		--van-tab-text-color: var(--c-text-2);
-		--van-tab-active-text-color: var(--c-primary);
-		--van-tabs-bottom-bar-color: var(--c-primary);
-		border-radius: 10px;
-		overflow: hidden;
-	}
+.adm-seg {
+	--van-tabs-nav-background: var(--c-line);
+	--van-tab-text-color: var(--c-text-2);
+	--van-tab-active-text-color: var(--c-primary);
+	--van-tabs-bottom-bar-color: var(--c-primary);
+	border-radius: 0.625rem;
+	overflow: hidden;
+}
 
-	.adm-body {
-		padding-bottom: 20px;
-	}
+.adm-search-field :deep(.van-cell) {
+	min-height: 100%;
+	padding: 0;
+	background: transparent;
+}
 
-	.u-card {
-		margin-bottom: 10px;
-	}
-
-	.adm-filter {
-		padding: 12px;
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
-
-	.adm-search {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		height: 44px;
-		padding: 0 12px;
-		border-radius: 10px;
-		background: var(--c-fill);
-		border: 1px solid var(--c-line);
-	}
-
-	.adm-search-input {
-		flex: 1;
-		min-width: 0;
-		height: 100%;
-		border: none;
-		background: transparent;
-		font-size: 0.9375rem;
-		color: var(--c-text);
-	}
-
-	.adm-search-input:focus {
-		box-shadow: none;
-	}
-
-	.adm-filter-row {
-		display: flex;
-		gap: 8px;
-	}
-
-	.adm-filter-row .u-btn {
-		flex-shrink: 0;
-	}
-
-	.adm-select {
-		flex: 1;
-		min-width: 0;
-		height: 40px;
-		padding: 0 30px 0 12px;
-		border-radius: 10px;
-		border: 1px solid var(--c-line);
-		background: var(--c-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;
-		font-size: 0.9375rem;
-		color: var(--c-text);
-		-webkit-appearance: none;
-		appearance: none;
-		font-family: inherit;
-	}
-
-	.adm-list-head {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: 8px;
-		margin: 4px 2px 8px;
-	}
-
-	.adm-list-title {
-		font-size: 1.0625rem;
-		font-weight: 700;
-		color: var(--c-text);
-		white-space: nowrap;
-	}
-
-	.adm-list-count {
-		font-size: 0.8125rem;
-		color: var(--c-text-3);
-		text-align: right;
-	}
-
-	.adm-list-link {
-		font-size: 0.875rem;
-		color: var(--c-primary);
-		font-weight: 600;
-		white-space: nowrap;
-	}
-
-	.adm-item {
-		padding: 12px 14px;
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-
-	.tappable:active {
-		transform: scale(0.99);
-		opacity: 0.92;
-	}
-
-	.adm-item-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 8px;
-	}
-
-	.adm-item-title {
-		font-size: 1.0625rem;
-		font-weight: 800;
-		color: var(--c-text);
-		line-height: 1.4;
-		word-break: break-all;
-	}
-
-	.adm-badges {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 6px;
-		margin: 2px 0 4px;
-	}
-
-	.adm-badges .u-badge {
-		font-size: 0.75rem;
-		padding: 3px 8px;
-	}
-
-	.adm-kv {
-		display: flex;
-		gap: 10px;
-		font-size: 0.875rem;
-		line-height: 1.5;
-	}
-
-	.adm-kv .k {
-		flex: 0 0 60px;
-		color: var(--c-text-3);
-	}
-
-	.adm-kv .v {
-		flex: 1;
-		min-width: 0;
-		color: var(--c-text-2);
-		word-break: break-all;
-	}
-
-	.adm-kv .adm-sip-code {
-		display: inline-flex;
-		align-items: center;
-		width: fit-content;
-		flex: 0 1 auto;
-		padding: 2px 7px;
-		border: 1px solid var(--c-line);
-		border-radius: 5px;
-		background: var(--c-fill);
-		color: var(--c-text-2);
-		letter-spacing: 0.02em;
-	}
-
-	.adm-kv .mono {
-		font-variant-numeric: tabular-nums;
-		font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-	}
-
-	.adm-item-foot {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 8px;
-		margin-top: 6px;
-		padding-top: 10px;
-		border-top: 1px solid var(--c-fill);
-	}
-
-	.adm-minor {
-		font-size: 0.75rem;
-		color: var(--c-text-4);
-	}
-
-	.adm-pager {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 8px;
-		margin-top: 4px;
-	}
-
-	.adm-pager-text {
-		font-size: 0.875rem;
-		color: var(--c-text-3);
-	}
-
-	.adm-summary {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		padding: 12px 6px;
-	}
-
-	.adm-sum-cell {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.adm-sum-cell + .adm-sum-cell {
-		border-left: 1px solid var(--c-fill);
-	}
-
-	.adm-sum-cell .n {
-		font-size: 1.25rem;
-		font-weight: 800;
-		color: var(--c-primary);
-		font-variant-numeric: tabular-nums;
-	}
-
-	.adm-sum-cell .n.ok {
-		color: var(--c-success);
-	}
-
-	.adm-sum-cell .n.warn {
-		color: var(--c-warning);
-	}
-
-	.adm-sum-cell .l {
-		font-size: 0.75rem;
-		color: var(--c-text-3);
-	}
-
-	.adm-tool {
-		padding: 12px 14px;
-	}
-
-	.adm-tool-main {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-	}
-
-	.adm-tool-icon {
-		width: 44px;
-		height: 44px;
-		border-radius: 10px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-		background: var(--c-primary-light);
-	}
-
-	.adm-tool-text {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-
-	.adm-tool-title {
-		font-size: 1rem;
-		font-weight: 700;
-		color: var(--c-text);
-	}
-
-	.adm-tool-desc {
-		font-size: 0.8125rem;
-		line-height: 1.5;
-		color: var(--c-text-3);
-	}
-
-	.adm-tool-actions {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 8px;
-		margin-top: 12px;
-	}
-
-	.adm-tip {
-		display: block;
-		margin: 6px 4px 0;
-		font-size: 0.75rem;
-		line-height: 1.6;
-		color: var(--c-text-4);
-		text-align: center;
-	}
+.adm-search-field :deep(.van-field__control) {
+	font-size: 0.9375rem;
+	color: var(--c-text);
+}
 </style>

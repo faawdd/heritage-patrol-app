@@ -2,49 +2,49 @@
 	<div class="app-page">
 		<div class="app-content">
 			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-			<div class="page">
+			<div class="relative box-border min-h-full bg-page">
 				<AppHeader title="我的采集记录" :subtitle="`共 ${total} 条采集登记`" back />
 
-				<van-list v-model:loading="loadingMore" v-model:error="listError" :finished="!hasMore" :disabled="refreshing" error-text="加载失败，点击重试" @load="onInfinite" class="list-scroll">
-					<div v-if="loading && !records.length" class="loading-wrap">
-						<span class="loading-text">加载中…</span>
+				<van-list v-model:loading="loadingMore" v-model:error="listError" :finished="!hasMore" :disabled="refreshing" error-text="加载失败，点击重试" @load="onInfinite" class="box-border px-3.5 py-3 pb-[calc(84px+env(safe-area-inset-bottom))]">
+					<div v-if="loading && !records.length" class="py-8 text-center">
+						<span class="text-sm text-ink-3">加载中…</span>
 					</div>
 
-					<div v-for="item in records" :key="item.id" class="card">
-						<div class="card-left">
-							<img v-if="item.cover_url" :src="item.cover_url" class="thumb" />
-							<div v-else class="thumb-placeholder">
+					<div v-for="item in records" :key="item.id" class="mb-2.5 flex gap-3 rounded-card bg-surface p-3 shadow-card">
+						<div class="w-[4.5rem] shrink-0">
+							<img v-if="item.cover_url" :src="item.cover_url" class="block h-[4.5rem] w-[4.5rem] rounded-[0.625rem] object-cover" />
+							<div v-else class="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[0.625rem] bg-fill">
 								<AppIcon name="landmark" :size="56" color="var(--c-text-4)" />
 							</div>
 						</div>
-						<div class="card-body">
-							<div class="card-row">
-								<span class="card-name">{{ item.name }}</span>
-								<div class="level-badge">{{ item.protection_level }}</div>
+						<div class="flex min-w-0 flex-1 flex-col gap-0.5 p-0">
+							<div class="flex items-start justify-between gap-1.5">
+								<span class="min-w-0 flex-1 text-base font-extrabold leading-[1.35] text-ink">{{ item.name }}</span>
+								<div class="shrink-0 whitespace-nowrap rounded-full bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning">{{ item.protection_level }}</div>
 							</div>
-							<span class="card-code">编号：{{ item.survey_code }}</span>
-							<span class="card-meta">{{ item.era }} · {{ item.category }}</span>
-							<span class="card-addr">{{ item.address || '（地址未填）' }}</span>
-							<div class="card-footer">
-								<span class="card-photos">{{ item.collected_at ? `${item.collected_at} · ` : '' }}照片 {{ item.photo_count || 0 }} 张</span>
-								<van-button native-type="button" class="btn-export" @click="exportDocx(item)">导出登记表</van-button>
+							<span class="text-[0.8125rem] tabular-nums text-ink-3">编号：{{ item.survey_code }}</span>
+							<span class="text-[0.8125rem] text-ink-2">{{ item.era }} · {{ item.category }}</span>
+							<span class="overflow-hidden text-ellipsis whitespace-nowrap text-[0.8125rem] text-ink-3">{{ item.address || '（地址未填）' }}</span>
+							<div class="mt-1.5 flex items-center justify-between gap-2">
+								<span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs text-ink-3">{{ item.collected_at ? `${item.collected_at} · ` : '' }}照片 {{ item.photo_count || 0 }} 张</span>
+								<van-button native-type="button" class="!h-11 shrink-0 !rounded-[0.5625rem] !border-0 !bg-primary-light !px-3 !text-sm !font-bold !text-primary" @click="exportDocx(item)">导出登记表</van-button>
 							</div>
 						</div>
 					</div>
 
-					<div v-if="!loading && !records.length" class="empty-tip">
+					<div v-if="!loading && !records.length" class="flex flex-col items-center gap-2.5 py-12">
 						<AppIcon name="records" :size="80" color="var(--c-line-strong)" />
-						<span class="empty-text">暂无采集记录</span>
-						<van-button native-type="button" class="btn-go-collect" @click="goCollect">去采集</van-button>
+						<span class="text-[0.9375rem] text-ink-3">暂无采集记录</span>
+						<van-button native-type="button" class="!h-11 !rounded-xl !border-0 !bg-primary !px-8 !text-base !font-bold !text-on-primary" @click="goCollect">去采集</van-button>
 					</div>
 
-					<div v-if="loading && records.length" class="load-more-tip"><span>加载中…</span></div>
-					<div v-if="!hasMore && records.length" class="load-more-tip"><span>— 已显示全部 —</span></div>
+					<div v-if="loading && records.length" class="p-2.5 text-center text-[0.8125rem] text-ink-4"><span>加载中…</span></div>
+					<div v-if="!hasMore && records.length" class="p-2.5 text-center text-[0.8125rem] text-ink-4"><span>— 已显示全部 —</span></div>
 				</van-list>
 			</div>
 
-			<div class="fab" @click="goCollect">
-				<span class="fab-icon">＋</span>
+			<div class="fixed right-5 bottom-[calc(24px+env(safe-area-inset-bottom))] z-10 flex h-[3.375rem] w-[3.375rem] items-center justify-center rounded-full bg-gradient-primary shadow-card" @click="goCollect">
+				<span class="-mt-0.5 text-[1.875rem] leading-none text-on-primary">＋</span>
 			</div>
 		</van-pull-refresh>
 		</div>
@@ -157,68 +157,5 @@
 </script>
 
 <style scoped>
-.page {
-	background: var(--c-bg);
-	min-height: 100%;
-	position: relative;
-	box-sizing: border-box;
-}
-
-.list-scroll {
-	padding: 12px 14px;
-	padding-bottom: calc(84px + env(safe-area-inset-bottom));
-	box-sizing: border-box;
-}
-
-.card {
-	display: flex;
-	gap: 12px;
-	padding: 12px;
-	background: var(--c-surface);
-	border-radius: var(--r-card);
-	margin-bottom: 10px;
-	box-shadow: var(--shadow-card);
-}
-.card-left { width: 72px; flex-shrink: 0; }
-.thumb { width: 72px; height: 72px; object-fit: cover; display: block; border-radius: 10px; }
-.thumb-placeholder {
-	width: 72px; height: 72px; background: var(--c-fill); border-radius: 10px;
-	display: flex; align-items: center; justify-content: center;
-}
-.card-body { flex: 1; min-width: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
-.card-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
-.card-name { font-size: 1rem; font-weight: 800; color: var(--c-text); flex: 1; min-width: 0; line-height: 1.35; }
-.level-badge {
-	font-size: 0.75rem; font-weight: 700; color: var(--c-warning); background: var(--c-warning-bg);
-	padding: 2px 8px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
-}
-.card-code { font-size: 0.8125rem; color: var(--c-text-3); font-variant-numeric: tabular-nums; }
-.card-meta { font-size: 0.8125rem; color: var(--c-text-2); }
-.card-addr { font-size: 0.8125rem; color: var(--c-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.card-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; }
-.card-photos { font-size: 0.75rem; color: var(--c-text-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn-export {
-	flex-shrink: 0; height: 34px; padding: 0 12px; font-size: 0.875rem; font-weight: 700;
-	background: var(--c-primary-light); color: var(--c-primary); border: none; border-radius: 9px;
-}
-
-.empty-tip { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 48px 0; }
-.empty-text { font-size: 0.9375rem; color: var(--c-text-3); }
-.btn-go-collect {
-	height: 44px; padding: 0 32px; font-size: 1rem; font-weight: 700;
-	background: var(--c-primary); color: var(--c-on-primary); border: none; border-radius: 12px;
-}
-
-.loading-wrap { text-align: center; padding: 30px 0; }
-.loading-text { font-size: 0.875rem; color: var(--c-text-3); }
-.load-more-tip { text-align: center; padding: 10px; font-size: 0.8125rem; color: var(--c-text-4); }
-
-.fab {
-	position: fixed; right: 20px; bottom: calc(24px + env(safe-area-inset-bottom));
-	width: 54px; height: 54px; border-radius: 50%;
-	background: linear-gradient(135deg, var(--c-accent) 0%, var(--c-primary) 55%, var(--c-primary-dark) 100%);
-	box-shadow: var(--shadow-btn);
-	display: flex; align-items: center; justify-content: center; z-index: 10;
-}
-.fab-icon { font-size: 1.875rem; color: var(--c-on-primary); line-height: 1; margin-top: -2px; }
+@reference "../theme/tailwind.css";
 </style>

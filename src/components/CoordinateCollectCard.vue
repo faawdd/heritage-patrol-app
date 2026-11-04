@@ -1,101 +1,91 @@
 <template>
-  <div class="coord-card">
-    <div class="card-head">
-      <span class="card-title">区块2：坐标采集</span>
-      <span class="card-subtitle">边界点至少 3 个；标志点/其他为可选</span>
+  <div class="rounded-card border border-line bg-surface p-3">
+    <div class="mb-1 flex flex-wrap items-baseline justify-between gap-2">
+      <span class="text-[0.9375rem] font-bold text-ink-2">区块2：坐标采集</span>
+      <span class="text-[0.6875rem] text-ink-3">边界点至少 3 个；标志点/其他为可选</span>
     </div>
 
-    <div class="head-actions">
-      <van-button native-type="button" class="btn-add" @click="addPoint">新增定位点</van-button>
+    <div class="mb-1">
+      <van-button native-type="button" class="!min-h-11 !rounded-md !border !border-info/35 !bg-fill !px-3 !text-[0.8125rem] !font-bold !text-info" @click="addPoint">新增定位点</van-button>
     </div>
 
-    <div v-if="coordList.length === 0" class="empty-wrap">
-      <span class="empty-text">暂无坐标点，请点击“新增定位点”</span>
+    <div v-if="coordList.length === 0" class="py-2.5 pb-1.5">
+      <span class="text-xs text-ink-3">暂无坐标点，请点击“新增定位点”</span>
     </div>
 
-    <div v-for="(item, index) in coordList" :key="item.id" class="point-brief" :style="pointThemeStyle(index)">
-      <div class="brief-head">
-        <span class="brief-title">定位点 {{ index + 1 }}</span>
-        <span class="brief-type">{{ typeLabelByValue[item.type] }}</span>
+    <div v-for="(item, index) in coordList" :key="item.id" class="mb-1 rounded-md border p-1.5" :style="pointThemeStyle(index)">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-bold text-ink">定位点 {{ index + 1 }}</span>
+        <span class="text-[0.6875rem] text-ink-3">{{ typeLabelByValue[item.type] }}</span>
       </div>
-      <div class="brief-body">
-        <span class="brief-row">经度：{{ item.longitude || '未填' }}</span>
-        <span class="brief-row">纬度：{{ item.latitude || '未填' }}</span>
-        <span class="brief-row">海拔：{{ item.altitude || '未填' }}</span>
+      <div class="mt-1 flex flex-col gap-px text-xs text-ink-2">
+        <span>经度：{{ item.longitude || '未填' }}</span>
+        <span>纬度：{{ item.latitude || '未填' }}</span>
+        <span>海拔：{{ item.altitude || '未填' }}</span>
       </div>
-      <div class="brief-actions">
-        <van-button native-type="button" class="btn-open" @click="openPointWindow(item.id)">打开坐标窗口</van-button>
-        <van-button native-type="button" class="btn-delete" @click="removePoint(index)">删除</van-button>
+      <div class="mt-1 flex gap-1">
+        <van-button native-type="button" class="!min-h-11 flex-1 !rounded !border !border-info/45 !bg-fill !text-xs !text-info" @click="openPointWindow(item.id)">打开坐标窗口</van-button>
+        <van-button native-type="button" class="!min-h-11 flex-1 !rounded !border !border-danger/45 !bg-danger-bg !text-xs !text-danger" @click="removePoint(index)">删除</van-button>
       </div>
     </div>
 
-    <div v-if="pointWindowVisible && activePoint" class="point-overlay" @click.self="closePointWindow">
-      <div class="point-window" :style="pointThemeStyle(activePointIndex)">
-        <div class="window-head">
-          <span class="window-title">定位点 {{ activePointIndex + 1 }} 坐标窗口</span>
-          <van-button native-type="button" class="btn-close" @click="closePointWindow">关闭</van-button>
+    <div v-if="pointWindowVisible && activePoint" class="fixed inset-0 z-[999] flex items-end justify-center bg-black/40 px-0 pb-2" @click.self="closePointWindow">
+      <div class="max-h-[82vh] w-[calc(100%-0.75rem)] overflow-y-auto rounded-lg border border-line bg-surface p-2" :style="pointThemeStyle(activePointIndex)">
+        <div class="mb-1 flex items-center justify-between">
+          <span class="text-[0.9375rem] font-bold text-ink">定位点 {{ activePointIndex + 1 }} 坐标窗口</span>
+          <van-button native-type="button" class="!min-h-11 !min-w-12 !rounded !border !border-line !bg-surface !text-xs !text-ink-2" @click="closePointWindow">关闭</van-button>
         </div>
 
-        <div class="form-row">
-          <span class="row-label required">坐标类型</span>
-          <div class="row-right">
-            <select class="picker-value" :value="getTypePickerIndex(activePoint.type)" @change="onTypeChange({ detail: { value: Number($event.target.value) } }, activePoint)">
-              <option v-for="(label, i) in typeLabelList" :key="label" :value="i">{{ label }}</option>
-            </select>
+        <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
+          <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">坐标类型<span class="text-danger"> *</span></span>
+          <AppSelect class="min-w-0 flex-1" :options="typeLabelList" :model-value="getTypePickerIndex(activePoint.type)" @change="onTypeChange($event, activePoint)" />
+        </div>
+
+        <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
+          <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">经度<span class="text-danger"> *</span></span>
+          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.longitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'longitude')" />
+        </div>
+
+        <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
+          <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">纬度<span class="text-danger"> *</span></span>
+          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.latitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'latitude')" />
+        </div>
+
+        <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
+          <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">海拔(米)<span class="text-danger"> *</span></span>
+          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.altitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'altitude')" />
+        </div>
+
+        <div v-if="activePoint.sourceTag" class="mb-1 flex min-h-11 items-center justify-between gap-2">
+          <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">高程来源</span>
+          <div class="flex min-w-0 flex-1 justify-end">
+            <span class="rounded border border-line bg-fill px-1.5 py-[0.1875rem] text-xs text-ink-2">{{ activePoint.sourceTag }}</span>
           </div>
         </div>
 
-        <div class="form-row">
-          <span class="row-label required">经度</span>
-          <div class="row-right">
-            <input class="row-input" type="number" inputmode="decimal" step="any" :value="activePoint.longitude" placeholder="自动抓取或手动填写" @input="onFieldInput($event, activePoint, 'longitude')" />
-          </div>
+        <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
+          <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">点位说明<span class="text-danger"> *</span></span>
+          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" :model-value="activePoint.description" maxlength="200" placeholder="请输入坐标点说明" input-align="right" :border="false" @update:model-value="onDescriptionInput($event, activePoint)" />
         </div>
 
-        <div class="form-row">
-          <span class="row-label required">纬度</span>
-          <div class="row-right">
-            <input class="row-input" type="number" inputmode="decimal" step="any" :value="activePoint.latitude" placeholder="自动抓取或手动填写" @input="onFieldInput($event, activePoint, 'latitude')" />
-          </div>
+        <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
+          <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">备注</span>
+          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" :model-value="activePoint.remark" maxlength="200" placeholder="选填" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'remark')" />
         </div>
 
-        <div class="form-row">
-          <span class="row-label required">海拔(米)</span>
-          <div class="row-right">
-            <input class="row-input" type="number" inputmode="decimal" step="any" :value="activePoint.altitude" placeholder="自动抓取或手动填写" @input="onFieldInput($event, activePoint, 'altitude')" />
-          </div>
-        </div>
-
-        <div v-if="activePoint.sourceTag" class="form-row">
-          <span class="row-label">高程来源</span>
-          <div class="row-right source-tag-wrap">
-            <span class="source-tag-text">{{ activePoint.sourceTag }}</span>
-          </div>
-        </div>
-
-        <div class="form-row">
-          <span class="row-label required">点位说明</span>
-          <input class="row-right row-input" :value="activePoint.description" maxlength="200" placeholder="请输入坐标点说明" @input="onDescriptionInput($event, activePoint)" />
-        </div>
-
-        <div class="form-row">
-          <span class="row-label">备注</span>
-          <input class="row-right row-input" :value="activePoint.remark" maxlength="200" placeholder="选填" @input="onFieldInput($event, activePoint, 'remark')" />
-        </div>
-
-        <div class="window-actions">
-          <van-button native-type="button" class="btn-grab" :disabled="isPointLoading(activePoint.id) || loadingMap[activePoint.id]?.sampling" @click="grabPoint(activePoint)">
+        <div class="mt-1.5 flex gap-1">
+          <van-button native-type="button" class="!min-h-11 !min-w-[5.625rem] !shrink-0 !rounded-md !border !border-info/35 !bg-fill !px-2 !text-xs !font-bold !text-info" :disabled="isPointLoading(activePoint.id) || loadingMap[activePoint.id]?.sampling" @click="grabPoint(activePoint)">
             {{ isPointLoading(activePoint.id) ? '定位中' : '实时定位' }}
           </van-button>
-          <van-button native-type="button" class="btn-finish" @click="closePointWindow">完成当前点位</van-button>
+          <van-button native-type="button" class="!min-h-11 flex-1 !rounded-md !border !border-success/45 !bg-success-bg !text-xs !font-bold !text-success" @click="closePointWindow">完成当前点位</van-button>
         </div>
         <HighAccuracyCapture ref="surveyRef" :key="activePoint.id" :disabled="isPointLoading(activePoint.id)" @collecting="setLoading(activePoint.id, 'sampling', $event)" @captured="applySurveyPoint(activePoint, $event)" />
       </div>
     </div>
 
-    <div class="footer-tip">
-      <span class="tip-text">边界点数量：{{ boundaryCount }} 个</span>
-      <span v-if="boundaryCount < 3" class="tip-warn">提交前至少补齐 3 个边界点</span>
+    <div class="mt-1 flex items-center gap-2">
+      <span class="text-xs text-ink-2">边界点数量：{{ boundaryCount }} 个</span>
+      <span v-if="boundaryCount < 3" class="text-xs text-danger">提交前至少补齐 3 个边界点</span>
     </div>
   </div>
 </template>
@@ -117,6 +107,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import { toast } from '@/lib/ui.js';
 import HighAccuracyCapture from './HighAccuracyCapture.vue';
+import AppSelect from './AppSelect.vue';
 
 const props = defineProps({
   modelValue: {
@@ -159,15 +150,8 @@ const pointThemes = [
   { bg: 'var(--c-warning-bg)', border: 'rgba(var(--c-warning-rgb), 0.45)' },
   { bg: 'var(--c-success-bg)', border: 'rgba(var(--c-success-rgb), 0.45)' },
   { bg: 'var(--c-info-bg)', border: 'rgba(var(--c-info-rgb), 0.45)' },
-  { bg: '#F9F0FF', border: '#D3ADF7' },
-  { bg: 'var(--c-danger-bg)', border: 'rgba(var(--c-danger-rgb), 0.45)' },
-  { bg: '#FCFFE6', border: '#D3F261' },
-  { bg: '#E6FFFB', border: '#87E8DE' },
   { bg: 'var(--c-primary-light)', border: 'rgba(var(--c-primary-rgb), 0.45)' },
-  { bg: 'var(--c-warning-bg)', border: 'rgba(var(--c-warning-rgb), 0.45)' },
-  { bg: '#F4FFB8', border: '#D3F261' },
-  { bg: '#FFF0F6', border: '#FFADD2' },
-  { bg: 'var(--c-info-bg)', border: 'rgba(var(--c-info-rgb), 0.45)' },
+  { bg: 'var(--c-danger-bg)', border: 'rgba(var(--c-danger-rgb), 0.45)' },
 ];
 let uidSeed = 0;
 
@@ -250,20 +234,8 @@ function pointThemeStyle(index) {
 }
 
 function getPointTheme(index) {
-  if (index < pointThemes.length) return pointThemes[index];
-
-  // 超出预置色后，按黄金角生成色相，减少相邻点位重复感。
-  const generatedIndex = index - pointThemes.length;
-  const hue = Math.round((generatedIndex * 137.508) % 360);
-  const saturation = 70 + (generatedIndex % 3) * 4;
-  const bgLightness = 95 - (generatedIndex % 2) * 2;
-  const borderLightness = 78 - (generatedIndex % 3) * 3;
-  return {
-    bg: `hsl(${hue}, ${saturation}%, ${bgLightness}%)`,
-    border: `hsl(${hue}, ${Math.min(90, saturation + 2)}%, ${borderLightness}%)`,
-  };
+  return pointThemes[index % pointThemes.length];
 }
-
 const activePointIndex = computed(() => {
   return coordList.findIndex((item) => item.id === activePointId.value);
 });
@@ -331,9 +303,9 @@ function onTypeChange(event, item) {
   emitModel();
 }
 
-function onFieldInput(event, item, fieldName) {
+function onFieldInput(value, item, fieldName) {
   if (['longitude', 'latitude', 'altitude'].includes(fieldName)) surveyRef.value?.cancel();
-  item[fieldName] = event?.target?.value ?? '';
+  item[fieldName] = value == null ? '' : String(value);
   if (['longitude', 'latitude', 'altitude'].includes(fieldName)) {
     if (item.survey) item.sourceTag = '手动录入（原采样精度已失效）';
     item.survey = null;
@@ -350,8 +322,8 @@ function applySurveyPoint(item, point) {
   emitModel();
 }
 
-function onDescriptionInput(event, item) {
-  item.description = event?.target?.value ?? '';
+function onDescriptionInput(value, item) {
+  item.description = value == null ? '' : String(value);
   // 说明一旦人工输入，关闭自动覆盖。
   item._descriptionAuto = false;
   emitModel();
@@ -449,299 +421,5 @@ defineExpose({
 </script>
 
 <style scoped>
-.coord-card {
-  background: var(--c-surface);
-  border-radius: 7px;
-  padding: 10px 10px 5px;
-  border: 0.5px solid var(--c-fill);
-}
-
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.card-title {
-  font-size: 0.9375rem;
-  color: var(--c-text-2);
-  font-weight: 700;
-}
-
-.card-subtitle {
-  font-size: 0.6875rem;
-  color: var(--c-text-3);
-}
-
-.head-actions {
-  margin-bottom: 5px;
-}
-
-.btn-add {
-  min-height: 35px;
-  line-height: 35px;
-  border-radius: 5px;
-  border: 0.5px solid rgba(var(--c-info-rgb), 0.35);
-  background: var(--c-info-bg);
-  color: var(--c-info);
-  font-size: 0.8125rem;
-  padding: 0 10px;
-  font-weight: 700;
-}
-
-.empty-wrap {
-  padding: 10px 0 6px;
-}
-
-.empty-text {
-  font-size: 0.75rem;
-  color: var(--c-text-3);
-}
-
-.point-brief {
-  margin-bottom: 5px;
-  border: 0.5px solid var(--c-line-strong);
-  border-radius: 6px;
-  padding: 6px;
-}
-
-.brief-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.brief-title {
-  font-size: 0.875rem;
-  color: var(--c-text);
-  font-weight: 700;
-}
-
-.brief-type {
-  font-size: 0.6875rem;
-  color: var(--c-text-3);
-}
-
-.brief-body {
-  margin-top: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.brief-row {
-  font-size: 0.75rem;
-  color: var(--c-text-2);
-}
-
-.brief-actions {
-  margin-top: 5px;
-  display: flex;
-  gap: 4px;
-}
-
-.btn-open,
-.btn-delete {
-  flex: 1;
-  min-height: 30px;
-  line-height: 30px;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-
-.btn-open {
-  border: 0.5px solid rgba(var(--c-info-rgb), 0.45);
-  background: var(--c-info-bg);
-  color: var(--c-info);
-}
-
-.btn-delete {
-  border: 0.5px solid rgba(var(--c-danger-rgb), 0.45);
-  background: var(--c-danger-bg);
-  color: var(--c-danger);
-}
-
-.point-overlay {
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  z-index: 999;
-  background: rgba(0, 0, 0, 0.38);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0 0 8px;
-}
-
-.point-window {
-  width: calc(100% - 12px);
-  border: 1px solid var(--c-line-strong);
-  border-radius: 8px;
-  padding: 8px;
-  max-height: 82vh;
-  overflow-y: auto;
-}
-
-.window-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-
-.window-title {
-  font-size: 0.9375rem;
-  color: var(--c-text);
-  font-weight: 700;
-}
-
-.btn-close {
-  min-width: 48px;
-  height: 29px;
-  line-height: 29px;
-  border-radius: 4px;
-  border: 0.5px solid var(--c-line-strong);
-  background: var(--c-surface);
-  color: var(--c-text-2);
-  font-size: 0.75rem;
-}
-
-.form-row {
-  min-height: 39px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.row-label {
-  width: 100px;
-  flex-shrink: 0;
-  font-size: 0.9375rem;
-  color: var(--c-text);
-  line-height: 1.4;
-}
-
-.row-label.required::after {
-  content: ' *';
-  color: var(--c-danger);
-}
-
-.row-right {
-  flex: 1;
-  min-width: 0;
-}
-
-.row-input,
-.picker-value {
-  width: 100%;
-  min-height: 32px;
-  line-height: 32px;
-  border: 0.5px solid var(--c-line-strong);
-  border-radius: 5px;
-  background: var(--c-surface);
-  box-sizing: border-box;
-  padding: 0 8px;
-  text-align: right;
-  font-size: 0.875rem;
-  color: var(--c-text);
-  outline: none;
-}
-
-.picker-value {
-  text-align-last: right;
-}
-
-.btn-grab {
-  flex-shrink: 0;
-  min-width: 90px;
-  min-height: 32px;
-  line-height: 32px;
-  border-radius: 5px;
-  border: 0.5px solid rgba(var(--c-info-rgb), 0.35);
-  background: var(--c-info-bg);
-  color: var(--c-info);
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0 6px;
-}
-
-.btn-grab[disabled] {
-  opacity: 0.7;
-}
-
-.window-actions {
-  margin-top: 6px;
-  display: flex;
-  gap: 5px;
-}
-
-.btn-finish {
-  flex: 1;
-  min-height: 32px;
-  line-height: 32px;
-  border-radius: 5px;
-  border: 0.5px solid rgba(var(--c-success-rgb), 0.45);
-  background: var(--c-success-bg);
-  color: var(--c-success);
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.source-tag-wrap {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.source-tag-text {
-  font-size: 0.75rem;
-  color: var(--c-text-2);
-  background: var(--c-fill);
-  border: 0.5px solid var(--c-line-strong);
-  border-radius: 4px;
-  padding: 3px 6px;
-}
-
-.footer-tip {
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.tip-text {
-  font-size: 0.75rem;
-  color: var(--c-text-2);
-}
-
-.tip-warn {
-  font-size: 0.75rem;
-  color: var(--c-danger);
-}
-
-@media screen and (max-width: 430px) {
-  .coord-card {
-    padding: 8px 8px 4px;
-  }
-
-  .row-label {
-    width: 83px;
-    font-size: 0.875rem;
-  }
-
-  .row-input,
-  .picker-value {
-    font-size: 0.8125rem;
-  }
-
-  .btn-grab {
-    min-width: 75px;
-    font-size: 0.6875rem;
-  }
-}
+:deep(.min-h-10) { min-height: 2.75rem !important; }
 </style>

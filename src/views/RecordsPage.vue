@@ -5,16 +5,16 @@
 			<div class="u-page">
 				<AppHeader title="巡查记录" :subtitle="`共 ${records.length >= 100 ? '最近 100' : records.length} 条记录`" />
 
-				<div class="filter-bar">
+				<div class="sticky top-0 z-[5] flex gap-2 border-b border-line bg-page px-4 py-3">
 					<div
 						v-for="item in filters"
 						:key="item.key"
-						class="filter"
+						class="filter flex h-11 flex-1 items-center justify-center gap-1 rounded-lg border border-line bg-surface text-sm font-medium text-ink-2"
 						:class="[item.key, { active: filter === item.key }]"
 						@click="filter = item.key"
 					>
 						<span>{{ item.name }}</span>
-						<span class="filter-count">{{ counts[item.key] }}</span>
+						<span class="box-border min-w-5 rounded-full bg-fill px-1.5 py-px text-center text-xs">{{ counts[item.key] }}</span>
 					</div>
 				</div>
 
@@ -25,7 +25,7 @@
 						<van-button class="u-btn primary block" :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</van-button>
 						<div v-for="item in pending" :key="item.key">
 							<p>{{ item.site_name }} · {{ new Date(item.inspect_time).toLocaleString() }} · {{ item.photos.length }} 张照片</p>
-							<p v-if="item.error" style="color: var(--c-danger)">{{ item.error }}</p>
+							<p v-if="item.error" class="text-danger">{{ item.error }}</p>
 							<van-button class="u-btn sm" @click="previewPending(item)">查看本地照片</van-button>
 						</div>
 					</div>
@@ -51,29 +51,29 @@
 					</div>
 
 					<div v-for="group in groups" :key="group.day" class="group">
-						<span class="group-title">{{ group.label }}</span>
-						<div v-for="item in group.items" :key="item.id" class="record u-card" :class="item.is_normal ? 'ok' : 'bad'">
-							<div class="record-top">
-								<div class="record-main">
-									<span class="record-name">{{ item.site_name || '未知文物点' }}</span>
-									<div class="record-time">
+						<span class="mb-1.5 mt-1.5 block px-0.5 text-[0.8125rem] font-semibold text-ink-2">{{ group.label }}</span>
+						<div v-for="item in group.items" :key="item.id" class="record mb-2.5 border-l-4 px-3.5 py-3 rounded-card bg-surface shadow-card" :class="item.is_normal ? 'border-l-success' : 'border-l-danger'">
+							<div class="flex items-start gap-2">
+								<div class="min-w-0 flex-1">
+									<span class="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.9375rem] font-semibold leading-[1.3] text-ink">{{ item.site_name || '未知文物点' }}</span>
+									<div class="mt-1 flex items-center gap-1 overflow-hidden whitespace-nowrap text-xs text-ink-3">
 										<AppIcon name="clock" :size="28" color="var(--c-text-3)" />
 										<span>{{ timeOf(item.inspect_time) }}</span>
 										<template v-if="item.latitude != null && item.longitude != null">
-											<AppIcon class="record-pin" name="pin" :size="28" color="var(--c-text-4)" />
-											<span class="record-coord">{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</span>
+											<AppIcon class="ml-2" name="pin" :size="28" color="var(--c-text-4)" />
+											<span class="overflow-hidden text-ellipsis text-ink-4">{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</span>
 										</template>
 									</div>
 								</div>
-								<span class="u-badge big" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
+								<span class="u-badge shrink-0 px-2 py-0.5 text-xs" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
 							</div>
-							<div v-if="!item.is_normal && item.issue_details" class="issue">
+							<div v-if="!item.is_normal && item.issue_details" class="mt-2.5 flex gap-1.5 rounded-lg bg-danger-bg px-3 py-2.5 text-sm leading-6 text-danger">
 								<AppIcon name="alert" :size="36" color="var(--c-danger)" />
 								<span>{{ item.issue_details }}</span>
 							</div>
 							<img
 								v-if="item.photo_url"
-								class="photo"
+								class="mt-2.5 block h-40 w-full rounded-lg bg-line object-cover"
 								:src="item.photo_url"
 								loading="lazy"
 								alt=""
@@ -219,41 +219,7 @@
 </script>
 
 <style scoped>
-	.filter-bar {
-		display: flex;
-		gap: 8px;
-		padding: 12px 16px;
-		position: sticky;
-		top: 0;
-		z-index: 5;
-		background: var(--c-bg);
-		border-bottom: 1px solid var(--c-line);
-	}
-
-	.filter {
-		flex: 1;
-		height: 44px;
-		border-radius: 10px;
-		background: var(--c-surface);
-		border: 1px solid var(--c-line);
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 5px;
-		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--c-text-2);
-	}
-
-	.filter-count {
-		min-width: 20px;
-		padding: 1px 6px;
-		border-radius: 999px;
-		background: var(--c-fill);
-		font-size: 0.75rem;
-		text-align: center;
-		box-sizing: border-box;
-	}
+	@reference "../theme/tailwind.css";
 
 	.filter.active {
 		color: var(--c-on-primary);
@@ -271,96 +237,7 @@
 		border-color: var(--c-danger);
 	}
 
-	.filter.active .filter-count {
-		background: rgba(255, 255, 255, 0.22);
-	}
-
-	.group-title {
-		display: block;
-		margin: 6px 2px 6px;
-		font-size: 0.8125rem;
-		font-weight: 600;
-		color: var(--c-text-2);
-	}
-
-	.record {
-		border-left: 4px solid var(--c-success);
-		padding: 12px 14px;
-		margin-bottom: 10px;
-	}
-
-	.record.bad {
-		border-left-color: var(--c-danger);
-	}
-
-	.record-top {
-		display: flex;
-		align-items: flex-start;
-		gap: 8px;
-	}
-
-	.record-main {
-		flex: 1;
-		min-width: 0;
-	}
-
-	.record-name {
-		display: block;
-		font-size: 0.9375rem;
-		font-weight: 600;
-		color: var(--c-text);
-		line-height: 1.3;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	.record-time {
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		margin-top: 4px;
-		font-size: 0.75rem;
-		color: var(--c-text-3);
-		white-space: nowrap;
-		overflow: hidden;
-	}
-
-	.record-pin {
-		margin-left: 8px;
-	}
-
-	.record-coord {
-		color: var(--c-text-4);
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
-
-	.u-badge.big {
-		font-size: 0.75rem;
-		padding: 3px 8px;
-		flex-shrink: 0;
-	}
-
-	.issue {
-		display: flex;
-		gap: 6px;
-		margin-top: 10px;
-		padding: 10px 11px;
-		border-radius: 9px;
-		background: var(--c-danger-bg);
-		color: var(--c-danger);
-		font-size: 0.875rem;
-		line-height: 1.5;
-	}
-
-	.photo {
-		display: block;
-		width: 100%;
-		height: 160px;
-		object-fit: cover;
-		margin-top: 10px;
-		border-radius: 10px;
-		background: var(--c-line);
+	.filter.active span:last-child {
+		background: rgb(255 255 255 / 22%);
 	}
 </style>

@@ -1,18 +1,18 @@
 <template>
-	<section class="survey-capture">
-		<p>静止采集 10 个精度 ≤5 米的新样本。手机精度为估计值，不保证 1–3 米。</p>
-		<van-button native-type="button" :disabled="collecting || disabled" @click="capture">
+	<section class="rounded-card bg-primary-light p-3 text-sm text-ink-2">
+		<p class="mb-2">静止采集 10 个精度 ≤5 米的新样本。手机精度为估计值，不保证 1–3 米。</p>
+		<van-button native-type="button" class="!min-h-11 !rounded-md !border !border-primary !bg-surface !px-3 !font-semibold !text-primary" :disabled="collecting || disabled" @click="capture">
 			{{ collecting ? '高精度采样中…' : '静止高精度打点' }}
 		</van-button>
-		<van-button v-if="collecting" native-type="button" @click="controller?.abort()">取消采样</van-button>
-		<p v-if="progress" aria-live="polite">
+		<van-button v-if="collecting" native-type="button" class="ml-1 !min-h-11 !rounded-md !border !border-line !bg-surface !px-3 !text-ink-2" @click="controller?.abort()">取消采样</van-button>
+		<p v-if="progress" class="mt-2" aria-live="polite">
 			第 {{ progress.attempt }} 次：{{ progress.accepted }}/{{ progress.target }} 个有效样本，
 			剔除 {{ progress.rejected }} 个；
 			当前精度 {{ progress.lastAccuracy?.toFixed(1) ?? '未知' }} 米。
 			{{ progress.reason || '请保持静止，不要贴近墙面或遮挡天线。' }}
 		</p>
-		<p v-if="error" role="alert">{{ error }}</p>
-		<p v-if="result">
+		<p v-if="error" class="mt-2 text-warning" role="alert">{{ error }}</p>
+		<p v-if="result" class="mt-2">
 			WGS84：{{ result.longitude.toFixed(8) }}, {{ result.latitude.toFixed(8) }}；
 			最佳样本半径 {{ result.bestAccuracyRadius.toFixed(1) }} 米，
 			样本离散 {{ result.spreadMeters.toFixed(1) }} 米。
@@ -59,9 +59,3 @@ async function capture(): Promise<void> {
 defineExpose({ cancel: () => controller?.abort() });
 onBeforeUnmount(() => { disposed = true; controller?.abort(); });
 </script>
-
-<style scoped>
-.survey-capture { padding: 12px; background: var(--c-primary-light); border-radius: 12px; font-size: 0.875rem; }
-.survey-capture button { margin: 4px; padding: 10px 14px; border: 1px solid var(--c-primary); border-radius: 8px; }
-[role="alert"] { color: var(--c-warning); }
-</style>

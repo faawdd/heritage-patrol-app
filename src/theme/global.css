@@ -57,8 +57,8 @@ html[data-font="xlarge"] {
 
 /* ========== 深色模式主题色（提亮以保证对比度） ========== */
 [data-theme="dark"] {
-	--c-primary: #58A58A;
-	--c-primary-rgb: 88, 165, 138;
+	--c-primary: #66B499;
+	--c-primary-rgb: 102, 180, 153;
 	--c-primary-dark: #3F8A70;
 	--c-accent: #6DBCA0;
 }
@@ -95,8 +95,8 @@ html[data-font="xlarge"] {
 	--c-success: #2D7A5F;
 	--c-success-rgb: 45, 122, 95;
 	--c-success-bg: #E8F5F0;
-	--c-warning: #B87333;
-	--c-warning-rgb: 184, 115, 51;
+	--c-warning: #9A5A1C;
+	--c-warning-rgb: 154, 90, 28;
 	--c-warning-bg: #FDF5ED;
 	--c-danger: #B84A3D;
 	--c-danger-rgb: 184, 74, 61;
@@ -110,8 +110,8 @@ html[data-font="xlarge"] {
 	--c-surface: #FFFFFF;           /* 卡片表面 */
 	--c-text: #26332D;              /* 主文字 */
 	--c-text-2: #4A5D54;            /* 次级文字 */
-	--c-text-3: #77817B;            /* 辅助文字 */
-	--c-text-4: #A8B0AB;            /* 占位符文字 */
+	--c-text-3: #5E6A63;            /* 辅助文字 */
+	--c-text-4: #66726B;            /* 占位符文字 */
 	--c-line: #E4E9E5;              /* 边框 */
 	--c-line-strong: #D1D9D4;       /* 强边框 */
 	--c-fill: #F9FAF9;              /* 输入框填充 */
@@ -177,8 +177,8 @@ html[data-font="xlarge"] {
 	--c-success: #53B48D;
 	--c-success-rgb: 83, 180, 141;
 	--c-success-bg: rgba(83, 180, 141, 0.16);
-	--c-warning: #D9995C;
-	--c-warning-rgb: 217, 153, 92;
+	--c-warning: #E6AA6E;
+	--c-warning-rgb: 230, 170, 110;
 	--c-warning-bg: rgba(217, 153, 92, 0.16);
 	--c-danger: #DE7A6C;
 	--c-danger-rgb: 222, 122, 108;
@@ -191,8 +191,8 @@ html[data-font="xlarge"] {
 	--c-surface: #1C211E;
 	--c-text: #E7ECE9;
 	--c-text-2: #B8C2BC;
-	--c-text-3: #8B958F;
-	--c-text-4: #606B64;
+	--c-text-3: #9CA7A1;
+	--c-text-4: #86918B;
 	--c-line: #2B332E;
 	--c-line-strong: #3B453F;
 	--c-fill: #242B27;
