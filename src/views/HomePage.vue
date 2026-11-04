@@ -12,9 +12,8 @@
 			</div>
 		</div>
 
-		<div class="app-content home-content flex flex-col overflow-hidden bg-page">
-			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-				<div class="home-body flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-3">
+		<div class="app-content home-content flex flex-col overflow-y-auto bg-page">
+			<div class="home-body flex flex-col gap-2 p-3">
 					<van-button type="primary" size="large" block native-type="button" class="home-primary" @click="goPatrol">
 						<AppIcon name="camera" :size="48" color="currentColor" />
 						<span class="ml-2 text-lg font-semibold">开始巡查</span>
@@ -90,8 +89,7 @@
 							</template>
 						</van-cell>
 					</van-cell-group>
-				</div>
-			</van-pull-refresh>
+			</div>
 		</div>
 	</div>
 </template>
@@ -118,7 +116,6 @@
 		components: { AppHeader, AppIcon, },
 		data() {
 			return {
-				refreshing: false,
 				user: {},
 				records: [],
 				nearestSite: null,
@@ -168,11 +165,6 @@
 			this.refresh();
 		},
 		methods: {
-			onRefresh() {
-				this.greet = greeting();
-				this.today = dateLabel();
-				this.refresh().finally(() => { this.refreshing = false; });
-			},
 			refresh() {
 				const tasks = [this.loadProfile(), this.loadRecords(), this.locate()];
 				if (this.isAdmin) {
@@ -266,12 +258,9 @@
 	background-size: 20px 20px;
 	pointer-events: none;
 }
-.home-content :deep(.van-pull-refresh),
-.home-content :deep(.van-pull-refresh__track) {
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
+.home-content {
+	overscroll-behavior-y: none;
+	-webkit-overflow-scrolling: touch;
 }
 @media (max-height: 800px) {
 	.home-body .recent-list { display: none; }

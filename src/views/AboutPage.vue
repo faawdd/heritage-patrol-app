@@ -5,9 +5,7 @@
 				<AppHeader title="关于软件" back />
 				<div class="u-body pt-3.5">
 					<div class="u-card flex flex-col items-center px-4 py-6">
-						<div class="flex h-20 w-20 items-center justify-center bg-gradient-primary">
-							<AppIcon name="landmark" :size="88" color="var(--c-on-primary)" :stroke="1.8" />
-						</div>
+						<img class="h-20 w-20 object-contain" :src="logoUrl" alt="鄯善文保巡查软件图标" />
 						<span class="mt-3 text-[1.375rem] font-extrabold text-ink">鄯善文保巡查</span>
 						<span class="mt-1 text-[0.9375rem] text-ink-3">版本 {{ version }}</span>
 					</div>
@@ -43,16 +41,16 @@
 
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
-	import AppIcon from '@/components/AppIcon.vue';
 	import { getAppVersion, makePhoneCall } from '@/lib/native.js';
 	import { checkForUpdate, isUpdateSupported } from '@/lib/updater.js';
 	import { toast } from '@/lib/ui.js';
 
 	export default {
-		components: { AppHeader, AppIcon },
+		components: { AppHeader },
 		data() {
 			return {
 				version: '1.0.0',
+				logoUrl: `${import.meta.env.BASE_URL}logo.png`,
 				updateSupported: isUpdateSupported(),
 				checking: false,
 				updateHint: '点击检查',
@@ -89,5 +87,4 @@
 		},
 	};
 </script>
-
 

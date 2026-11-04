@@ -1,15 +1,17 @@
 <template>
 	<div class="app-page">
-		<div ref="content" class="app-content">
-			<div class="u-page">
-				<AppHeader title="巡查上报" :subtitle="`第 ${currentStep + 1} 步 / 共 3 步 · ${stepTitles[currentStep]}`" />
-				<div class="u-card mx-4 mt-3" v-if="taskNotice">{{ taskNotice }}</div>
-				<div class="u-card text-danger" v-if="draftError">{{ draftError }}</div>
+		<AppHeader title="巡查上报" :subtitle="`第 ${currentStep + 1} 步 / 共 3 步 · ${stepTitles[currentStep]}`" />
+		<div class="patrol-fixed">
+			<div class="u-card mx-4 mt-2" v-if="taskNotice">{{ taskNotice }}</div>
+			<div class="u-card mx-4 mt-2 text-danger" v-if="draftError">{{ draftError }}</div>
+			<van-steps :active="currentStep" class="step-progress" aria-label="巡查上报进度">
+				<van-step v-for="title in stepTitles" :key="title">{{ title }}</van-step>
+			</van-steps>
+		</div>
 
+		<div ref="content" class="app-content patrol-content">
+			<div class="u-page">
 				<div class="u-body steps">
-					<van-steps :active="currentStep" class="step-progress" aria-label="巡查上报进度">
-						<van-step v-for="title in stepTitles" :key="title">{{ title }}</van-step>
-					</van-steps>
 					<!-- 第 1 步：文物点 -->
 					<div v-if="currentStep === 0" class="u-card step" :class="{ finished: !!site }">
 						<div class="step-head">
@@ -613,17 +615,17 @@
 
 <style scoped>
 @reference "../theme/tailwind.css";
-
-.steps { @apply pt-3 pb-4; }
+.patrol-fixed { flex-shrink: 0; }
+.steps { @apply pt-2 pb-4; }
 .step { @apply mb-3  border border-line transition-all duration-150; }
-.step.finished { @apply border-success bg-success-bg; }
-.step-progress { @apply mb-3 ; }
+.step.finished { border-color: var(--c-primary); background: var(--c-primary-light); }
+.step-progress { @apply mx-4 mt-2 mb-2 border border-line; }
 .step-head { @apply flex items-center gap-3 px-4 pb-2.5 pt-3.5; }
 .step-no { @apply flex h-7 w-7 shrink-0 items-center justify-center  bg-primary text-sm font-semibold text-on-primary; }
-.finished .step-no { @apply bg-success; }
+.finished .step-no { @apply bg-primary; }
 .step-title { @apply text-base font-semibold text-ink; }
 .locating { @apply flex flex-col items-center gap-2.5 px-4 py-5 text-center text-sm text-ink-2; }
-.site { @apply mx-4 mb-3 flex items-start gap-3  bg-fill p-3.5; }
+.site { @apply mx-4 mb-3 flex items-start gap-3 p-3.5; background: var(--c-primary-light); }
 .site-main { @apply flex min-w-0 flex-1 flex-col gap-1; }
 .site-name { @apply text-base font-bold leading-[1.4] text-ink; }
 .site-code, .site-option-code { @apply w-fit max-w-full  border border-line bg-surface px-2 py-0.5 font-mono text-xs tabular-nums tracking-[0.02em] text-ink-2; overflow-wrap: anywhere; }

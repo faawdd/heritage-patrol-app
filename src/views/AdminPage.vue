@@ -14,7 +14,7 @@
 					<!-- 文物点数据 -->
 					<template v-if="currentTab === 'heritages'">
 						<div class="u-card mb-2.5 flex flex-col gap-2.5 p-3">
-							<div class="flex h-11 items-center gap-1.5 border border-line bg-fill px-3">
+							<div class="flex min-w-0 items-center gap-1.5 border border-line bg-fill px-2">
 								<AppIcon name="search" :size="36" color="var(--c-text-4)" />
 								<van-field
 									v-model.trim="heritageSearchKeyword"
@@ -26,8 +26,17 @@
 									input-align="left"
 									@keyup.enter="applyHeritageFilters"
 								/>
+								<van-button type="primary" size="small" native-type="button" @click="applyHeritageFilters">{{ t('common.search') }}</van-button>
+								<van-button
+									size="small"
+									native-type="button"
+									:aria-expanded="heritageFiltersOpen"
+									@click="heritageFiltersOpen = !heritageFiltersOpen"
+								>
+									<span class="flex items-center gap-1">筛选<AppIcon name="chevron-down" :size="28" :class="heritageFiltersOpen ? 'rotate-180' : ''" /></span>
+								</van-button>
 							</div>
-							<div class="flex gap-2">
+							<div v-if="heritageFiltersOpen" class="flex gap-2">
 								<AppSelect
 									class="min-w-0 min-h-11 flex-1 self-stretch border border-line bg-surface px-3"
 									:options="heritageCategoryLabels"
@@ -37,7 +46,7 @@
 									@change="onHeritageCategoryChange"
 								/>
 								<van-button size="small" native-type="button" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</van-button>
-								<van-button type="primary" size="small" native-type="button" @click="applyHeritageFilters">{{ t('common.search') }}</van-button>
+								<van-button type="primary" size="small" native-type="button" @click="applyHeritageFilters">应用</van-button>
 							</div>
 						</div>
 
@@ -46,18 +55,11 @@
 							<span class="text-[0.8125rem] text-ink-3 text-right">{{ showHeritageFilterSummary ? t('admin.filterResultSummary', { count: heritageTotal, page: heritagePage }) : t('admin.recordCount', { count: heritageDisplayCount }) }}</span>
 						</div>
 
-						<div v-for="item in heritages" :key="item.id" class="u-card mb-2.5 flex flex-col gap-1 p-3.5 active:scale-[0.99] active:opacity-90" @click="openHeritageDetail(item)">
-							<div class="flex items-center justify-between gap-2">
-								<span class="text-[1.0625rem] font-extrabold leading-[1.4] text-ink break-all">{{ item.name }}</span>
-								<AppIcon name="chevron-right" :size="36" color="var(--c-text-4)" />
-							</div>
-							<div class="my-0.5 mb-1 flex flex-wrap gap-1.5">
-								<span v-if="item.category" class="u-badge info">{{ item.category }}</span>
-								<span v-if="item.level" class="u-badge warn">{{ item.level }}</span>
-							</div>
-							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">四普编号</span><span class="inline-flex w-fit min-w-0 flex-[0_1_auto] items-center break-all border border-line bg-fill px-2 py-0.5 font-mono tabular-nums tracking-[0.02em] text-ink-2">{{ item.sip_code || t('common.notAvailable') }}</span></div>
-							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">地址</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.address || t('common.notAvailable') }}</span></div>
-							<div v-if="item.longitude && item.latitude" class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">坐标</span><span class="min-w-0 flex-1 break-all font-mono tabular-nums text-ink-2">{{ item.longitude }}, {{ item.latitude }}</span></div>
+						<div v-for="item in heritages" :key="item.id" class="heritage-row u-card mb-2 flex items-center gap-2 px-3 py-2.5 active:opacity-90" @click="openHeritageDetail(item)">
+							<span class="heritage-code">{{ item.sip_code || t('common.notAvailable') }}</span>
+							<span class="heritage-name">{{ item.name }}</span>
+							<span class="heritage-category">{{ item.category || t('common.notAvailable') }}</span>
+							<AppIcon name="chevron-right" :size="32" color="var(--c-text-4)" />
 						</div>
 						<div v-if="!heritages.length" class="u-card u-empty">{{ t('admin.noHeritageMatched') }}</div>
 
@@ -220,6 +222,7 @@
 				heritageTotalPages: 1,
 				heritageSearchKeyword: '',
 				heritageCategory: '',
+				heritageFiltersOpen: false,
 				heritageCategoryOptions: [
 					{ value: 'GJZ', label: '古建筑' },
 					{ value: 'GMZ', label: '古墓葬' },
@@ -369,12 +372,14 @@
 			async applyHeritageFilters() {
 				this.heritagePage = 1;
 				await this.loadHeritages();
+				this.heritageFiltersOpen = false;
 			},
 			async resetHeritageFilters() {
 				this.heritageSearchKeyword = '';
 				this.heritageCategory = '';
 				this.heritagePage = 1;
 				await this.loadHeritages();
+				this.heritageFiltersOpen = false;
 			},
 			openHeritageDetail(item) {
 				const name = encodeURIComponent(item.name || '');
@@ -442,5 +447,44 @@
 .adm-search-field :deep(.van-field__control) {
 	font-size: 0.9375rem;
 	color: var(--c-text);
+}
+
+.heritage-row {
+	min-width: 0;
+}
+
+.heritage-code {
+	flex: 0 1 5.5rem;
+	min-width: 0;
+	overflow: hidden;
+	color: var(--c-text-3);
+	font-family: ui-monospace, monospace;
+	font-size: 0.6875rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.heritage-name {
+	min-width: 0;
+	flex: 1;
+	overflow: hidden;
+	color: var(--c-text);
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.heritage-category {
+	max-width: 6rem;
+	flex-shrink: 0;
+	overflow: hidden;
+	border: 1px solid var(--c-primary-light);
+	background: var(--c-primary-light);
+	padding: 0.125rem 0.375rem;
+	color: var(--c-primary);
+	font-size: 0.6875rem;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 </style>
