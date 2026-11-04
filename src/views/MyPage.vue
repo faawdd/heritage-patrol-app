@@ -1,10 +1,10 @@
 <template>
 	<div class="app-page">
-		<div class="app-content">
-			<div class="u-page">
+		<div class="app-content my-content">
+			<div class="u-page my-page">
 				<AppHeader title="我的" />
 
-				<div class="u-body">
+				<div class="u-body my-body" :class="{ 'password-open': pwdOpen }">
 					<div class="u-card flex items-center gap-3.5">
 						<div class="flex h-16 w-16 shrink-0 items-center justify-center bg-gradient-primary text-[1.375rem] font-semibold text-on-primary">{{ avatarText }}</div>
 						<div class="flex min-w-0 flex-1 flex-col items-start">
@@ -38,92 +38,14 @@
 							<template #icon><AppIcon name="phone" :size="44" color="var(--c-warning)" class="mr-3" /></template>
 						</van-cell>
 
+						<van-cell center is-link title="软件设置" label="外观主题与字体大小" @click="goSettings">
+							<template #icon><AppIcon name="edit" :size="44" color="var(--c-primary)" class="mr-3" /></template>
+						</van-cell>
+
 						<van-cell center is-link title="关于软件" label="版本信息与反馈方式" @click="goAbout">
 							<template #icon><AppIcon name="info" :size="44" color="var(--c-text-2)" class="mr-3" /></template>
 						</van-cell>
 					</van-cell-group>
-
-					<div class="u-card flex flex-col gap-3.5">
-						<div class="flex items-center gap-3">
-							<div class="flex h-10 w-10 shrink-0 items-center justify-center bg-primary-light">
-								<AppIcon name="edit" :size="52" color="var(--c-primary)" />
-							</div>
-							<div class="flex min-w-0 flex-1 flex-col">
-								<span class="text-base font-semibold text-ink">外观设置</span>
-								<span class="mt-0.5 text-[0.8125rem] text-ink-3">主题、颜色与字体大小</span>
-							</div>
-						</div>
-
-						<div class="flex flex-col gap-2">
-							<span class="text-sm font-semibold text-ink">深色模式</span>
-							<div class="flex gap-1.5">
-								<van-button
-									v-for="(mode, index) in themeModes"
-									:key="mode.key"
-									native-type="button"
-									size="small"
-									class="min-w-0 flex-1"
-									:type="prefs.theme === mode.key ? 'primary' : 'default'"
-									:aria-pressed="prefs.theme === mode.key"
-									@click="setPref('theme', mode.key)"
-								>{{ mode.name }}</van-button>
-							</div>
-							<span class="text-xs text-ink-3">「跟随系统」会随手机深色模式自动切换</span>
-						</div>
-
-						<div class="flex flex-col gap-2">
-							<span class="text-sm font-semibold text-ink">主题色</span>
-							<div class="flex gap-3.5">
-								<van-button
-									v-for="color in themeColors"
-									:key="color.key"
-									native-type="button"
-									size="small"
-									class="!w-[5.5rem] !px-1"
-									:style="{ backgroundColor: color.hex, borderColor: color.hex }"
-									:class="prefs.color === color.key ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : ''"
-									:aria-label="color.name"
-									:aria-pressed="prefs.color === color.key"
-									@click="setPref('color', color.key)"
-								>
-									<span class="flex w-full items-center gap-0.5">
-										<span
-											v-for="shade in color.palette"
-											:key="shade"
-											class="relative h-5 min-w-0 flex-1"
-											:style="{ backgroundColor: shade }"
-										>
-											<AppIcon
-												v-if="prefs.color === color.key && shade === color.hex"
-												name="check"
-												:size="28"
-												:color="color.onPrimary"
-												:stroke="3"
-												class="absolute inset-0"
-											/>
-										</span>
-									</span>
-								</van-button>
-							</div>
-						</div>
-
-						<div class="flex flex-col gap-2">
-							<span class="text-sm font-semibold text-ink">字体大小</span>
-							<div class="flex gap-1.5">
-								<van-button
-									v-for="(font, index) in fontSizes"
-									:key="font.key"
-									native-type="button"
-									size="small"
-									class="min-w-0 flex-1"
-									:type="prefs.fontSize === font.key ? 'primary' : 'default'"
-									:aria-pressed="prefs.fontSize === font.key"
-									@click="setPref('fontSize', font.key)"
-								>{{ font.name }}</van-button>
-							</div>
-							<span class="border border-dashed border-[var(--c-line-strong)] bg-fill px-3 py-2 text-base text-ink-2">巡查上报，记录文物点情况</span>
-						</div>
-					</div>
 
 				</div>
 
@@ -135,14 +57,13 @@
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
-		import { navigateTo, reLaunch } from '@/lib/nav.js';
+	import { navigateTo, reLaunch } from '@/lib/nav.js';
 	import { makePhoneCall } from '@/lib/native.js';
 	import { showModal, toast } from '@/lib/ui.js';
 	import { clearSession, getToken, getUser, isAdminUser, setUser } from '@/lib/auth.js';
 	import { getRoleLabel } from '@/lib/i18n.js';
 	import { apiRequest, extractError, issueDeviceToken } from '@/lib/request.js';
 	import { biometricLabel, clearQuickLogin, getQuickLogin, hasQuickLogin } from '@/lib/quickLogin.js';
-	import { FONT_SIZES, THEME_COLORS, THEME_MODES, settings, updateSettings } from '@/lib/settings.js';
 
 	export default {
 		components: { AppHeader, AppIcon },
@@ -153,15 +74,9 @@
 				pwdOpen: false,
 				saving: false,
 				pwd: { current: '', next: '', confirm: '' },
-				themeModes: THEME_MODES,
-				themeColors: THEME_COLORS,
-				fontSizes: FONT_SIZES,
 			};
 		},
 		computed: {
-			prefs() {
-				return settings;
-			},
 			avatarText() {
 				const name = this.user.full_name || this.user.username || '我';
 				return name.slice(-2);
@@ -190,9 +105,6 @@
 			this.loadMe();
 		},
 		methods: {
-			setPref(key, value) {
-				updateSettings({ [key]: value });
-			},
 			loadMe() {
 				apiRequest({ url: '/api/auth/me' })
 					.then((res) => {
@@ -244,6 +156,9 @@
 			goSecurity() {
 				navigateTo('/security');
 			},
+			goSettings() {
+				navigateTo('/settings');
+			},
 			goAbout() {
 				navigateTo('/about');
 			},
@@ -270,6 +185,15 @@
 </script>
 
 <style scoped>
+	.my-content { overflow: hidden; }
+	.my-page { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
+	.my-body { flex: 1; min-height: 0; overflow: hidden; }
+	.my-body.password-open { overflow-y: auto; }
+	@media (max-height: 700px) {
+		.my-body { padding-top: 0.5rem; }
+		.my-body :deep(.van-cell) { padding-top: 0.625rem; padding-bottom: 0.625rem; }
+		.my-body > .u-card:first-child { padding: 0.625rem; }
+	}
 	.pwd :deep(.van-field) {
 		min-height: 3rem;
 		border: 1px solid var(--c-line);

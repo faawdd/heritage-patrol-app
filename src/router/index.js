@@ -20,6 +20,7 @@ const routes = [
 		],
 	},
 	{ path: '/security', component: () => import('@/views/SecurityPage.vue') },
+	{ path: '/settings', component: () => import('@/views/SettingsPage.vue') },
 	{ path: '/about', component: () => import('@/views/AboutPage.vue'), meta: { public: true } },
 	{ path: '/kml', component: () => import('@/views/KmlPage.vue') },
 	{ path: '/heritage/detail', component: () => import('@/views/HeritageDetailPage.vue') },

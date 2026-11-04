@@ -32,6 +32,15 @@
 							<span class="break-all text-right text-base text-ink">本软件仅供内部使用</span>
 						</div>
 					</div>
+					<details class="u-card license-card">
+						<summary class="cursor-pointer text-base font-semibold text-ink">开源软件许可公示</summary>
+						<p class="mb-3 mt-2 text-sm leading-6 text-ink-2">本软件以 Apache-2.0 许可发布。所使用的第三方开源组件仍遵循各自许可：</p>
+						<div class="license-list">
+							<div><strong>MIT</strong><span>@aparajita/capacitor-biometric-auth、@capacitor-community/file-opener、@capacitor/android、@capacitor/app、@capacitor/browser、@capacitor/camera、@capacitor/clipboard、@capacitor/core、@capacitor/filesystem、@capacitor/geolocation、@capacitor/haptics、@capacitor/inappbrowser、@capacitor/screen-orientation、@capacitor/splash-screen、@capacitor/status-bar、Vant、Vue、Vue Router</span></div>
+							<div><strong>Apache-2.0</strong><span>Remix Icon</span></div>
+						</div>
+						<p class="mb-0 mt-3 text-xs leading-5 text-ink-3">第三方组件版权及完整许可文本请以随组件发布的 LICENSE 文件为准。</p>
+					</details>
 					<span class="block text-center text-sm text-ink-4">如有建议或发现问题，欢迎联系反馈</span>
 				</div>
 			</div>
@@ -88,3 +97,10 @@
 	};
 </script>
 
+<style scoped>
+.license-card { line-height: 1.5; }
+.license-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.license-list > div { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.8125rem; }
+.license-list strong { flex: 0 0 5.5rem; color: var(--c-primary); }
+.license-list span { min-width: 0; color: var(--c-text-2); }
+</style>

@@ -7,6 +7,20 @@
 			<van-steps :active="currentStep" class="step-progress" aria-label="巡查上报进度">
 				<van-step v-for="title in stepTitles" :key="title">{{ title }}</van-step>
 			</van-steps>
+			<div v-if="currentStep === 0 && site" class="site">
+				<div class="site-main">
+					<span class="site-name">{{ site.name }}</span>
+					<span v-if="site.sip_code" class="site-code">{{ site.sip_code }}</span>
+					<span v-if="site.address" class="site-addr">{{ site.address }}</span>
+					<div class="site-tags">
+						<span v-if="site.due_at" class="u-badge" :class="site.overdue ? 'warn' : 'ok'">到期：{{ new Date(site.due_at).toLocaleString() }}</span>
+						<span v-if="site.manual" class="u-badge info">手动选择</span>
+						<span v-else-if="distanceText" class="u-badge" :class="isFar ? 'warn' : 'ok'">距离约 {{ distanceText }}</span>
+						<span v-if="!locationOk" class="u-badge warn">未获取到定位</span>
+					</div>
+				</div>
+				<van-button size="small" native-type="button" @click="openPicker">换一个</van-button>
+			</div>
 		</div>
 
 		<div ref="content" class="app-content patrol-content">
@@ -24,22 +38,7 @@
 							<span>正在定位，查找附近文物点…</span>
 						</div>
 
-						<div v-else-if="site" class="site">
-							<div class="site-main">
-								<span class="site-name">{{ site.name }}</span>
-								<span v-if="site.sip_code" class="site-code">{{ site.sip_code }}</span>
-								<span v-if="site.address" class="site-addr">{{ site.address }}</span>
-								<div class="site-tags">
-									<span v-if="site.due_at" class="u-badge" :class="site.overdue ? 'warn' : 'ok'">到期：{{ new Date(site.due_at).toLocaleString() }}</span>
-									<span v-if="site.manual" class="u-badge info">手动选择</span>
-									<span v-else-if="distanceText" class="u-badge" :class="isFar ? 'warn' : 'ok'">距离约 {{ distanceText }}</span>
-									<span v-if="!locationOk" class="u-badge warn">未获取到定位</span>
-								</div>
-							</div>
-							<van-button size="small" native-type="button" @click="openPicker">换一个</van-button>
-						</div>
-
-						<div v-else class="locating">
+						<div v-else-if="!site" class="locating">
 							<AppIcon name="alert" :size="56" color="var(--c-warning)" />
 							<span>{{ locateError || '附近没有找到文物点' }}</span>
 						</div>
@@ -199,7 +198,7 @@
 					上一步
 				</van-button>
 				<van-button type="primary" size="large" v-if="currentStep < 2" native-type="button" class="next-step" :disabled="!canGoNext" @click="nextStep">
-					{{ currentStep === 0 ? '确认文物点，下一步' : '照片已拍好，下一步' }}
+					{{ currentStep === 0 ? '确认并拍照' : '填写巡查情况' }}
 				</van-button>
 				<van-button type="primary" size="large" v-else native-type="button" class="submit" :disabled="!canSubmit || submitting" @click="submit">
 					<AppIcon name="upload" :size="44" color="currentColor" />
@@ -616,6 +615,7 @@
 <style scoped>
 @reference "../theme/tailwind.css";
 .patrol-fixed { flex-shrink: 0; }
+.patrol-fixed > .u-card { max-height: 2.75rem; overflow: hidden; }
 .steps { @apply pt-2 pb-4; }
 .step { @apply mb-3  border border-line transition-all duration-150; }
 .step.finished { border-color: var(--c-primary); background: var(--c-primary-light); }
@@ -625,12 +625,13 @@
 .finished .step-no { @apply bg-primary; }
 .step-title { @apply text-base font-semibold text-ink; }
 .locating { @apply flex flex-col items-center gap-2.5 px-4 py-5 text-center text-sm text-ink-2; }
-.site { @apply mx-4 mb-3 flex items-start gap-3 p-3.5; background: var(--c-primary-light); }
+.site { @apply mx-4 mb-2 flex items-start gap-3 p-3; background: var(--c-primary-light); }
 .site-main { @apply flex min-w-0 flex-1 flex-col gap-1; }
 .site-name { @apply text-base font-bold leading-[1.4] text-ink; }
-.site-code, .site-option-code { @apply w-fit max-w-full  border border-line bg-surface px-2 py-0.5 font-mono text-xs tabular-nums tracking-[0.02em] text-ink-2; overflow-wrap: anywhere; }
-.site-addr { @apply text-[0.8125rem] leading-6 text-ink-3; overflow-wrap: anywhere; }
+.site-code, .site-option-code { @apply w-fit max-w-full border border-line bg-surface px-2 py-0.5 font-mono text-xs tabular-nums tracking-[0.02em] text-ink-2; overflow-wrap: anywhere; }
+.site-addr { @apply block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[0.8125rem] leading-5 text-ink-3; }
 .site-tags { @apply mt-1.5 flex flex-wrap gap-1.5; }
+.site-tags .u-badge { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .change-btn { @apply m-1 shrink-0; }
 .far-tip { @apply mx-4 mb-3 flex items-start gap-2.5  border border-l-4 border-warning bg-warning-bg px-3 py-2.5 text-[0.8125rem] leading-6 text-ink; }
 .far-tip-icon { @apply flex h-7 w-7 shrink-0 items-center justify-center  bg-warning-bg; }
@@ -662,11 +663,28 @@
 .issue-input :deep(.van-field__control) { @apply h-full resize-none bg-transparent font-sans text-sm text-ink outline-none; }
 .issue-input :deep(.van-field__control)::placeholder, .search-input :deep(.van-field__control)::placeholder { @apply text-ink-4; }
 .issue-input:focus-within { @apply border-primary bg-surface; }
-.patrol-footer { @apply shrink-0 border-t border-line bg-surface px-4 pb-2.5 pt-2 shadow-card; }
-.step-actions { @apply flex w-full items-center gap-3; }
-.previous-step { @apply h-12 shrink-0; }
-.next-step, .submit { @apply m-0 h-12 min-w-0 flex-1  text-[0.9375rem] font-semibold; }
-.submit :deep(.van-button__content), .submit :deep(.van-button__text) { @apply flex items-center justify-center gap-2; }
+.patrol-footer { @apply shrink-0 border-t border-line bg-surface px-2.5 pb-2.5 pt-2 shadow-card; }
+.step-actions { @apply flex w-full min-w-0 items-center gap-2; }
+.step-actions :deep(.van-button) {
+	width: auto !important;
+	min-width: 0;
+	max-width: 100%;
+	margin: 0;
+	padding-inline: clamp(0.5rem, 3vw, 1rem);
+}
+.previous-step { flex: 0 1 32%; min-width: 4.5rem !important; height: 3rem; }
+.next-step, .submit { flex: 1 1 0; height: 3rem; font-size: clamp(0.75rem, 3.8vw, 0.9375rem); font-weight: 600; }
+.step-actions :deep(.van-button__content),
+.step-actions :deep(.van-button__text) {
+	display: flex;
+	min-width: 0;
+	align-items: center;
+	justify-content: center;
+	gap: clamp(0.25rem, 1.5vw, 0.5rem);
+	white-space: nowrap;
+}
+.submit :deep(.van-icon),
+.submit :deep(svg) { flex-shrink: 0; }
 .submit-hint { @apply mb-2 block text-center text-[0.8125rem] text-ink-3; }
 .sheet-mask, .success-mask { @apply fixed inset-0 z-[1000] flex; background: var(--c-mask); }
 .sheet-mask { @apply items-end; }
