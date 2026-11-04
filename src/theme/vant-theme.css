@@ -4,6 +4,7 @@
 :root {
 	/* === Vant 全局变量 === */
 	--van-primary-color: var(--c-primary);
+	--van-button-primary-color: var(--c-on-primary);
 	--van-success-color: var(--c-success);
 	--van-danger-color: var(--c-danger);
 	--van-warning-color: var(--c-warning);

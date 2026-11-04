@@ -260,9 +260,9 @@
 	height: 11.875rem;
 	right: -4.625rem;
 	top: -5.625rem;
-	border: 1px solid color-mix(in srgb, var(--c-on-hero) 12%, transparent);
+	border: 2px solid var(--c-accent);
 	border-radius: 0;
-	box-shadow: 0 0 0 1.125rem color-mix(in srgb, var(--c-on-hero) 3.5%, transparent), 0 0 0 2.375rem color-mix(in srgb, var(--c-on-hero) 2.5%, transparent);
+	box-shadow: none;
 	pointer-events: none;
 }
 .home-content :deep(.van-pull-refresh),

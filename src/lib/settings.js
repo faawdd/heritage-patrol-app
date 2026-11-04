@@ -14,10 +14,34 @@ export const THEME_MODES = [
 ];
 
 export const THEME_COLORS = [
-	{ key: 'green', name: '黛青', hex: '#245B4A' },
-	{ key: 'blue', name: '黛蓝', hex: '#2B5DA8' },
-	{ key: 'brown', name: '赭石', hex: '#8C5A2B' },
-	{ key: 'plum', name: '紫棠', hex: '#6D4F96' },
+	{
+		key: 'green',
+		name: '绿色',
+		hex: '#33db84',
+		onPrimary: '#10201A',
+		palette: ['#36db33', '#33db5a', '#33db84', '#33dbae', '#33dbd8'],
+	},
+	{
+		key: 'blue',
+		name: '蓝色',
+		hex: '#334fdb',
+		onPrimary: '#ffffff',
+		palette: ['#33dbbf', '#33cddb', '#33a3db', '#3379db', '#334fdb'],
+	},
+	{
+		key: 'brown',
+		name: '棕色',
+		hex: '#db8d33',
+		onPrimary: '#10201A',
+		palette: ['#db3933', '#db6333', '#db8d33', '#dbb733', '#d5db33'],
+	},
+	{
+		key: 'plum',
+		name: '紫色',
+		hex: '#4c33db',
+		onPrimary: '#ffffff',
+		palette: ['#4c33db', '#7633db', '#a033db', '#ca33db', '#db33c2'],
+	},
 ];
 
 export const FONT_SIZES = [

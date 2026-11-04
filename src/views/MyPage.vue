@@ -79,14 +79,30 @@
 									:key="color.key"
 									native-type="button"
 									size="small"
-									class="!w-11"
-									:color="color.hex"
+									class="!w-[5.5rem] !px-1"
+									:style="{ backgroundColor: color.hex, borderColor: color.hex }"
 									:class="prefs.color === color.key ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : ''"
 									:aria-label="color.name"
 									:aria-pressed="prefs.color === color.key"
 									@click="setPref('color', color.key)"
 								>
-									<AppIcon v-if="prefs.color === color.key" name="check" :size="32" color="var(--c-on-primary)" :stroke="3" />
+									<span class="flex w-full items-center gap-0.5">
+										<span
+											v-for="shade in color.palette"
+											:key="shade"
+											class="relative h-5 min-w-0 flex-1"
+											:style="{ backgroundColor: shade }"
+										>
+											<AppIcon
+												v-if="prefs.color === color.key && shade === color.hex"
+												name="check"
+												:size="28"
+												:color="color.onPrimary"
+												:stroke="3"
+												class="absolute inset-0"
+											/>
+										</span>
+									</span>
 								</van-button>
 							</div>
 						</div>
