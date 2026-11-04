@@ -3,7 +3,7 @@
 		<div ref="content" class="app-content">
 			<div class="u-page">
 				<AppHeader title="巡查上报" :subtitle="`第 ${currentStep + 1} 步 / 共 3 步 · ${stepTitles[currentStep]}`" />
-				<div class="u-card" v-if="taskNotice">{{ taskNotice }}</div>
+				<div class="u-card mx-4 mt-3" v-if="taskNotice">{{ taskNotice }}</div>
 				<div class="u-card text-danger" v-if="draftError">{{ draftError }}</div>
 
 				<div class="u-body steps">
@@ -34,7 +34,7 @@
 									<span v-if="!locationOk" class="u-badge warn">未获取到定位</span>
 								</div>
 							</div>
-							<van-button native-type="button" class="u-btn sm change-btn" @click="openPicker">换一个</van-button>
+							<van-button size="small" native-type="button" @click="openPicker">换一个</van-button>
 						</div>
 
 						<div v-else class="locating">
@@ -53,11 +53,11 @@
 						</div>
 
 						<div class="row-btns">
-							<van-button v-if="!site" native-type="button" class="u-btn primary block" @click="openPicker">
+							<van-button type="primary" block v-if="!site" native-type="button" @click="openPicker">
 								<AppIcon name="search" :size="44" color="var(--c-on-primary)" />
 								<span>选择文物点</span>
 							</van-button>
-							<van-button native-type="button" class="u-btn plain block" :disabled="locating" @click="locate">
+							<van-button block native-type="button" :disabled="locating" @click="locate">
 								<AppIcon name="refresh" :size="40" color="var(--c-text-2)" />
 								<span>{{ locating ? '定位中…' : '重新定位' }}</span>
 							</van-button>
@@ -80,14 +80,14 @@
 						<div v-else class="photo">
 							<div v-for="(photo, index) in photos" :key="photo.url">
 								<img class="photo-img" :src="photo.url" alt="" @click="preview(index)" />
-								<van-button native-type="button" class="u-btn sm" :disabled="processing || submitting" @click="removePhoto(index)">删除这张照片</van-button>
+								<van-button size="small" native-type="button" :disabled="processing || submitting" @click="removePhoto(index)">删除这张照片</van-button>
 							</div>
-							<van-button native-type="button" class="u-btn plain block" :disabled="processing || submitting" @click="takePhoto">
+							<van-button block native-type="button" :disabled="processing || submitting" @click="takePhoto">
 								<AppIcon name="camera" :size="44" color="var(--c-text-2)" />
 								<span>继续拍照（{{ photos.length }}/20）</span>
 							</van-button>
 						</div>
-						<van-button native-type="button" class="u-btn plain block" :disabled="processing || !site" @click="pickAlbum">从相册批量添加</van-button>
+						<van-button block native-type="button" :disabled="processing || !site" @click="pickAlbum">从相册批量添加</van-button>
 					</div>
 
 					<!-- 第 3 步：情况 -->
@@ -183,8 +183,8 @@
 					<span class="success-title">{{ success.pending ? '已保存到本机' : '上报成功' }}</span>
 					<span v-if="success.pending" class="success-sub">记录与照片已离线保存，联网后自动上传；可在记录页查看同步状态。</span>
 					<span class="success-sub">{{ success.site }} · {{ success.normal ? '情况正常' : '已上报问题' }}</span>
-					<van-button native-type="button" class="u-btn primary xl block" @click="again">继续巡查</van-button>
-					<van-button native-type="button" class="u-btn ghost block" style="margin-top: 12px" @click="goRecords">查看我的记录</van-button>
+					<van-button type="primary" size="large" block native-type="button" @click="again">继续巡查</van-button>
+					<van-button type="primary" plain block native-type="button" style="margin-top: 12px" @click="goRecords">查看我的记录</van-button>
 				</div>
 			</div>
 		</div>
@@ -193,14 +193,14 @@
 		<div class="patrol-footer">
 			<span class="submit-hint" role="status">{{ stepHint }}</span>
 			<div class="step-actions">
-				<van-button v-if="currentStep > 0" native-type="button" class="u-btn plain previous-step" :disabled="processing || submitting" @click="previousStep">
+				<van-button v-if="currentStep > 0" native-type="button" size="large" class="previous-step" :disabled="processing || submitting" @click="previousStep">
 					上一步
 				</van-button>
-				<van-button v-if="currentStep < 2" native-type="button" class="u-btn primary xl next-step" :disabled="!canGoNext" @click="nextStep">
+				<van-button type="primary" size="large" v-if="currentStep < 2" native-type="button" class="next-step" :disabled="!canGoNext" @click="nextStep">
 					{{ currentStep === 0 ? '确认文物点，下一步' : '照片已拍好，下一步' }}
 				</van-button>
-				<van-button v-else native-type="button" class="u-btn xl submit" :class="canSubmit ? 'primary' : 'plain'" :disabled="!canSubmit || submitting" @click="submit">
-					<AppIcon name="upload" :size="44" :color="canSubmit ? 'var(--c-on-primary)' : 'var(--c-text-4)'" />
+				<van-button type="primary" size="large" v-else native-type="button" class="submit" :disabled="!canSubmit || submitting" @click="submit">
+					<AppIcon name="upload" :size="44" color="currentColor" />
 					<span>{{ submitting ? '正在上报…' : '提交巡查' }}</span>
 				</van-button>
 			</div>
@@ -615,36 +615,36 @@
 @reference "../theme/tailwind.css";
 
 .steps { @apply pt-3 pb-4; }
-.step { @apply mb-3 rounded-card border border-line transition-all duration-150; }
+.step { @apply mb-3  border border-line transition-all duration-150; }
 .step.finished { @apply border-success bg-success-bg; }
-.step-progress { @apply mb-3 rounded-xl; }
+.step-progress { @apply mb-3 ; }
 .step-head { @apply flex items-center gap-3 px-4 pb-2.5 pt-3.5; }
-.step-no { @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-on-primary; }
+.step-no { @apply flex h-7 w-7 shrink-0 items-center justify-center  bg-primary text-sm font-semibold text-on-primary; }
 .finished .step-no { @apply bg-success; }
 .step-title { @apply text-base font-semibold text-ink; }
 .locating { @apply flex flex-col items-center gap-2.5 px-4 py-5 text-center text-sm text-ink-2; }
-.site { @apply mx-4 mb-3 flex items-start gap-3 rounded-lg bg-fill p-3.5; }
+.site { @apply mx-4 mb-3 flex items-start gap-3  bg-fill p-3.5; }
 .site-main { @apply flex min-w-0 flex-1 flex-col gap-1; }
 .site-name { @apply text-base font-bold leading-[1.4] text-ink; }
-.site-code, .site-option-code { @apply w-fit max-w-full rounded border border-line bg-surface px-2 py-0.5 font-mono text-xs tabular-nums tracking-[0.02em] text-ink-2; overflow-wrap: anywhere; }
+.site-code, .site-option-code { @apply w-fit max-w-full  border border-line bg-surface px-2 py-0.5 font-mono text-xs tabular-nums tracking-[0.02em] text-ink-2; overflow-wrap: anywhere; }
 .site-addr { @apply text-[0.8125rem] leading-6 text-ink-3; overflow-wrap: anywhere; }
 .site-tags { @apply mt-1.5 flex flex-wrap gap-1.5; }
 .change-btn { @apply m-1 shrink-0; }
-.far-tip { @apply mx-4 mb-3 flex items-start gap-2.5 rounded-lg border border-l-4 border-warning bg-warning-bg px-3 py-2.5 text-[0.8125rem] leading-6 text-ink; }
-.far-tip-icon { @apply flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-warning-bg; }
+.far-tip { @apply mx-4 mb-3 flex items-start gap-2.5  border border-l-4 border-warning bg-warning-bg px-3 py-2.5 text-[0.8125rem] leading-6 text-ink; }
+.far-tip-icon { @apply flex h-7 w-7 shrink-0 items-center justify-center  bg-warning-bg; }
 .far-tip-copy { @apply flex min-w-0 flex-col gap-0.5; }
 .far-tip-copy strong { @apply text-sm font-bold text-warning; }
 .far-tip-copy span { @apply text-ink-2; }
 .row-btns { @apply flex flex-col gap-2.5 px-4 pb-4; }
-.shoot { @apply mx-4 mb-3 flex flex-col items-center rounded-2xl border-2 border-dashed border-line bg-fill px-4 py-7 transition-all duration-150; }
+.shoot { @apply mx-4 mb-3 flex flex-col items-center  border-2 border-dashed border-line bg-fill px-4 py-7 transition-all duration-150; }
 .shoot:active { @apply border-primary bg-surface; }
-.shoot-icon { @apply flex h-16 w-16 items-center justify-center rounded-full bg-gradient-primary; box-shadow: 0 0.1875rem 0.625rem rgb(var(--c-primary-rgb) / 25%); }
+.shoot-icon { @apply flex h-16 w-16 items-center justify-center  bg-gradient-primary; box-shadow: 0 0.1875rem 0.625rem rgb(var(--c-primary-rgb) / 25%); }
 .shoot-text { @apply mt-3 text-base font-semibold text-ink; }
 .shoot-sub { @apply mt-1 text-[0.8125rem] text-ink-3; }
 .photo { @apply flex flex-col gap-3 px-4 pb-4; }
-.photo-img { @apply block h-60 w-full rounded-lg bg-line object-cover; }
+.photo-img { @apply block h-60 w-full  bg-line object-cover; }
 .status-row { @apply flex gap-3 px-4 pb-4; }
-.status-btn { @apply flex h-[5.5rem] flex-1 cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 text-[0.9375rem] font-semibold transition-all duration-150; }
+.status-btn { @apply flex h-[5.5rem] flex-1 cursor-pointer flex-col items-center justify-center gap-1.5  border-2 text-[0.9375rem] font-semibold transition-all duration-150; }
 .status-btn.ok { @apply border-success-bg bg-success-bg text-success; }
 .status-btn.bad { @apply border-danger-bg bg-danger-bg text-danger; }
 .status-btn.ok.active { @apply border-success bg-success text-on-primary shadow-card; }
@@ -653,27 +653,27 @@
 .issue { @apply px-4 pb-4; }
 .issue-label { @apply mb-2.5 block text-sm font-semibold text-ink; }
 .chips { @apply flex flex-wrap gap-2; }
-.chip { @apply cursor-pointer rounded-full border border-line bg-surface px-3.5 py-2 text-[0.8125rem] text-ink-2 transition-all duration-150; }
+.chip { @apply cursor-pointer  border border-line bg-surface px-3.5 py-2 text-[0.8125rem] text-ink-2 transition-all duration-150; }
 .chip:active { transform: scale(0.97); }
 .chip.active { @apply border-danger bg-danger-bg font-semibold text-danger; }
-.issue-input { @apply mt-3 box-border block h-[6.25rem] w-full rounded-lg border border-line bg-fill p-3 text-sm text-ink; }
+.issue-input { @apply mt-3 box-border block h-[6.25rem] w-full  border border-line bg-fill p-3 text-sm text-ink; }
 .issue-input :deep(.van-field__control) { @apply h-full resize-none bg-transparent font-sans text-sm text-ink outline-none; }
 .issue-input :deep(.van-field__control)::placeholder, .search-input :deep(.van-field__control)::placeholder { @apply text-ink-4; }
 .issue-input:focus-within { @apply border-primary bg-surface; }
 .patrol-footer { @apply shrink-0 border-t border-line bg-surface px-4 pb-2.5 pt-2 shadow-card; }
 .step-actions { @apply flex w-full items-center gap-3; }
 .previous-step { @apply h-12 shrink-0; }
-.next-step, .submit { @apply m-0 h-12 min-w-0 flex-1 rounded-xl text-[0.9375rem] font-semibold; }
+.next-step, .submit { @apply m-0 h-12 min-w-0 flex-1  text-[0.9375rem] font-semibold; }
 .submit :deep(.van-button__content), .submit :deep(.van-button__text) { @apply flex items-center justify-center gap-2; }
 .submit-hint { @apply mb-2 block text-center text-[0.8125rem] text-ink-3; }
 .sheet-mask, .success-mask { @apply fixed inset-0 z-[1000] flex; background: var(--c-mask); }
 .sheet-mask { @apply items-end; }
-.sheet { @apply flex h-[85vh] w-full flex-col rounded-t-2xl bg-surface p-[1.125rem]; box-sizing: border-box; padding-bottom: env(safe-area-inset-bottom); }
+.sheet { @apply flex h-[85vh] w-full flex-col  bg-surface p-[1.125rem]; box-sizing: border-box; padding-bottom: env(safe-area-inset-bottom); }
 .sheet-head { @apply flex items-center justify-between; }
 .sheet-title { @apply text-lg font-semibold text-ink; }
-.sheet-close { @apply rounded-lg p-2 transition-colors duration-150; }
+.sheet-close { @apply  p-2 transition-colors duration-150; }
 .sheet-close:active { @apply bg-fill; }
-.search { @apply my-3 flex h-[2.875rem] items-center gap-2.5 rounded-lg border border-line bg-fill px-3.5 transition-all duration-150; }
+.search { @apply my-3 flex h-[2.875rem] items-center gap-2.5  border border-line bg-fill px-3.5 transition-all duration-150; }
 .search:focus-within { @apply border-primary bg-surface; box-shadow: 0 0 0 0.125rem rgb(var(--c-primary-rgb) / 12%); }
 .search-input { @apply h-full min-w-0 flex-1 bg-transparent p-0 text-[0.9375rem] text-ink; }
 .search-input :deep(.van-field__control) { @apply bg-transparent p-0 text-[0.9375rem] text-ink; }
@@ -686,8 +686,8 @@
 .site-option-code { @apply mt-0.5 bg-fill text-[0.6875rem]; }
 .site-option-sub { @apply text-xs leading-[1.45] text-ink-3; overflow-wrap: anywhere; }
 .success-mask { @apply items-center justify-center p-6; }
-.success { @apply flex w-full max-w-[22.5rem] flex-col items-center rounded-[1.125rem] bg-surface px-6 pb-5 pt-7 shadow-card; box-sizing: border-box; box-shadow: 0 0.75rem 2.5rem rgb(0 0 0 / 12%); }
-.success-icon { @apply flex h-20 w-20 items-center justify-center rounded-full bg-success; box-shadow: 0 0 0 0.625rem var(--c-success-bg); }
+.success { @apply flex w-full max-w-[22.5rem] flex-col items-center  bg-surface px-6 pb-5 pt-7 shadow-card; box-sizing: border-box; box-shadow: 0 0.75rem 2.5rem rgb(0 0 0 / 12%); }
+.success-icon { @apply flex h-20 w-20 items-center justify-center  bg-success; box-shadow: 0 0 0 0.625rem var(--c-success-bg); }
 .success-title { @apply mt-[1.125rem] text-xl font-semibold text-success; }
 .success-sub { @apply my-2 mb-5 text-center text-sm leading-6 text-ink-2; }
 </style>

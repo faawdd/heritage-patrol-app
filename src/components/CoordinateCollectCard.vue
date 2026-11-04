@@ -1,19 +1,19 @@
 <template>
-  <div class="rounded-card border border-line bg-surface p-3">
+  <div class="border border-line bg-surface p-3">
     <div class="mb-1 flex flex-wrap items-baseline justify-between gap-2">
       <span class="text-[0.9375rem] font-bold text-ink-2">区块2：坐标采集</span>
       <span class="text-[0.6875rem] text-ink-3">边界点至少 3 个；标志点/其他为可选</span>
     </div>
 
     <div class="mb-1">
-      <van-button native-type="button" class="!min-h-11 !rounded-md !border !border-info/35 !bg-fill !px-3 !text-[0.8125rem] !font-bold !text-info" @click="addPoint">新增定位点</van-button>
+      <van-button type="primary" plain native-type="button" @click="addPoint">新增定位点</van-button>
     </div>
 
     <div v-if="coordList.length === 0" class="py-2.5 pb-1.5">
       <span class="text-xs text-ink-3">暂无坐标点，请点击“新增定位点”</span>
     </div>
 
-    <div v-for="(item, index) in coordList" :key="item.id" class="mb-1 rounded-md border p-1.5" :style="pointThemeStyle(index)">
+    <div v-for="(item, index) in coordList" :key="item.id" class="mb-1 border p-1.5" :style="pointThemeStyle(index)">
       <div class="flex items-center justify-between">
         <span class="text-sm font-bold text-ink">定位点 {{ index + 1 }}</span>
         <span class="text-[0.6875rem] text-ink-3">{{ typeLabelByValue[item.type] }}</span>
@@ -24,16 +24,16 @@
         <span>海拔：{{ item.altitude || '未填' }}</span>
       </div>
       <div class="mt-1 flex gap-1">
-        <van-button native-type="button" class="!min-h-11 flex-1 !rounded !border !border-info/45 !bg-fill !text-xs !text-info" @click="openPointWindow(item.id)">打开坐标窗口</van-button>
-        <van-button native-type="button" class="!min-h-11 flex-1 !rounded !border !border-danger/45 !bg-danger-bg !text-xs !text-danger" @click="removePoint(index)">删除</van-button>
+        <van-button type="primary" plain native-type="button" class="flex-1" @click="openPointWindow(item.id)">打开坐标窗口</van-button>
+        <van-button type="danger" plain native-type="button" class="flex-1" @click="removePoint(index)">删除</van-button>
       </div>
     </div>
 
     <div v-if="pointWindowVisible && activePoint" class="fixed inset-0 z-[999] flex items-end justify-center bg-black/40 px-0 pb-2" @click.self="closePointWindow">
-      <div class="max-h-[82vh] w-[calc(100%-0.75rem)] overflow-y-auto rounded-lg border border-line bg-surface p-2" :style="pointThemeStyle(activePointIndex)">
+      <div class="max-h-[82vh] w-[calc(100%-0.75rem)] overflow-y-auto border border-line bg-surface p-2" :style="pointThemeStyle(activePointIndex)">
         <div class="mb-1 flex items-center justify-between">
           <span class="text-[0.9375rem] font-bold text-ink">定位点 {{ activePointIndex + 1 }} 坐标窗口</span>
-          <van-button native-type="button" class="!min-h-11 !min-w-12 !rounded !border !border-line !bg-surface !text-xs !text-ink-2" @click="closePointWindow">关闭</van-button>
+          <van-button native-type="button" @click="closePointWindow">关闭</van-button>
         </div>
 
         <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
@@ -43,41 +43,41 @@
 
         <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
           <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">经度<span class="text-danger"> *</span></span>
-          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.longitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'longitude')" />
+          <van-field class="min-h-11 min-w-0 flex-1 !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.longitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'longitude')" />
         </div>
 
         <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
           <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">纬度<span class="text-danger"> *</span></span>
-          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.latitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'latitude')" />
+          <van-field class="min-h-11 min-w-0 flex-1 !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.latitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'latitude')" />
         </div>
 
         <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
           <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">海拔(米)<span class="text-danger"> *</span></span>
-          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.altitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'altitude')" />
+          <van-field class="min-h-11 min-w-0 flex-1 !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" type="number" inputmode="decimal" step="any" :model-value="activePoint.altitude" placeholder="自动抓取或手动填写" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'altitude')" />
         </div>
 
         <div v-if="activePoint.sourceTag" class="mb-1 flex min-h-11 items-center justify-between gap-2">
           <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">高程来源</span>
           <div class="flex min-w-0 flex-1 justify-end">
-            <span class="rounded border border-line bg-fill px-1.5 py-[0.1875rem] text-xs text-ink-2">{{ activePoint.sourceTag }}</span>
+            <span class="border border-line bg-fill px-1.5 py-[0.1875rem] text-xs text-ink-2">{{ activePoint.sourceTag }}</span>
           </div>
         </div>
 
         <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
           <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">点位说明<span class="text-danger"> *</span></span>
-          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" :model-value="activePoint.description" maxlength="200" placeholder="请输入坐标点说明" input-align="right" :border="false" @update:model-value="onDescriptionInput($event, activePoint)" />
+          <van-field class="min-h-11 min-w-0 flex-1 !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" :model-value="activePoint.description" maxlength="200" placeholder="请输入坐标点说明" input-align="right" :border="false" @update:model-value="onDescriptionInput($event, activePoint)" />
         </div>
 
         <div class="mb-1 flex min-h-11 items-center justify-between gap-2">
           <span class="w-[6.25rem] shrink-0 text-[0.9375rem] leading-[1.4] text-ink">备注</span>
-          <van-field class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" :model-value="activePoint.remark" maxlength="200" placeholder="选填" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'remark')" />
+          <van-field class="min-h-11 min-w-0 flex-1 !border !border-line !bg-surface !px-2 !py-0 text-right text-sm text-ink" :model-value="activePoint.remark" maxlength="200" placeholder="选填" input-align="right" :border="false" @update:model-value="onFieldInput($event, activePoint, 'remark')" />
         </div>
 
         <div class="mt-1.5 flex gap-1">
-          <van-button native-type="button" class="!min-h-11 !min-w-[5.625rem] !shrink-0 !rounded-md !border !border-info/35 !bg-fill !px-2 !text-xs !font-bold !text-info" :disabled="isPointLoading(activePoint.id) || loadingMap[activePoint.id]?.sampling" @click="grabPoint(activePoint)">
+          <van-button type="primary" plain native-type="button" class="!shrink-0" :disabled="isPointLoading(activePoint.id) || loadingMap[activePoint.id]?.sampling" @click="grabPoint(activePoint)">
             {{ isPointLoading(activePoint.id) ? '定位中' : '实时定位' }}
           </van-button>
-          <van-button native-type="button" class="!min-h-11 flex-1 !rounded-md !border !border-success/45 !bg-success-bg !text-xs !font-bold !text-success" @click="closePointWindow">完成当前点位</van-button>
+          <van-button native-type="button" class="flex-1" @click="closePointWindow">完成当前点位</van-button>
         </div>
         <HighAccuracyCapture ref="surveyRef" :key="activePoint.id" :disabled="isPointLoading(activePoint.id)" @collecting="setLoading(activePoint.id, 'sampling', $event)" @captured="applySurveyPoint(activePoint, $event)" />
       </div>

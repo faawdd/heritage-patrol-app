@@ -1,10 +1,10 @@
 <template>
-	<section class="rounded-card bg-primary-light p-3 text-sm text-ink-2">
+	<section class="bg-primary-light p-3 text-sm text-ink-2">
 		<p class="mb-2">静止采集 10 个精度 ≤5 米的新样本。手机精度为估计值，不保证 1–3 米。</p>
-		<van-button native-type="button" class="!min-h-11 !rounded-md !border !border-primary !bg-surface !px-3 !font-semibold !text-primary" :disabled="collecting || disabled" @click="capture">
+		<van-button type="primary" plain native-type="button" :disabled="collecting || disabled" @click="capture">
 			{{ collecting ? '高精度采样中…' : '静止高精度打点' }}
 		</van-button>
-		<van-button v-if="collecting" native-type="button" class="ml-1 !min-h-11 !rounded-md !border !border-line !bg-surface !px-3 !text-ink-2" @click="controller?.abort()">取消采样</van-button>
+		<van-button v-if="collecting" native-type="button" class="ml-1" @click="controller?.abort()">取消采样</van-button>
 		<p v-if="progress" class="mt-2" aria-live="polite">
 			第 {{ progress.attempt }} 次：{{ progress.accepted }}/{{ progress.target }} 个有效样本，
 			剔除 {{ progress.rejected }} 个；

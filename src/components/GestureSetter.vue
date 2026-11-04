@@ -4,8 +4,8 @@
 		<span class="my-2 mb-4 min-h-[1.375rem] text-[0.9375rem] text-ink-3" :class="isError ? 'font-bold text-danger' : ''">{{ tip }}</span>
 		<GestureLock ref="lock" :size="size" @complete="onComplete" />
 		<div class="mt-4 flex gap-3">
-			<van-button native-type="button" v-if="step === 2" class="u-btn plain sm" @click="restart">重新画</van-button>
-			<van-button native-type="button" class="u-btn plain sm" @click="$emit('cancel')">{{ cancelText }}</van-button>
+			<van-button size="small" native-type="button" v-if="step === 2" @click="restart">重新画</van-button>
+			<van-button size="small" native-type="button" @click="$emit('cancel')">{{ cancelText }}</van-button>
 		</div>
 	</div>
 </template>

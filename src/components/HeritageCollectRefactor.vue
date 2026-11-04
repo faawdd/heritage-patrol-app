@@ -4,7 +4,7 @@
       <div class="flex px-2.5 pb-2 pt-2.5">
         <div v-for="(step, idx) in stepDefs" :key="step.key" class="relative flex flex-1 flex-col items-center">
           <div
-            class="flex size-[1.375rem] items-center justify-center rounded-full border"
+            class="flex size-[1.375rem] items-center justify-center border"
             :class="currentStep >= idx ? 'border-primary bg-primary' : 'border-ink-4 bg-surface'"
           >
             <span class="text-xs font-bold" :class="currentStep >= idx ? 'text-on-primary' : 'text-ink-3'">{{ currentStep > idx ? '✓' : idx + 1 }}</span>
@@ -24,13 +24,13 @@
 
     <div class="flex-1 overflow-hidden px-2 pt-2">
       <div v-if="currentStep === 0" class="h-full overflow-y-auto pb-2">
-        <div class="mb-1 rounded-card border border-line bg-surface p-3 shadow-card">
+        <div class="mb-1 border border-line bg-surface p-3 shadow-card">
           <div class="mb-1 flex items-center justify-between">
             <span class="text-[0.9375rem] font-bold text-ink">第一步：基础地理</span>
-            <span class="rounded-full border border-primary/35 bg-primary-light px-2 py-0.5 text-[0.6875rem] text-ink-2">信息校核</span>
+            <span class="border border-primary/35 bg-primary-light px-2 py-0.5 text-[0.6875rem] text-ink-2">信息校核</span>
           </div>
 
-          <div class="mb-2 rounded-lg border border-primary/35 bg-primary-light p-2.5">
+          <div class="mb-2 border border-primary/35 bg-primary-light p-2.5">
             <div class="mb-1">
               <span class="text-sm font-bold text-ink">全局采集策略</span>
             </div>
@@ -63,7 +63,7 @@
           <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
             <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">编号模式</span>
             <div class="flex flex-1 justify-end">
-              <div class="flex overflow-hidden rounded-md border border-line">
+              <div class="flex overflow-hidden border border-line">
                 <div
                   class="flex min-h-11 min-w-14 items-center justify-center px-2 text-center text-xs"
                   :class="form.surveyCodeAuto ? 'bg-primary text-on-primary' : 'bg-fill text-ink-2'"
@@ -107,7 +107,7 @@
             <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">海拔</span>
             <div class="flex flex-1 items-center justify-end gap-1">
               <van-field v-model="form.altitude" class="min-h-11 min-w-[5.3rem] flex-1 bg-transparent! p-0! text-sm" input-align="right" type="text" inputmode="decimal" placeholder="自动采集或手动填写" :border="false" />
-              <div class="rounded border px-1.5 py-0.5" :class="badgeClassMap[altitudeSource]">
+              <div class="border px-1.5 py-0.5" :class="badgeClassMap[altitudeSource]">
                 <span class="text-[0.6875rem]">{{ altitudeSourceLabel }}</span>
               </div>
             </div>
@@ -144,19 +144,19 @@
           </div>
 
           <div class="mt-2 flex gap-1.5">
-            <van-button native-type="button" class="h-11! flex-1 rounded-lg! border-primary/35! bg-primary-light! text-[0.8438rem]! text-primary!" @click="handleCollectCoordinate">采集坐标</van-button>
-            <van-button native-type="button" class="h-11! flex-1 rounded-lg! border-primary/35! bg-primary-light! text-[0.8438rem]! text-primary!" @click="handleCollectAltitude">采集海拔</van-button>
+            <van-button type="primary" plain native-type="button" class="flex-1" @click="handleCollectCoordinate">采集坐标</van-button>
+            <van-button type="primary" plain native-type="button" class="flex-1" @click="handleCollectAltitude">采集海拔</van-button>
           </div>
         </div>
       </div>
 
       <div v-if="currentStep === 1" class="h-full overflow-y-auto pb-2">
-        <div class="step2-focus mb-1 rounded-card border border-warning/45 bg-warning-bg p-3 shadow-card">
+        <div class="step2-focus mb-1 border border-warning/45 bg-warning-bg p-3 shadow-card">
           <div class="mb-1 flex items-center justify-between">
             <span class="text-[0.9375rem] font-bold text-ink">第二步：多点坐标</span>
-            <span class="rounded-full border border-warning/45 bg-warning-bg px-2 py-0.5 text-[0.6875rem] text-warning">高频核心操作区</span>
+            <span class="border border-warning/45 bg-warning-bg px-2 py-0.5 text-[0.6875rem] text-warning">高频核心操作区</span>
           </div>
-          <div class="mb-2 rounded-lg border border-dashed border-warning/45 bg-warning-bg px-2 py-1.5">
+          <div class="mb-2 border border-dashed border-warning/45 bg-warning-bg px-2 py-1.5">
             <span class="text-xs leading-relaxed text-warning">围绕遗址走动采集时，请优先使用“新增定位点”和“实时定位”完成边界点/标志点录入。</span>
           </div>
           <CoordinateCollectCard
@@ -172,10 +172,10 @@
       </div>
 
       <div v-if="currentStep === 2" class="h-full overflow-y-auto pb-2">
-        <div class="mb-1 rounded-card border border-line bg-surface p-3 shadow-card">
+        <div class="mb-1 border border-line bg-surface p-3 shadow-card">
           <div class="mb-1 flex items-center justify-between">
             <span class="text-[0.9375rem] font-bold text-ink">第三步：多媒体/审核</span>
-            <span class="rounded-full border border-primary/35 bg-primary-light px-2 py-0.5 text-[0.6875rem] text-ink-2">提交前复核</span>
+            <span class="border border-primary/35 bg-primary-light px-2 py-0.5 text-[0.6875rem] text-ink-2">提交前复核</span>
           </div>
 
           <div class="border-b border-fill py-2">
@@ -184,15 +184,15 @@
               <span class="text-[0.7188rem] text-ink-3">最多 10 张</span>
             </div>
             <div class="grid grid-cols-2 gap-1.5 min-[431px]:grid-cols-3">
-              <div v-for="(item, idx) in photos" :key="item.id" class="relative h-[5.25rem] overflow-hidden rounded-lg bg-fill">
+              <div v-for="(item, idx) in photos" :key="item.id" class="relative h-[5.25rem] overflow-hidden bg-fill">
                 <img :src="item.path" class="block size-full object-cover" />
                 <div class="absolute right-0.5 top-0.5 flex size-11 items-start justify-end" @click="removePhoto(idx)">
-                  <span class="flex size-[1.125rem] items-center justify-center rounded-full bg-black/50 text-[0.625rem] text-white">删</span>
+                  <span class="flex size-[1.125rem] items-center justify-center bg-black/50 text-[0.625rem] text-white">删</span>
                 </div>
               </div>
               <div
                 v-if="photos.length < 10"
-                class="relative flex h-[5.25rem] items-center justify-center overflow-hidden rounded-lg border border-dashed border-primary/35 bg-primary-light"
+                class="relative flex h-[5.25rem] items-center justify-center overflow-hidden border border-dashed border-primary/35 bg-primary-light"
                 @click="pickPhoto"
               >
                 <span class="text-[0.7813rem] text-primary">添加照片</span>
@@ -217,7 +217,7 @@
 
           <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
             <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">普查员签名</span>
-            <van-button native-type="button" class="h-11! max-w-[11.25rem] flex-1 rounded-lg! border-primary/35! bg-primary-light! px-3.5! text-[0.8438rem]! text-primary!" @click="collectSignature">采集签名</van-button>
+            <van-button type="primary" plain native-type="button" class="max-w-[11.25rem] flex-1" @click="collectSignature">采集签名</van-button>
           </div>
           <div v-if="signStatus" class="mb-1 mt-1">
             <span class="text-xs text-ink-2">{{ signStatus }}</span>
@@ -230,7 +230,7 @@
             </div>
             <van-field
               v-model="form.remark"
-              class="rounded-lg! border border-line bg-surface! p-2! text-[0.8438rem]"
+              class="border border-line bg-surface! p-2! text-[0.8438rem]"
               type="textarea"
               rows="4"
               autosize
@@ -245,17 +245,17 @@
 
     <div class="border-t border-line bg-surface px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))]">
       <div v-if="currentStep === 0" class="flex items-center justify-center gap-1.5">
-        <van-button native-type="button" class="h-11! w-4/5 rounded-lg! border-transparent! bg-primary! text-sm! font-bold! text-on-primary! min-[431px]:text-[0.9375rem]!" @click="goStep1ToStep2">下一步：采集坐标</van-button>
+        <van-button type="primary" native-type="button" class="w-4/5" @click="goStep1ToStep2">下一步：采集坐标</van-button>
       </div>
 
       <div v-if="currentStep === 1" class="flex items-center gap-1.5">
-        <van-button native-type="button" class="h-11! flex-[0_0_30%] rounded-lg! border-line! bg-surface! text-sm! font-bold! text-ink-2! min-[431px]:text-[0.9375rem]!" @click="goPrevStep">返回上一步</van-button>
-        <van-button native-type="button" class="h-11! flex-[0_0_calc(70%-0.3125rem)] rounded-lg! border-transparent! bg-primary! text-sm! font-bold! text-on-primary! min-[431px]:text-[0.9375rem]!" @click="goStep2ToStep3">下一步：多媒体/审核</van-button>
+        <van-button native-type="button" class="flex-[0_0_30%]" @click="goPrevStep">返回上一步</van-button>
+        <van-button type="primary" native-type="button" class="flex-[0_0_calc(70%-0.3125rem)]" @click="goStep2ToStep3">下一步：多媒体/审核</van-button>
       </div>
 
       <div v-if="currentStep === 2" class="flex items-center gap-1.5">
-        <van-button native-type="button" class="h-11! flex-[0_0_30%] rounded-lg! border-line! bg-surface! text-sm! font-bold! text-ink-2! min-[431px]:text-[0.9375rem]!" @click="goPrevStep">返回上一步</van-button>
-        <van-button native-type="button" class="h-11! flex-[0_0_calc(70%-0.3125rem)] rounded-lg! border-transparent! bg-success! text-sm! font-bold! text-on-primary! disabled:opacity-65 min-[431px]:text-[0.9375rem]!" :disabled="loading" @click="handleSubmit">
+        <van-button native-type="button" class="flex-[0_0_30%]" @click="goPrevStep">返回上一步</van-button>
+        <van-button type="success" native-type="button" class="flex-[0_0_calc(70%-0.3125rem)]" :disabled="loading" @click="handleSubmit">
           {{ loading ? '提交中...' : '完成并提交数据' }}
         </van-button>
       </div>

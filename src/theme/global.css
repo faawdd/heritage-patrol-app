@@ -124,11 +124,11 @@ html[data-font="xlarge"] {
 	--shadow-primary: 0 4px 16px rgba(var(--c-primary-rgb), 0.25);
 
 	/* === 圆角系统 === */
-	--r-card: 12px;
-	--r-btn: 10px;
-	--r-input: 8px;
-	--r-badge: 6px;
-	--r-tag: 8px;
+	--r-card: 0;
+	--r-btn: 0;
+	--r-input: 0;
+	--r-badge: 0;
+	--r-tag: 0;
 
 	/* === 间距系统 === */
 	--space-xs: 4px;
@@ -172,7 +172,7 @@ html[data-font="xlarge"] {
 	--c-on-hero: #F4F7F5;
 	--c-primary-light: rgba(var(--c-primary-rgb), 0.16);
 	--c-primary-tint: rgba(var(--c-primary-rgb), 0.24);
-	--g-hero: linear-gradient(135deg, #1D332B 0%, #2B5746 62%, #356B56 100%);
+	--g-hero: linear-gradient(135deg, color-mix(in srgb, var(--c-primary) 26%, #0C1210) 0%, color-mix(in srgb, var(--c-primary) 42%, #0C1210) 62%, color-mix(in srgb, var(--c-primary) 54%, #0C1210) 100%);
 
 	--c-success: #53B48D;
 	--c-success-rgb: 83, 180, 141;
@@ -249,7 +249,7 @@ button[disabled] {
 }
 
 .u-body {
-	padding: 0 var(--space-lg);
+	padding: var(--space-md) var(--space-lg) 0;
 }
 
 /* ========== 卡片组件 ========== */
@@ -366,7 +366,7 @@ button[disabled] {
 	height: 40px;
 	font-size: var(--text-sm);
 	padding: 0 14px;
-	border-radius: 8px;
+	border-radius: 0;
 }
 
 .u-btn.block {

@@ -1,8 +1,8 @@
 <template>
-	<div class="rounded-lg bg-surface py-0.5 pb-1">
+	<div class="bg-surface py-0.5 pb-1">
 		<div class="mb-2 flex flex-wrap items-center justify-between gap-1">
 			<span class="text-sm font-semibold text-ink">海拔高程（米）</span>
-			<div v-if="sourceLabel" :class="['flex items-center rounded-full px-2 py-0.5', {
+			<div v-if="sourceLabel" :class="['flex items-center px-2 py-0.5', {
 				'bg-primary-light': sourceBadgeClass === 'badge--gps',
 				'bg-success-bg': ['badge--dem', 'badge--fused'].includes(sourceBadgeClass),
 				'bg-warning-bg': sourceBadgeClass === 'badge--hardware',
@@ -25,7 +25,7 @@
 				type="number"
 				inputmode="decimal"
 				step="any"
-				class="min-h-11 min-w-0 flex-1 !rounded-md !border !border-line !bg-fill !px-3 !py-0 text-base text-ink"
+				class="min-h-11 min-w-0 flex-1 !border !border-line !bg-fill !px-3 !py-0 text-base text-ink"
 				placeholder="自动采集 或 手动填写"
 				input-align="right"
 				:border="false"
@@ -33,7 +33,9 @@
 			/>
 			<van-button
 				native-type="button"
-				:class="['!min-h-11 !min-w-[5.875rem] !shrink-0 !rounded-md !border-0 !px-3 !text-[0.8125rem] !font-semibold !text-on-primary', collecting ? '!bg-primary/60' : '!bg-primary']"
+				type="primary"
+				size="small"
+				class="shrink-0"
 				:disabled="collecting"
 				@click="startCollect"
 			>
@@ -42,7 +44,7 @@
 			</van-button>
 		</div>
 
-		<div v-if="statusMsg" :class="['mt-1.5 rounded px-2 py-1.5', {
+		<div v-if="statusMsg" :class="['mt-1.5 px-2 py-1.5', {
 			'bg-primary-light': statusClass === 'alt-status--info',
 			'bg-success-bg': statusClass === 'alt-status--success',
 			'bg-danger-bg': statusClass === 'alt-status--error',
@@ -56,7 +58,7 @@
 			}]">{{ statusMsg }}</span>
 		</div>
 
-		<div v-if="detailText" class="mt-1 rounded border-l-2 border-line bg-fill px-2 py-1.5">
+		<div v-if="detailText" class="mt-1 border-l-2 border-line bg-fill px-2 py-1.5">
 			<span class="font-mono text-[0.625rem] leading-loose text-ink-4">{{ detailText }}</span>
 		</div>
 	</div>

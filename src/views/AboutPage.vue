@@ -5,7 +5,7 @@
 				<AppHeader title="关于软件" back />
 				<div class="u-body pt-3.5">
 					<div class="u-card flex flex-col items-center px-4 py-6">
-						<div class="flex h-20 w-20 items-center justify-center rounded-[1.375rem] bg-gradient-primary">
+						<div class="flex h-20 w-20 items-center justify-center bg-gradient-primary">
 							<AppIcon name="landmark" :size="88" color="var(--c-on-primary)" :stroke="1.8" />
 						</div>
 						<span class="mt-3 text-[1.375rem] font-extrabold text-ink">鄯善文保巡查</span>

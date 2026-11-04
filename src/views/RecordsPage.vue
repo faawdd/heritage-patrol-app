@@ -3,30 +3,28 @@
 		<div class="app-content">
 			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
 			<div class="u-page">
-				<AppHeader title="巡查记录" :subtitle="`共 ${records.length >= 100 ? '最近 100' : records.length} 条记录`" />
-
-				<div class="sticky top-0 z-[5] flex gap-2 border-b border-line bg-page px-4 py-3">
-					<div
-						v-for="item in filters"
-						:key="item.key"
-						class="filter flex h-11 flex-1 items-center justify-center gap-1 rounded-lg border border-line bg-surface text-sm font-medium text-ink-2"
-						:class="[item.key, { active: filter === item.key }]"
-						@click="filter = item.key"
-					>
-						<span>{{ item.name }}</span>
-						<span class="box-border min-w-5 rounded-full bg-fill px-1.5 py-px text-center text-xs">{{ counts[item.key] }}</span>
+				<AppHeader title="巡查记录" :subtitle="`共 ${records.length >= 100 ? '最近 100' : records.length} 条记录`">
+					<div class="mt-2 flex gap-2">
+						<van-button
+							v-for="item in filters"
+							:key="item.key"
+							native-type="button"
+							class="flex-1"
+							:type="filter === item.key ? 'primary' : 'default'"
+							@click="filter = item.key"
+						>{{ item.name }} {{ counts[item.key] }}</van-button>
 					</div>
-				</div>
+				</AppHeader>
 
 				<div class="u-body">
 					<div v-if="pending.length" class="u-card">
 						<h3>待同步巡查（{{ pending.length }}）</h3>
 						<p>照片已保存到本机，上传成功后才移除。不要清除应用数据或卸载。</p>
-						<van-button class="u-btn primary block" :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</van-button>
+						<van-button type="primary" block :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</van-button>
 						<div v-for="item in pending" :key="item.key">
 							<p>{{ item.site_name }} · {{ new Date(item.inspect_time).toLocaleString() }} · {{ item.photos.length }} 张照片</p>
 							<p v-if="item.error" class="text-danger">{{ item.error }}</p>
-							<van-button class="u-btn sm" @click="previewPending(item)">查看本地照片</van-button>
+							<van-button size="small" @click="previewPending(item)">查看本地照片</van-button>
 						</div>
 					</div>
 					<p v-if="cached">正在显示本机缓存记录，联网后可刷新。</p>
@@ -38,13 +36,13 @@
 					<div v-else-if="loadError && !records.length" class="u-card u-empty">
 						<AppIcon name="alert" :size="88" color="var(--c-warning)" />
 						<span>加载失败，请检查网络</span>
-						<van-button native-type="button" class="u-btn sm" @click="load">重新加载</van-button>
+						<van-button size="small" native-type="button" @click="load">重新加载</van-button>
 					</div>
 
 					<div v-else-if="!visible.length" class="u-card u-empty">
 						<AppIcon name="records" :size="96" color="var(--c-text-4)" />
 						<span>{{ records.length ? '没有符合条件的记录' : '还没有巡查记录' }}</span>
-						<van-button v-if="!records.length" native-type="button" class="u-btn primary" @click="goPatrol">
+						<van-button type="primary" v-if="!records.length" native-type="button" @click="goPatrol">
 							<AppIcon name="camera" :size="44" color="var(--c-on-primary)" />
 							<span>去巡查上报</span>
 						</van-button>
@@ -52,7 +50,7 @@
 
 					<div v-for="group in groups" :key="group.day" class="group">
 						<span class="mb-1.5 mt-1.5 block px-0.5 text-[0.8125rem] font-semibold text-ink-2">{{ group.label }}</span>
-						<div v-for="item in group.items" :key="item.id" class="record mb-2.5 border-l-4 px-3.5 py-3 rounded-card bg-surface shadow-card" :class="item.is_normal ? 'border-l-success' : 'border-l-danger'">
+						<div v-for="item in group.items" :key="item.id" class="record mb-2.5 border-l-4 px-3.5 py-3 bg-surface shadow-card" :class="item.is_normal ? 'border-l-success' : 'border-l-danger'">
 							<div class="flex items-start gap-2">
 								<div class="min-w-0 flex-1">
 									<span class="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.9375rem] font-semibold leading-[1.3] text-ink">{{ item.site_name || '未知文物点' }}</span>
@@ -67,13 +65,13 @@
 								</div>
 								<span class="u-badge shrink-0 px-2 py-0.5 text-xs" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
 							</div>
-							<div v-if="!item.is_normal && item.issue_details" class="mt-2.5 flex gap-1.5 rounded-lg bg-danger-bg px-3 py-2.5 text-sm leading-6 text-danger">
+							<div v-if="!item.is_normal && item.issue_details" class="mt-2.5 flex gap-1.5 bg-danger-bg px-3 py-2.5 text-sm leading-6 text-danger">
 								<AppIcon name="alert" :size="36" color="var(--c-danger)" />
 								<span>{{ item.issue_details }}</span>
 							</div>
 							<img
 								v-if="item.photo_url"
-								class="mt-2.5 block h-40 w-full rounded-lg bg-line object-cover"
+								class="mt-2.5 block h-40 w-full bg-line object-cover"
 								:src="item.photo_url"
 								loading="lazy"
 								alt=""
@@ -217,27 +215,3 @@
 		},
 	};
 </script>
-
-<style scoped>
-	@reference "../theme/tailwind.css";
-
-	.filter.active {
-		color: var(--c-on-primary);
-		background: var(--c-primary);
-		border-color: var(--c-primary);
-	}
-
-	.filter.ok.active {
-		background: var(--c-success);
-		border-color: var(--c-success);
-	}
-
-	.filter.bad.active {
-		background: var(--c-danger);
-		border-color: var(--c-danger);
-	}
-
-	.filter.active span:last-child {
-		background: rgb(255 255 255 / 22%);
-	}
-</style>

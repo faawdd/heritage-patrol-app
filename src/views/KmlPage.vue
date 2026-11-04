@@ -5,7 +5,7 @@
 				<AppHeader :title="pageTitle || t('kml.title')" :subtitle="t('kml.headerSubtitle')" back />
 				<div class="u-body pt-3.5 pb-6">
 					<div class="u-card mb-2.5 flex items-start gap-3">
-						<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-info-bg"><AppIcon name="grid" :size="52" color="var(--c-info)" /></div>
+						<div class="flex h-11 w-11 shrink-0 items-center justify-center bg-info-bg"><AppIcon name="grid" :size="52" color="var(--c-info)" /></div>
 						<div class="flex min-w-0 flex-col gap-1">
 							<span class="text-[1.0625rem] font-bold text-ink">{{ t('kml.introTitle') }}</span>
 							<span class="text-sm leading-[1.6] text-ink-3">{{ t('kml.subtitle') }}</span>
@@ -20,12 +20,12 @@
 							</span>
 						</div>
 						<span class="break-all font-mono text-sm tabular-nums text-ink-2">{{ lastLocationText || t('kml.locationHint') }}</span>
-						<van-button native-type="button" class="u-btn plain sm self-start min-h-11" :disabled="locating" @click="showCurrentLocation()">
+						<van-button size="small" native-type="button" class="self-start" :disabled="locating" @click="showCurrentLocation()">
 							{{ locating ? t('kml.locating') : t('kml.refreshLocation') }}
 						</van-button>
 					</div>
 
-					<van-button native-type="button" class="u-btn primary block" :disabled="opening" @click="openTool">
+					<van-button type="primary" block native-type="button" :disabled="opening" @click="openTool">
 						{{ opening ? t('kml.opening') : t('kml.openButton') }}
 					</van-button>
 					<span class="mt-2.5 block text-center text-[0.8125rem] leading-[1.6] text-ink-3">{{ t('kml.openTip') }}</span>

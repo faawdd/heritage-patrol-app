@@ -3,14 +3,14 @@
 		<div class="app-content">
 			<div class="flex min-h-full flex-col bg-surface">
 				<div class="flex flex-col items-center pb-9" :class="mode === 'gesture' || mode === 'biometric' ? 'pb-3' : ''" style="padding-top: calc(env(safe-area-inset-top) + 3.5rem)">
-					<img class="h-[5.25rem] w-[5.25rem] rounded-[1.25rem] border border-line bg-surface object-cover" :src="logoUrl" alt="" />
+					<img class="h-[5.25rem] w-[5.25rem] border border-line bg-surface object-cover" :src="logoUrl" alt="" />
 					<span class="mt-3.5 text-[1.375rem] font-semibold tracking-[0.125rem] text-ink">鄯善文保巡查</span>
 				</div>
 
 				<div class="relative px-8 pt-2">
 					<!-- 快捷解锁 -->
 					<div v-if="mode === 'gesture' || mode === 'biometric'" class="flex flex-col items-center">
-						<div class="flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center rounded-full border-[3px] border-surface bg-gradient-primary text-xl font-semibold text-on-primary shadow-card">{{ avatarText }}</div>
+						<div class="flex h-[3.75rem] w-[3.75rem] shrink-0 items-center justify-center border-[3px] border-surface bg-gradient-primary text-xl font-semibold text-on-primary shadow-card">{{ avatarText }}</div>
 						<span class="mt-2.5 text-lg font-semibold text-ink">欢迎回来，{{ quick.fullName || quick.username }}</span>
 
 						<template v-if="mode === 'gesture'">
@@ -19,22 +19,22 @@
 						</template>
 
 						<template v-else>
-							<div class="mt-5 flex h-[6.875rem] w-[6.875rem] items-center justify-center rounded-full bg-primary-light shadow-[0_0_0_0.5rem_rgba(var(--c-primary-rgb),0.08)] transition active:scale-[0.96]" @click="startBiometric">
+							<div class="mt-5 flex h-[6.875rem] w-[6.875rem] items-center justify-center bg-primary-light shadow-[0_0_0_0.5rem_rgba(var(--c-primary-rgb),0.08)] transition active:scale-[0.96]" @click="startBiometric">
 								<AppIcon :name="quick.biometric === 'facial' ? 'face' : 'fingerprint'" :size="140" color="var(--c-primary)" :stroke="1.6" />
 							</div>
 							<span class="my-2 min-h-[1.375rem] text-center text-sm text-ink-2" :class="tipError ? 'font-semibold text-danger' : ''">{{ tip || `点击上方图标，验证${bioLabel}登录` }}</span>
 						</template>
 
 						<div class="mt-2.5 flex flex-wrap justify-center gap-2.5">
-							<div v-if="mode === 'gesture' && quick.biometric && bioReady" class="flex min-h-11 items-center gap-1 rounded-full bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="switchMode('biometric')">
+							<div v-if="mode === 'gesture' && quick.biometric && bioReady" class="flex min-h-11 items-center gap-1 bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="switchMode('biometric')">
 								<AppIcon :name="quick.biometric === 'facial' ? 'face' : 'fingerprint'" :size="40" />
 								<span>{{ bioLabel }}登录</span>
 							</div>
-							<div v-if="mode === 'biometric' && quick.gestureHash" class="flex min-h-11 items-center gap-1 rounded-full bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="switchMode('gesture')">
+							<div v-if="mode === 'biometric' && quick.gestureHash" class="flex min-h-11 items-center gap-1 bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="switchMode('gesture')">
 								<AppIcon name="gesture" :size="40" />
 								<span>手势登录</span>
 							</div>
-							<div class="flex min-h-11 items-center gap-1 rounded-full bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="usePassword">
+							<div class="flex min-h-11 items-center gap-1 bg-primary-light px-3.5 py-2 text-sm font-medium text-primary" @click="usePassword">
 								<AppIcon name="key" :size="40" />
 								<span>密码登录</span>
 							</div>
@@ -43,16 +43,16 @@
 
 					<!-- 登录后开启快捷登录 -->
 					<div v-else-if="mode === 'setup'" class="flex flex-col items-center text-center">
-						<div class="flex h-[4.375rem] w-[4.375rem] items-center justify-center rounded-full bg-success-bg">
+						<div class="flex h-[4.375rem] w-[4.375rem] items-center justify-center bg-success-bg">
 							<AppIcon name="shield" :size="88" color="var(--c-success)" />
 						</div>
 						<span class="mt-3 text-xl font-semibold text-ink">开启快捷登录</span>
 						<span class="my-2 mb-[1.125rem] text-sm leading-relaxed text-ink-2">开启后，下次打开软件不用再输入密码，画一下手势或按一下指纹就能登录。</span>
-						<van-button native-type="button" v-if="bio.fingerprint || bio.facial" class="u-btn primary xl block setup-btn" :disabled="busy" @click="setupBiometric">
+						<van-button type="primary" size="large" block native-type="button" v-if="bio.fingerprint || bio.facial" :disabled="busy" @click="setupBiometric">
 							<AppIcon :name="bio.fingerprint ? 'fingerprint' : 'face'" :size="56" color="var(--c-on-primary)" />
 							<span>使用{{ bio.fingerprint ? '指纹' : '面容' }}登录</span>
 						</van-button>
-						<van-button native-type="button" class="u-btn xl block setup-btn" :class="bio.fingerprint || bio.facial ? 'ghost' : 'primary'" :disabled="busy" @click="mode = 'setGesture'">
+						<van-button type="primary" size="large" block native-type="button" :plain="!!(bio.fingerprint || bio.facial)" :disabled="busy" @click="mode = 'setGesture'">
 							<AppIcon name="gesture" :size="56" :color="bio.fingerprint || bio.facial ? 'var(--c-primary)' : 'var(--c-on-primary)'" />
 							<span>设置手势密码</span>
 						</van-button>
@@ -65,7 +65,7 @@
 
 					<!-- 密码登录 -->
 					<div v-else class="form">
-												<div v-if="expired" class="my-2 mb-1 flex items-center gap-1.5 rounded-[0.625rem] bg-warning-bg px-3 py-2.5 text-sm font-medium text-warning">
+												<div v-if="expired" class="my-2 mb-1 flex items-center gap-1.5 bg-warning-bg px-3 py-2.5 text-sm font-medium text-warning">
 							<AppIcon name="info" :size="40" color="var(--c-warning)" />
 							<span>登录已过期，请重新输入密码</span>
 						</div>
@@ -101,7 +101,7 @@
 							</div>
 						</div>
 
-						<van-button native-type="button" class="u-btn primary xl block mt-9" :disabled="busy" @click="handleLogin">
+						<van-button type="primary" size="large" block native-type="button" class="mt-9" :disabled="busy" @click="handleLogin">
 							{{ busy ? '正在登录…' : '登 录' }}
 						</van-button>
 
@@ -109,7 +109,7 @@
 							<span class="py-1.5 text-sm text-ink-3" @click="handleForgotPassword">忘记密码？</span>
 							<span v-if="hasQuick" class="py-1.5 text-sm font-semibold text-primary" @click="backToQuick">使用{{ quickName }}登录</span>
 						</div>
-						<van-button v-if="offlineAvailable && !hasQuick" native-type="button" class="u-btn ghost block" @click="enterOffline">使用本机已登录账号离线巡查</van-button>
+						<van-button type="primary" plain block v-if="offlineAvailable && !hasQuick" native-type="button" @click="enterOffline">使用本机已登录账号离线巡查</van-button>
 						<p class="mt-3.5 text-center text-xs text-ink-4">首次登录必须联网。离线任务需在联网登录后下载。</p>
 					</div>
 				</div>

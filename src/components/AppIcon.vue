@@ -54,8 +54,21 @@
 	import i37 from 'remixicon/icons/Media/mic-line.svg?raw';
 	import i38 from 'remixicon/icons/System/question-line.svg?raw';
 	import i39 from 'remixicon/icons/Design/tools-line.svg?raw';
+	// 底部导航选中态使用的实心图标
+	import f0 from 'remixicon/icons/Buildings/home-4-fill.svg?raw';
+	import f1 from 'remixicon/icons/Media/camera-fill.svg?raw';
+	import f2 from 'remixicon/icons/Document/file-fill.svg?raw';
+	import f3 from 'remixicon/icons/User & Faces/user-3-fill.svg?raw';
+	import f4 from 'remixicon/icons/Design/layout-grid-fill.svg?raw';
+	import f5 from 'remixicon/icons/System/time-fill.svg?raw';
 
 	const RAW = {
+		'home-fill': f0,
+		'camera-fill': f1,
+		'file-fill': f2,
+		'user-fill': f3,
+		'grid-fill': f4,
+		'clock-fill': f5,
 		'home': i0,
 		'camera': i1,
 		'records': i2,

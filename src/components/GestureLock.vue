@@ -13,18 +13,18 @@
 			<div
 				v-for="line in lines"
 				:key="line.key"
-				class="absolute z-[1] h-2 rounded-full bg-primary/75 [transform-origin:0_50%]" :class="status === 'error' ? 'bg-danger/75' : status === 'success' ? 'bg-success/75' : ''"
+				class="absolute z-[1] h-2 bg-primary/75 [transform-origin:0_50%]" :class="status === 'error' ? 'bg-danger/75' : status === 'success' ? 'bg-success/75' : ''"
 				:style="line.style"
 			/>
-			<div v-if="tailStyle" class="absolute z-[1] h-2 rounded-full bg-primary/75 [transform-origin:0_50%]" :class="status === 'error' ? 'bg-danger/75' : status === 'success' ? 'bg-success/75' : ''" :style="tailStyle" />
+			<div v-if="tailStyle" class="absolute z-[1] h-2 bg-primary/75 [transform-origin:0_50%]" :class="status === 'error' ? 'bg-danger/75' : status === 'success' ? 'bg-success/75' : ''" :style="tailStyle" />
 			<div
 				v-for="dot in dots"
 				:key="dot.index"
-				class="absolute z-[2] flex box-border items-center justify-center rounded-full border-[3px] border-[var(--c-line-strong)] bg-surface transition-[border-color,transform] duration-150"
+				class="absolute z-[2] flex box-border items-center justify-center border-[3px] border-[var(--c-line-strong)] bg-surface transition-[border-color,transform] duration-150"
 				:class="selected.includes(dot.index) ? (status === 'error' ? 'border-danger bg-danger-bg scale-[1.08]' : status === 'success' ? 'border-success bg-success-bg scale-[1.08]' : 'border-primary bg-primary-light scale-[1.08]') : ''"
 				:style="dot.style"
 			>
-				<div class="h-[26%] w-[26%] rounded-full bg-[var(--c-line-strong)]" :class="selected.includes(dot.index) ? (status === 'error' ? '!h-[36%] !w-[36%] !bg-danger' : status === 'success' ? '!h-[36%] !w-[36%] !bg-success' : '!h-[36%] !w-[36%] !bg-primary') : ''" />
+				<div class="h-[26%] w-[26%] bg-[var(--c-line-strong)]" :class="selected.includes(dot.index) ? (status === 'error' ? '!h-[36%] !w-[36%] !bg-danger' : status === 'success' ? '!h-[36%] !w-[36%] !bg-success' : '!h-[36%] !w-[36%] !bg-primary') : ''" />
 			</div>
 		</div>
 	</div>

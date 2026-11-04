@@ -2,21 +2,19 @@
 	<div class="app-page">
 		<div class="app-content">
 			<div class="u-page">
-				<AppHeader :title="t('admin.title')" :subtitle="t('admin.headerSubtitle')" />
-
-				<div class="sticky top-0 z-[5] bg-page px-3.5 py-2.5">
-					<van-tabs v-model:active="currentTab" class="adm-seg">
+				<AppHeader :title="t('admin.title')" :subtitle="t('admin.headerSubtitle')">
+					<van-tabs v-model:active="currentTab" class="adm-seg mt-2">
 						<van-tab name="heritages" :title="t('admin.tabHeritages')" />
 						<van-tab name="projects" :title="t('admin.tabProjects')" />
 						<van-tab name="tools" :title="t('admin.tabTools')" />
 					</van-tabs>
-				</div>
+				</AppHeader>
 
 				<div class="u-body pb-5">
 					<!-- 文物点数据 -->
 					<template v-if="currentTab === 'heritages'">
 						<div class="u-card mb-2.5 flex flex-col gap-2.5 p-3">
-							<div class="flex h-11 items-center gap-1.5 rounded-[0.625rem] border border-line bg-fill px-3">
+							<div class="flex h-11 items-center gap-1.5 border border-line bg-fill px-3">
 								<AppIcon name="search" :size="36" color="var(--c-text-4)" />
 								<van-field
 									v-model.trim="heritageSearchKeyword"
@@ -31,15 +29,15 @@
 							</div>
 							<div class="flex gap-2">
 								<AppSelect
-									class="min-w-0 min-h-11 flex-1 self-stretch rounded-[0.625rem] border border-line bg-surface px-3"
+									class="min-w-0 min-h-11 flex-1 self-stretch border border-line bg-surface px-3"
 									:options="heritageCategoryLabels"
 									:model-value="heritageCategoryIndex"
 									:placeholder="t('admin.allCategoriesOption')"
 									:title="t('admin.allCategoriesOption')"
 									@change="onHeritageCategoryChange"
 								/>
-								<van-button native-type="button" class="u-btn plain sm" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</van-button>
-								<van-button native-type="button" class="u-btn primary sm" @click="applyHeritageFilters">{{ t('common.search') }}</van-button>
+								<van-button size="small" native-type="button" @click="resetHeritageFilters">{{ t('admin.resetFilters') }}</van-button>
+								<van-button type="primary" size="small" native-type="button" @click="applyHeritageFilters">{{ t('common.search') }}</van-button>
 							</div>
 						</div>
 
@@ -57,16 +55,16 @@
 								<span v-if="item.category" class="u-badge info">{{ item.category }}</span>
 								<span v-if="item.level" class="u-badge warn">{{ item.level }}</span>
 							</div>
-							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">四普编号</span><span class="inline-flex w-fit min-w-0 flex-[0_1_auto] items-center break-all rounded-[0.3125rem] border border-line bg-fill px-2 py-0.5 font-mono tabular-nums tracking-[0.02em] text-ink-2">{{ item.sip_code || t('common.notAvailable') }}</span></div>
+							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">四普编号</span><span class="inline-flex w-fit min-w-0 flex-[0_1_auto] items-center break-all border border-line bg-fill px-2 py-0.5 font-mono tabular-nums tracking-[0.02em] text-ink-2">{{ item.sip_code || t('common.notAvailable') }}</span></div>
 							<div class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">地址</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.address || t('common.notAvailable') }}</span></div>
 							<div v-if="item.longitude && item.latitude" class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">坐标</span><span class="min-w-0 flex-1 break-all font-mono tabular-nums text-ink-2">{{ item.longitude }}, {{ item.latitude }}</span></div>
 						</div>
 						<div v-if="!heritages.length" class="u-card u-empty">{{ t('admin.noHeritageMatched') }}</div>
 
 						<div v-if="heritageTotalPages > 1" class="mt-1 flex items-center justify-between gap-2">
-							<van-button native-type="button" class="u-btn plain sm" :disabled="heritagePage <= 1" @click="changeHeritagePage(-1)">{{ t('admin.prevPage') }}</van-button>
+							<van-button size="small" native-type="button" :disabled="heritagePage <= 1" @click="changeHeritagePage(-1)">{{ t('admin.prevPage') }}</van-button>
 							<span class="text-sm text-ink-3">{{ t('admin.pageInfo', { page: heritagePage, total: heritageTotalPages }) }}</span>
-							<van-button native-type="button" class="u-btn plain sm" :disabled="heritagePage >= heritageTotalPages" @click="changeHeritagePage(1)">{{ t('admin.nextPage') }}</van-button>
+							<van-button size="small" native-type="button" :disabled="heritagePage >= heritageTotalPages" @click="changeHeritagePage(1)">{{ t('admin.nextPage') }}</van-button>
 						</div>
 					</template>
 
@@ -80,7 +78,7 @@
 						</div>
 
 						<div class="u-card mb-2.5 flex flex-col gap-2.5 p-3">
-							<div class="flex h-11 items-center gap-1.5 rounded-[0.625rem] border border-line bg-fill px-3">
+							<div class="flex h-11 items-center gap-1.5 border border-line bg-fill px-3">
 								<AppIcon name="search" :size="36" color="var(--c-text-4)" />
 								<van-field
 									v-model.trim="projectKeyword"
@@ -95,14 +93,14 @@
 							</div>
 							<div class="flex gap-2">
 								<AppSelect
-									class="min-w-0 min-h-11 flex-1 self-stretch rounded-[0.625rem] border border-line bg-surface px-3"
+									class="min-w-0 min-h-11 flex-1 self-stretch border border-line bg-surface px-3"
 									:options="projectStatusLabels"
 									:model-value="projectStatusIndex"
 									:placeholder="t('admin.allStatusOption')"
 									:title="t('admin.allStatusOption')"
 									@change="onProjectStatusChange"
 								/>
-								<van-button native-type="button" class="u-btn primary sm" @click="loadProjects()">{{ t('common.search') }}</van-button>
+								<van-button type="primary" size="small" native-type="button" @click="loadProjects()">{{ t('common.search') }}</van-button>
 							</div>
 						</div>
 
@@ -126,7 +124,7 @@
 							<div v-if="item.final_reply_to_company" class="flex gap-2.5 text-sm leading-6"><span class="w-[3.75rem] shrink-0 text-ink-3">复函号</span><span class="min-w-0 flex-1 break-all text-ink-2">{{ item.final_reply_to_company }}</span></div>
 							<div class="mt-1.5 flex items-center justify-between gap-2 border-t border-fill pt-2.5">
 								<span class="text-xs text-ink-4">{{ item.updated_at ? t('admin.projectUpdatedAt', { value: item.updated_at }) : '' }}</span>
-								<van-button native-type="button" class="u-btn primary sm" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</van-button>
+								<van-button type="primary" size="small" native-type="button" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</van-button>
 							</div>
 						</div>
 						<div v-if="!projects.length" class="u-card u-empty">{{ t('admin.noProjectMatched') }}</div>
@@ -137,22 +135,22 @@
 						<div class="my-1 flex items-baseline justify-between gap-2"><span class="text-[1.0625rem] font-bold text-ink whitespace-nowrap">{{ t('admin.fieldTools') }}</span></div>
 						<div class="u-card mb-2.5 p-3">
 							<div class="flex items-center gap-3">
-								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="map" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center bg-primary-light"><AppIcon name="map" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 									<span class="text-base font-bold text-ink">{{ t('admin.collectTitle') }}</span>
 									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.collectDesc') }}</span>
 								</div>
 							</div>
 							<div class="mt-3 grid grid-cols-2 gap-2">
-								<van-button native-type="button" class="u-btn plain sm" @click="goMyRecords">{{ t('admin.myCollectRecords') }}</van-button>
-								<van-button native-type="button" class="u-btn primary sm" @click="goCollect">{{ t('admin.startCollect') }}</van-button>
+								<van-button size="small" native-type="button" @click="goMyRecords">{{ t('admin.myCollectRecords') }}</van-button>
+								<van-button type="primary" size="small" native-type="button" @click="goCollect">{{ t('admin.startCollect') }}</van-button>
 							</div>
 						</div>
 
 						<div class="my-1 flex items-baseline justify-between gap-2"><span class="text-[1.0625rem] font-bold text-ink whitespace-nowrap">{{ t('admin.onlineTools') }}</span></div>
 						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openInspectionManagement">
 							<div class="flex items-center gap-3">
-								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="clock" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center bg-primary-light"><AppIcon name="clock" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 									<span class="text-base font-bold text-ink">{{ t('admin.patrolManageTitle') }}</span>
 									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.patrolManageDesc') }}</span>
@@ -162,7 +160,7 @@
 						</div>
 						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openKmlTool">
 							<div class="flex items-center gap-3">
-								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="grid" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center bg-primary-light"><AppIcon name="grid" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 									<span class="text-base font-bold text-ink">{{ t('admin.kmlTitle') }}</span>
 									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.kmlDesc') }}</span>
@@ -172,7 +170,7 @@
 						</div>
 						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openDjangoCollectTool">
 							<div class="flex items-center gap-3">
-								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="records" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center bg-primary-light"><AppIcon name="records" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 									<span class="text-base font-bold text-ink">{{ t('admin.collectManageTitle') }}</span>
 									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.collectManageDesc') }}</span>
@@ -182,7 +180,7 @@
 						</div>
 						<div class="u-card mb-2.5 p-3 active:scale-[0.99] active:opacity-90" @click="openProjectListOnline">
 							<div class="flex items-center gap-3">
-								<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light"><AppIcon name="file" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
+								<div class="flex h-11 w-11 shrink-0 items-center justify-center bg-primary-light"><AppIcon name="file" :size="44" color="var(--c-primary)" :stroke="1.9" /></div>
 								<div class="flex min-w-0 flex-1 flex-col gap-0.5">
 									<span class="text-base font-bold text-ink">{{ t('admin.projectOnlineTitle') }}</span>
 									<span class="text-[0.8125rem] leading-6 text-ink-3">{{ t('admin.projectOnlineDesc') }}</span>
@@ -427,11 +425,11 @@
 @reference "../theme/tailwind.css";
 
 .adm-seg {
-	--van-tabs-nav-background: var(--c-line);
+	--van-tabs-nav-background: var(--c-surface);
 	--van-tab-text-color: var(--c-text-2);
 	--van-tab-active-text-color: var(--c-primary);
 	--van-tabs-bottom-bar-color: var(--c-primary);
-	border-radius: 0.625rem;
+	border-radius: 0;
 	overflow: hidden;
 }
 

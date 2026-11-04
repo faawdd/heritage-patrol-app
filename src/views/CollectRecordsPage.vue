@@ -10,24 +10,24 @@
 						<span class="text-sm text-ink-3">加载中…</span>
 					</div>
 
-					<div v-for="item in records" :key="item.id" class="mb-2.5 flex gap-3 rounded-card bg-surface p-3 shadow-card">
+					<div v-for="item in records" :key="item.id" class="mb-2.5 flex gap-3 bg-surface p-3 shadow-card">
 						<div class="w-[4.5rem] shrink-0">
-							<img v-if="item.cover_url" :src="item.cover_url" class="block h-[4.5rem] w-[4.5rem] rounded-[0.625rem] object-cover" />
-							<div v-else class="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-[0.625rem] bg-fill">
+							<img v-if="item.cover_url" :src="item.cover_url" class="block h-[4.5rem] w-[4.5rem] object-cover" />
+							<div v-else class="flex h-[4.5rem] w-[4.5rem] items-center justify-center bg-fill">
 								<AppIcon name="landmark" :size="56" color="var(--c-text-4)" />
 							</div>
 						</div>
 						<div class="flex min-w-0 flex-1 flex-col gap-0.5 p-0">
 							<div class="flex items-start justify-between gap-1.5">
 								<span class="min-w-0 flex-1 text-base font-extrabold leading-[1.35] text-ink">{{ item.name }}</span>
-								<div class="shrink-0 whitespace-nowrap rounded-full bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning">{{ item.protection_level }}</div>
+								<div class="shrink-0 whitespace-nowrap bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning">{{ item.protection_level }}</div>
 							</div>
 							<span class="text-[0.8125rem] tabular-nums text-ink-3">编号：{{ item.survey_code }}</span>
 							<span class="text-[0.8125rem] text-ink-2">{{ item.era }} · {{ item.category }}</span>
 							<span class="overflow-hidden text-ellipsis whitespace-nowrap text-[0.8125rem] text-ink-3">{{ item.address || '（地址未填）' }}</span>
 							<div class="mt-1.5 flex items-center justify-between gap-2">
 								<span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs text-ink-3">{{ item.collected_at ? `${item.collected_at} · ` : '' }}照片 {{ item.photo_count || 0 }} 张</span>
-								<van-button native-type="button" class="!h-11 shrink-0 !rounded-[0.5625rem] !border-0 !bg-primary-light !px-3 !text-sm !font-bold !text-primary" @click="exportDocx(item)">导出登记表</van-button>
+								<van-button type="primary" plain native-type="button" class="shrink-0" @click="exportDocx(item)">导出登记表</van-button>
 							</div>
 						</div>
 					</div>
@@ -35,7 +35,7 @@
 					<div v-if="!loading && !records.length" class="flex flex-col items-center gap-2.5 py-12">
 						<AppIcon name="records" :size="80" color="var(--c-line-strong)" />
 						<span class="text-[0.9375rem] text-ink-3">暂无采集记录</span>
-						<van-button native-type="button" class="!h-11 !rounded-xl !border-0 !bg-primary !px-8 !text-base !font-bold !text-on-primary" @click="goCollect">去采集</van-button>
+						<van-button type="primary" native-type="button" @click="goCollect">去采集</van-button>
 					</div>
 
 					<div v-if="loading && records.length" class="p-2.5 text-center text-[0.8125rem] text-ink-4"><span>加载中…</span></div>
@@ -43,7 +43,7 @@
 				</van-list>
 			</div>
 
-			<div class="fixed right-5 bottom-[calc(24px+env(safe-area-inset-bottom))] z-10 flex h-[3.375rem] w-[3.375rem] items-center justify-center rounded-full bg-gradient-primary shadow-card" @click="goCollect">
+			<div class="fixed right-5 bottom-[calc(24px+env(safe-area-inset-bottom))] z-10 flex h-[3.375rem] w-[3.375rem] items-center justify-center bg-gradient-primary shadow-card" @click="goCollect">
 				<span class="-mt-0.5 text-[1.875rem] leading-none text-on-primary">＋</span>
 			</div>
 		</van-pull-refresh>

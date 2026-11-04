@@ -1,9 +1,9 @@
 <template>
 	<Teleport to="body">
 		<div v-if="state.visible" class="fixed inset-0 z-[30000] flex items-center justify-center bg-[var(--c-mask)] p-6">
-			<div class="w-full max-w-[21.25rem] overflow-hidden rounded-[1.125rem] bg-surface shadow-xl" role="dialog" aria-modal="true">
+			<div class="w-full max-w-[21.25rem] overflow-hidden bg-surface shadow-xl" role="dialog" aria-modal="true">
 				<div class="flex items-center gap-3 bg-gradient-primary px-[1.125rem] pt-[1.125rem] pb-3.5 text-on-primary">
-					<div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-on-primary/15">
+					<div class="flex h-11 w-11 shrink-0 items-center justify-center bg-on-primary/15">
 						<AppIcon name="upload" :size="52" color="var(--c-on-primary)" />
 					</div>
 					<div class="flex min-w-0 flex-col">
@@ -21,8 +21,8 @@
 					</template>
 
 					<template v-else-if="state.phase === 'downloading'">
-						<div class="h-2.5 overflow-hidden rounded-full bg-line">
-							<div class="h-full rounded-full bg-gradient-primary transition-[width] duration-200" :style="{ width: `${state.percent}%` }" />
+						<div class="h-2.5 overflow-hidden bg-line">
+							<div class="h-full bg-gradient-primary transition-[width] duration-200" :style="{ width: `${state.percent}%` }" />
 						</div>
 						<div class="mt-1.5 flex justify-between text-[0.8125rem] tabular-nums text-ink-2">
 							<span>{{ loadedText }}</span>
@@ -47,23 +47,23 @@
 
 				<div class="flex gap-2.5 px-[1.125rem] pt-3 pb-[1.125rem]">
 					<template v-if="state.phase === 'available'">
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-fill text-base font-bold !text-ink-2" @click="dismissUpdate">以后再说</van-button>
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-gradient-primary text-base font-bold !text-on-primary" @click="startDownload">立即更新</van-button>
+						<van-button native-type="button" plain class="flex-1" @click="dismissUpdate">以后再说</van-button>
+						<van-button type="primary" native-type="button" class="flex-1" @click="startDownload">立即更新</van-button>
 					</template>
 					<template v-else-if="state.phase === 'downloading'">
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-fill text-base font-bold !text-ink-2" @click="dismissUpdate">取消下载</van-button>
+						<van-button native-type="button" plain class="flex-1" @click="dismissUpdate">取消下载</van-button>
 					</template>
 					<template v-else-if="state.phase === 'ready'">
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-fill text-base font-bold !text-ink-2" @click="dismissUpdate">关闭</van-button>
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-gradient-primary text-base font-bold !text-on-primary" @click="installUpdate">安装</van-button>
+						<van-button native-type="button" plain class="flex-1" @click="dismissUpdate">关闭</van-button>
+						<van-button type="primary" native-type="button" class="flex-1" @click="installUpdate">安装</van-button>
 					</template>
 					<template v-else-if="state.phase === 'permission'">
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-fill text-base font-bold !text-ink-2" @click="dismissUpdate">取消</van-button>
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-gradient-primary text-base font-bold !text-on-primary" @click="openInstallSettings">去设置</van-button>
+						<van-button native-type="button" plain class="flex-1" @click="dismissUpdate">取消</van-button>
+						<van-button type="primary" native-type="button" class="flex-1" @click="openInstallSettings">去设置</van-button>
 					</template>
 					<template v-else-if="state.phase === 'error'">
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-fill text-base font-bold !text-ink-2" @click="dismissUpdate">关闭</van-button>
-						<van-button native-type="button" plain class="min-h-11 flex-1 rounded-xl !border-0 !bg-gradient-primary text-base font-bold !text-on-primary" @click="startDownload">重试</van-button>
+						<van-button native-type="button" plain class="flex-1" @click="dismissUpdate">关闭</van-button>
+						<van-button type="primary" native-type="button" class="flex-1" @click="startDownload">重试</van-button>
 					</template>
 				</div>
 			</div>

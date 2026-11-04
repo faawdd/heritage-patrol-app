@@ -15,12 +15,9 @@
 			safe-area-inset-bottom
 			@change="selectTab"
 		>
-			<van-tabbar-item v-for="item in navItems" :key="item.key" :name="item.key" :class="{ main: item.main }">
+			<van-tabbar-item v-for="item in navItems" :key="item.key" :name="item.key">
 				<template #icon="{ active }">
-					<div v-if="item.main" class="flex h-[1.875rem] w-11 items-center justify-center rounded-full bg-gradient-primary shadow-[0_0.125rem_0.5rem_rgb(var(--c-primary-rgb)/0.3)]">
-						<AppIcon name="camera" :size="40" color="var(--c-on-primary)" :stroke="2" />
-					</div>
-					<AppIcon v-else :name="item.icon" :size="40" :color="active ? 'var(--c-primary)' : 'var(--c-text-4)'" :stroke="active ? 2.2 : 1.8" />
+					<AppIcon :name="active ? `${item.icon}-fill` : item.icon" :size="56" color="currentColor" />
 				</template>
 				{{ item.name }}
 			</van-tabbar-item>
@@ -88,7 +85,7 @@
 
 	.app-tabbar :deep(.van-tabbar-item__icon) {
 		display: flex;
-		height: 2rem;
+		height: 1.75rem;
 		align-items: center;
 		justify-content: center;
 		margin-bottom: 0.125rem;

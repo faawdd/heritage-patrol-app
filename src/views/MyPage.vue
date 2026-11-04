@@ -2,78 +2,50 @@
 	<div class="app-page">
 		<div class="app-content">
 			<div class="u-page">
-				<AppHeader title="我的" tall />
+				<AppHeader title="我的" />
 
-				<div class="u-body overlap">
+				<div class="u-body">
 					<div class="u-card flex items-center gap-3.5">
-						<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-primary text-[1.375rem] font-semibold text-on-primary">{{ avatarText }}</div>
+						<div class="flex h-16 w-16 shrink-0 items-center justify-center bg-gradient-primary text-[1.375rem] font-semibold text-on-primary">{{ avatarText }}</div>
 						<div class="flex min-w-0 flex-1 flex-col items-start">
 							<span class="text-xl font-semibold text-ink">{{ user.full_name || user.username || '-' }}</span>
 							<span class="my-0.5 mb-1.5 text-sm text-ink-3">账号：{{ user.username || '-' }}</span>
 							<span class="u-badge info text-[0.8125rem]">{{ roleText }}</span>
 						</div>
-						<van-button native-type="button" class="ml-auto inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-danger bg-danger-bg px-3 text-xs font-semibold text-danger" @click="logout">
+						<van-button type="danger" plain native-type="button" class="ml-auto shrink-0" @click="logout">
 							<AppIcon name="logout" :size="40" color="var(--c-danger)" />
 							<span>退出登录</span>
 						</van-button>
 					</div>
 
-					<div class="u-card menu">
-						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="goSecurity">
-							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-success-bg">
-								<AppIcon name="shield" :size="52" color="var(--c-success)" />
-							</div>
-							<div class="flex min-w-0 flex-1 flex-col">
-								<span class="text-base font-semibold text-ink">快捷登录</span>
-								<span class="mt-0.5 text-[0.8125rem] text-ink-3">{{ quickText }}</span>
-							</div>
-							<AppIcon name="chevron-right" :size="44" color="var(--c-text-4)" />
-						</div>
+					<van-cell-group class="menu mb-3">
+						<van-cell center is-link title="快捷登录" :label="quickText" @click="goSecurity">
+							<template #icon><AppIcon name="shield" :size="44" color="var(--c-success)" class="mr-3" /></template>
+						</van-cell>
 
-						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="pwdOpen = !pwdOpen">
-							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light">
-								<AppIcon name="key" :size="52" color="var(--c-primary)" />
-							</div>
-							<div class="flex min-w-0 flex-1 flex-col">
-								<span class="text-base font-semibold text-ink">修改密码</span>
-								<span class="mt-0.5 text-[0.8125rem] text-ink-3">定期修改密码更安全</span>
-							</div>
-							<AppIcon :name="pwdOpen ? 'chevron-down' : 'chevron-right'" :size="44" color="var(--c-text-4)" />
-						</div>
+						<van-cell center is-link :arrow-direction="pwdOpen ? 'down' : 'right'" title="修改密码" label="定期修改密码更安全" @click="pwdOpen = !pwdOpen">
+							<template #icon><AppIcon name="key" :size="44" color="var(--c-primary)" class="mr-3" /></template>
+						</van-cell>
 
 						<div v-if="pwdOpen" class="pwd u-fade-in flex flex-col gap-2.5 border-b border-line px-0 pt-1 pb-3.5">
 							<van-field v-model="pwd.current" class="u-input" type="password" placeholder="当前密码" :border="false" />
 							<van-field v-model="pwd.next" class="u-input" type="password" placeholder="新密码（至少 6 位）" :border="false" />
 							<van-field v-model="pwd.confirm" class="u-input" type="password" placeholder="再输一次新密码" :border="false" />
-							<van-button native-type="button" class="u-btn primary block" :disabled="saving" @click="changePassword">{{ saving ? '正在保存…' : '保存新密码' }}</van-button>
+							<van-button type="primary" block native-type="button" :disabled="saving" @click="changePassword">{{ saving ? '正在保存…' : '保存新密码' }}</van-button>
 						</div>
 
-						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="callAdmin">
-							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-warning-bg">
-								<AppIcon name="phone" :size="52" color="var(--c-warning)" />
-							</div>
-							<div class="flex min-w-0 flex-1 flex-col">
-								<span class="text-base font-semibold text-ink">联系管理员</span>
-								<span class="mt-0.5 text-[0.8125rem] text-ink-3">13899665458</span>
-							</div>
-							<AppIcon name="chevron-right" :size="44" color="var(--c-text-4)" />
-						</div>
+						<van-cell center is-link title="联系管理员" label="13899665458" @click="callAdmin">
+							<template #icon><AppIcon name="phone" :size="44" color="var(--c-warning)" class="mr-3" /></template>
+						</van-cell>
 
-						<div class="flex min-h-16 items-center gap-3 border-b border-line last:border-0 active:opacity-70" @click="goAbout">
-							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-fill">
-								<AppIcon name="info" :size="52" color="var(--c-text-2)" />
-							</div>
-							<div class="flex min-w-0 flex-1 flex-col">
-								<span class="text-base font-semibold text-ink">关于软件</span>
-								<span class="mt-0.5 text-[0.8125rem] text-ink-3">版本信息与反馈方式</span>
-							</div>
-							<AppIcon name="chevron-right" :size="44" color="var(--c-text-4)" />
-						</div>
-					</div>
+						<van-cell center is-link title="关于软件" label="版本信息与反馈方式" @click="goAbout">
+							<template #icon><AppIcon name="info" :size="44" color="var(--c-text-2)" class="mr-3" /></template>
+						</van-cell>
+					</van-cell-group>
 
 					<div class="u-card flex flex-col gap-3.5">
 						<div class="flex items-center gap-3">
-							<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light">
+							<div class="flex h-10 w-10 shrink-0 items-center justify-center bg-primary-light">
 								<AppIcon name="edit" :size="52" color="var(--c-primary)" />
 							</div>
 							<div class="flex min-w-0 flex-1 flex-col">
@@ -84,14 +56,14 @@
 
 						<div class="flex flex-col gap-2">
 							<span class="text-sm font-semibold text-ink">深色模式</span>
-							<div class="flex overflow-hidden rounded-[var(--r-input)] border border-line bg-fill">
+							<div class="flex gap-1.5">
 								<van-button
 									v-for="(mode, index) in themeModes"
 									:key="mode.key"
 									native-type="button"
-									plain
-									class="min-h-11 min-w-0 flex-1 !border-0 !border-r !border-line px-1 text-[0.8125rem] font-medium text-ink-2 transition last:!border-r-0"
-									:class="[index === themeModes.length - 1 ? '!border-r-0' : '', prefs.theme === mode.key ? '!bg-primary !font-semibold !text-on-primary' : '!bg-transparent']"
+									size="small"
+									class="min-w-0 flex-1"
+									:type="prefs.theme === mode.key ? 'primary' : 'default'"
 									:aria-pressed="prefs.theme === mode.key"
 									@click="setPref('theme', mode.key)"
 								>{{ mode.name }}</van-button>
@@ -106,10 +78,10 @@
 									v-for="color in themeColors"
 									:key="color.key"
 									native-type="button"
-									plain
-									class="h-11 w-11 !min-w-11 !border-0 !p-0 transition active:scale-95"
-									:class="prefs.color === color.key ? 'rounded-full ring-2 ring-primary ring-offset-2 ring-offset-surface' : 'rounded-full'"
-									:style="{ background: color.hex }"
+									size="small"
+									class="!w-11"
+									:color="color.hex"
+									:class="prefs.color === color.key ? 'ring-2 ring-primary ring-offset-2 ring-offset-surface' : ''"
 									:aria-label="color.name"
 									:aria-pressed="prefs.color === color.key"
 									@click="setPref('color', color.key)"
@@ -121,19 +93,19 @@
 
 						<div class="flex flex-col gap-2">
 							<span class="text-sm font-semibold text-ink">字体大小</span>
-							<div class="flex overflow-hidden rounded-[var(--r-input)] border border-line bg-fill">
+							<div class="flex gap-1.5">
 								<van-button
 									v-for="(font, index) in fontSizes"
 									:key="font.key"
 									native-type="button"
-									plain
-									class="min-h-11 min-w-0 flex-1 !border-0 !border-r !border-line px-1 text-[0.8125rem] font-medium text-ink-2 transition last:!border-r-0"
-									:class="[index === fontSizes.length - 1 ? '!border-r-0' : '', prefs.fontSize === font.key ? '!bg-primary !font-semibold !text-on-primary' : '!bg-transparent']"
+									size="small"
+									class="min-w-0 flex-1"
+									:type="prefs.fontSize === font.key ? 'primary' : 'default'"
 									:aria-pressed="prefs.fontSize === font.key"
 									@click="setPref('fontSize', font.key)"
 								>{{ font.name }}</van-button>
 							</div>
-							<span class="rounded-[var(--r-input)] border border-dashed border-[var(--c-line-strong)] bg-fill px-3 py-2 text-base text-ink-2">巡查上报，记录文物点情况</span>
+							<span class="border border-dashed border-[var(--c-line-strong)] bg-fill px-3 py-2 text-base text-ink-2">巡查上报，记录文物点情况</span>
 						</div>
 					</div>
 
@@ -285,7 +257,7 @@
 	.pwd :deep(.van-field) {
 		min-height: 3rem;
 		border: 1px solid var(--c-line);
-		border-radius: var(--r-input);
+		border-radius: 0;
 		background: var(--c-fill);
 		transition: background-color 150ms ease, border-color 150ms ease;
 	}

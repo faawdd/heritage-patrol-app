@@ -11,7 +11,7 @@
 	--color-primary: var(--c-primary);
 	--color-primary-light: var(--c-primary-light);
 	--color-on-primary: var(--c-on-primary);
-	--color-surface: var(--c-surface);
+	--color-on-hero: var(--c-on-hero);	--color-surface: var(--c-surface);
 	--color-page: var(--c-bg);
 	--color-line: var(--c-line);
 	--color-fill: var(--c-fill);

@@ -1,147 +1,97 @@
 <template>
 	<div class="app-page">
+		<!-- 固定头部 -->
+		<div class="home-header relative isolate shrink-0 overflow-hidden bg-gradient-hero px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
+			<div class="flex items-start justify-between gap-3">
+				<div class="min-w-0 flex-1">
+					<span class="mb-0.5 block text-[0.6875rem] font-semibold tracking-[0.12em] text-on-hero/75">基层文物巡查 · 野外作业终端</span>
+					<h1 class="m-0 truncate text-[1.3125rem] font-bold leading-tight text-on-hero">{{ greet }}，{{ displayName }}</h1>
+					<p class="mt-0.5 text-[0.8125rem] font-normal text-on-hero/85">{{ today }}</p>
+				</div>
+				<van-tag type="primary" size="large" class="shrink-0 !bg-on-hero/15 !text-on-hero">{{ roleText }}</van-tag>
+			</div>
+		</div>
+
 		<div class="app-content home-content flex flex-col overflow-hidden bg-page">
 			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
-			
-			<!-- 简洁头部 -->
-			<div class="home-header relative isolate shrink-0 overflow-hidden border-b border-on-primary/15 bg-gradient-hero px-[1.125rem] pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
-				<div class="flex items-start justify-between gap-3">
-					<div class="min-w-0 flex-1">
-						<span class="mb-[3px] block text-[0.6875rem] font-semibold tracking-[0.12em] text-on-hero/70">基层文物巡查 · 野外作业终端</span>
-						<h1 class="m-0 truncate text-[1.3125rem] font-bold leading-tight text-on-hero">{{ greet }}，{{ displayName }}</h1>
-						<p class="mt-0.5 text-[0.8125rem] font-normal text-on-hero/85">{{ today }}</p>
-					</div>
-					<div class="shrink-0 rounded-full border border-on-hero/25 bg-on-hero/15 px-3 py-1.5 text-xs font-medium text-on-hero">{{ roleText }}</div>
-				</div>
-			</div>
+				<div class="home-body flex min-h-0 flex-1 flex-col gap-2 overflow-hidden p-3">
+					<van-button type="primary" size="large" block native-type="button" class="home-primary" @click="goPatrol">
+						<AppIcon name="camera" :size="48" color="currentColor" />
+						<span class="ml-2 text-lg font-semibold">开始巡查</span>
+					</van-button>
 
-			<div class="home-body flex min-h-0 flex-1 flex-col gap-2 overflow-hidden px-3.5 py-2">
-				<!-- 主操作按钮 - 最大最醒目 -->
-				<van-button native-type="button" class="flex !h-auto min-h-[3.25rem] w-full items-center gap-3 rounded-2xl !border-0 bg-gradient-primary px-3.5 py-2.5 text-left text-on-primary shadow-card transition active:scale-[0.98]" @click="goPatrol">
-					<div class="flex h-[3.25rem] w-[3.25rem] shrink-0 items-center justify-center rounded-[0.875rem] bg-on-primary/15">
-						<AppIcon name="camera" :size="56" color="var(--c-on-primary)" :stroke="2" />
-					</div>
-					<div class="flex min-w-0 flex-1 flex-col gap-1">
-						<span class="text-lg font-semibold tracking-[0.01875rem] text-on-primary">开始巡查</span>
-						<span class="hidden text-[0.8125rem] font-normal text-on-primary/90">拍照上报文物点情况</span>
-					</div>
-					<AppIcon name="arrow-right" :size="32" color="var(--c-on-primary)" :stroke="2.5" />
-				</van-button>
+					<van-cell-group inset class="!m-0">
+						<van-cell class="stats-header" is-link :title="todayCount ? `今日已巡查 ${todayCount} 次` : '今日待巡查'" value="查看记录" @click="goRecords">
+							<template #icon>
+								<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="32" :color="todayCount ? 'var(--c-success)' : 'var(--c-warning)'" class="mr-2 self-center" />
+							</template>
+						</van-cell>
+						<van-grid :column-num="problemCount > 0 ? 4 : 3" :border="false" clickable>
+							<van-grid-item>
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ todayCount }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">今天</span>
+							</van-grid-item>
+							<van-grid-item>
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ monthCount }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">本月</span>
+							</van-grid-item>
+							<van-grid-item>
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ totalLabel }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">累计</span>
+							</van-grid-item>
+							<van-grid-item v-if="problemCount > 0">
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-danger">{{ problemCount }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">问题</span>
+							</van-grid-item>
+						</van-grid>
+					</van-cell-group>
 
-				<!-- 今日统计 - 简洁卡片 -->
-				<div class="rounded-card border border-line bg-surface px-3.5 py-2.5 shadow-card">
-					<div class="stats-header mb-2 flex min-h-11 cursor-pointer items-center justify-between border-b border-line pb-2" @click="goRecords">
-						<div class="flex items-center gap-2 text-sm font-medium" :class="todayCount ? 'text-success' : 'text-warning'">
-							<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="28" :color="todayCount ? 'var(--c-success)' : 'var(--c-warning)'" />
-							<span>{{ todayCount ? `今日已巡查 ${todayCount} 次` : '今日待巡查' }}</span>
-						</div>
-						<span class="bg-transparent p-0 text-[0.8125rem] font-medium text-primary">查看记录</span>
-					</div>
-					<div class="flex">
-						<div class="flex min-h-[3.625rem] min-w-0 flex-1 flex-col items-center justify-center rounded-lg bg-primary-light px-1 py-[7px] dark:bg-primary/20 mr-1">
-							<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ todayCount }}</span>
-							<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">今天</span>
-						</div>
-						<div class="flex min-h-[3.625rem] min-w-0 flex-1 flex-col items-center justify-center border-r border-line px-1 py-[7px]">
-							<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ monthCount }}</span>
-							<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">本月</span>
-						</div>
-						<div class="flex min-h-[3.625rem] min-w-0 flex-1 flex-col items-center justify-center px-1 py-[7px]" :class="{ 'border-r border-line': problemCount > 0 }">
-							<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ totalLabel }}</span>
-							<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">累计</span>
-						</div>
-						<div class="flex min-h-[3.625rem] min-w-0 flex-1 flex-col items-center justify-center px-1 py-[7px]" v-if="problemCount > 0">
-							<span class="text-xl font-extrabold leading-tight tabular-nums text-danger">{{ problemCount }}</span>
-							<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">问题</span>
-						</div>
-					</div>
-				</div>
+					<van-cell-group inset class="!m-0">
+						<van-cell v-if="siteState === 'loading'" title="最近文物点" label="正在定位…" center>
+							<template #icon><AppIcon name="locate" :size="36" color="var(--c-text-3)" class="mr-3" /></template>
+						</van-cell>
+						<van-cell v-else-if="siteState === 'ok'" :title="nearestSite.name" label="最近文物点" center is-link :value="distanceText" @click="goPatrol">
+							<template #icon><AppIcon name="landmark" :size="36" color="var(--c-primary)" class="mr-3" /></template>
+						</van-cell>
+						<van-cell v-else title="最近文物点" :label="siteError" center>
+							<template #icon><AppIcon name="alert" :size="36" color="var(--c-warning)" class="mr-3" /></template>
+							<template #right-icon>
+								<van-button type="primary" plain size="small" native-type="button" @click="locate">重试</van-button>
+							</template>
+						</van-cell>
+					</van-cell-group>
 
-				<!-- 附近文物点 -->
-				<div class="rounded-card border border-line bg-surface px-3.5 py-2.5 shadow-card">
-					<div v-if="siteState === 'loading'" class="flex items-center gap-3">
-						<div class="site-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-fill">
-							<AppIcon name="locate" :size="36" color="var(--c-text-4)" />
-						</div>
-						<div class="flex min-w-0 flex-1 flex-col gap-0.5">
-							<span class="text-[0.6875rem] font-medium text-ink-3">最近文物点</span>
-							<span class="text-[0.8125rem] text-ink-2">正在定位…</span>
-						</div>
-					</div>
-					<div v-else-if="siteState === 'ok'" class="flex cursor-pointer items-center gap-3" @click="goPatrol">
-						<div class="site-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-primary-light">
-							<AppIcon name="landmark" :size="36" color="var(--c-primary)" />
-						</div>
-						<div class="flex min-w-0 flex-1 flex-col gap-0.5">
-							<span class="text-[0.6875rem] font-medium text-ink-3">最近文物点</span>
-							<span class="truncate text-[0.9375rem] font-semibold text-ink">{{ nearestSite.name }}</span>
-							<span class="site-address hidden truncate text-xs text-ink-3">{{ nearestSite.address || '暂无地址' }}</span>
-						</div>
-						<div class="shrink-0">
-							<span class="text-sm font-semibold text-primary">{{ distanceText }}</span>
-						</div>
-					</div>
-					<div v-else class="flex items-center gap-3">
-						<div class="site-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-[0.625rem] bg-warning-bg">
-							<AppIcon name="alert" :size="36" color="var(--c-warning)" />
-						</div>
-						<div class="flex min-w-0 flex-1 flex-col gap-0.5">
-							<span class="text-[0.6875rem] font-medium text-ink-3">最近文物点</span>
-							<span class="text-[0.8125rem] text-ink-2">{{ siteError }}</span>
-						</div>
-						<van-button native-type="button" class="min-h-11 shrink-0 rounded-lg border border-line bg-surface px-4 text-[0.8125rem] font-medium text-primary transition active:scale-[0.97] active:bg-fill" @click="locate">重试</van-button>
-					</div>
-				</div>
+					<template v-if="isAdmin">
+						<van-cell-group inset class="admin-group !m-0">
+							<van-cell title="管理工作台" :value="`${adminStats.totalSites} 文物点 · ${adminStats.pendingProjects} 在办项目`" />
+							<van-grid :column-num="3" :border="false" clickable>
+								<van-grid-item v-for="item in adminFeatures" :key="item.key" :text="item.name" @click="open(item.url)">
+									<template #icon><AppIcon :name="item.icon" :size="40" color="var(--c-primary)" /></template>
+								</van-grid-item>
+							</van-grid>
+						</van-cell-group>
+					</template>
 
-				<!-- 管理员功能 -->
-				<template v-if="isAdmin">
-					<div class="my-0.5 flex items-baseline justify-between">
-						<h2 class="m-0 text-[1.0625rem] font-semibold text-ink">管理工作台</h2>
-						<span class="text-xs font-normal text-ink-3">{{ adminStats.totalSites }} 文物点 · {{ adminStats.pendingProjects }} 在办项目</span>
-					</div>
-					<div class="grid grid-cols-3 gap-1.5">
-						<van-button
-							v-for="item in adminFeatures" 
-							:key="item.key" 
-							native-type="button"
-							class="flex !h-auto flex-col items-center gap-1.5 rounded-card border border-line bg-surface px-2 py-1.5 shadow-card transition active:scale-[0.97]" 
-							@click="open(item.url)"
-						>
-							<div class="admin-icon flex h-[2.125rem] w-[2.125rem] items-center justify-center rounded-[0.5625rem] bg-primary-light">
-								<AppIcon :name="item.icon" :size="36" color="var(--c-primary)" :stroke="1.9" />
-							</div>
-							<span class="admin-name text-center text-xs font-medium text-ink">{{ item.name }}</span>
-						</van-button>
-					</div>
-				</template>
-
-				<!-- 最近巡查 -->
-				<template v-if="recent.length">
-					<div class="recent-head my-0.5 flex items-baseline justify-between">
-						<h2 class="m-0 text-[1.0625rem] font-semibold text-ink">最近巡查</h2>
-						<van-button native-type="button" class="!h-auto !border-0 !bg-transparent !p-0 text-[0.8125rem] font-medium text-primary" @click="goRecords">全部</van-button>
-					</div>
-					<div class="recent-list min-h-0 shrink overflow-hidden rounded-card bg-surface shadow-card">
-						<van-button
-							v-for="item in recent.slice(0, 2)" 
-							:key="item.id" 
-							native-type="button"
-							class="flex !h-auto min-h-11 w-full items-center gap-3 !border-0 !border-b !border-line !bg-transparent !px-4 !py-1.5 text-left transition last:!border-b-0 active:!bg-fill" 
+					<van-cell-group v-if="recent.length" inset title="最近巡查" class="recent-list !m-0">
+						<van-cell
+							v-for="item in recent.slice(0, 2)"
+							:key="item.id"
+							center
+							is-link
+							:title="item.site_name"
+							:label="friendly(item.inspect_time)"
 							@click="goRecords"
 						>
-							<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" :class="item.is_normal ? 'bg-success-bg' : 'bg-danger-bg'">
-								<AppIcon :name="item.is_normal ? 'check-circle' : 'alert'" :size="24" :color="item.is_normal ? 'var(--c-success)' : 'var(--c-danger)'" />
-							</div>
-							<div class="flex min-w-0 flex-1 flex-col gap-0.5">
-								<span class="truncate text-sm font-semibold text-ink">{{ item.site_name }}</span>
-								<span class="text-xs text-ink-3">{{ friendly(item.inspect_time) }}</span>
-							</div>
-							<span class="shrink-0 rounded-full px-2 py-[3px] text-[0.6875rem] font-medium" :class="item.is_normal ? 'bg-success-bg' : 'bg-danger-bg'">{{ item.is_normal ? '正常' : '问题' }}</span>
-						</van-button>
-					</div>
-				</template>
-			</div>
-		</van-pull-refresh>
+							<template #icon>
+								<AppIcon :name="item.is_normal ? 'check-circle' : 'alert'" :size="32" :color="item.is_normal ? 'var(--c-success)' : 'var(--c-danger)'" class="mr-3" />
+							</template>
+							<template #value>
+								<van-tag :type="item.is_normal ? 'success' : 'danger'" plain>{{ item.is_normal ? '正常' : '问题' }}</van-tag>
+							</template>
+						</van-cell>
+					</van-cell-group>
+				</div>
+			</van-pull-refresh>
 		</div>
 	</div>
 </template>
@@ -311,7 +261,7 @@
 	right: -4.625rem;
 	top: -5.625rem;
 	border: 1px solid color-mix(in srgb, var(--c-on-hero) 12%, transparent);
-	border-radius: 50%;
+	border-radius: 0;
 	box-shadow: 0 0 0 1.125rem color-mix(in srgb, var(--c-on-hero) 3.5%, transparent), 0 0 0 2.375rem color-mix(in srgb, var(--c-on-hero) 2.5%, transparent);
 	pointer-events: none;
 }
@@ -323,12 +273,10 @@
 	overflow: hidden;
 }
 @media (max-height: 800px) {
-	.home-body .admin-name { font-size: 0.6875rem; }
-	.home-body .recent-head,
 	.home-body .recent-list { display: none; }
 }
 @media (max-height: 640px) {
 	.home-body .stats-header,
-	.home-body .admin-icon { display: none; }
+	.home-body .admin-group { display: none; }
 }
 </style>

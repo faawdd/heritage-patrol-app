@@ -18,7 +18,7 @@
 						<!-- 手势 -->
 						<div class="u-card">
 							<div class="flex items-center gap-3">
-								<div class="flex h-14 w-14 items-center justify-center rounded-[0.875rem] bg-primary-light">
+								<div class="flex h-14 w-14 items-center justify-center bg-primary-light">
 									<AppIcon name="gesture" :size="60" color="var(--c-primary)" />
 								</div>
 								<div class="flex flex-col">
@@ -27,17 +27,17 @@
 								</div>
 							</div>
 							<div class="mt-3.5 flex flex-col gap-2.5">
-								<van-button native-type="button" class="u-btn primary block" :disabled="busy" @click="settingGesture = true">
+								<van-button type="primary" block native-type="button" :disabled="busy" @click="settingGesture = true">
 									{{ quick && quick.gestureHash ? '修改手势' : '设置手势' }}
 								</van-button>
-								<van-button native-type="button" v-if="quick && quick.gestureHash" class="u-btn danger-ghost block" :disabled="busy" @click="disable('gesture')">关闭手势</van-button>
+								<van-button type="danger" plain block native-type="button" v-if="quick && quick.gestureHash" :disabled="busy" @click="disable('gesture')">关闭手势</van-button>
 							</div>
 						</div>
 
 						<!-- 指纹 / 面容 -->
 						<div class="u-card">
 							<div class="flex items-center gap-3">
-								<div class="flex h-14 w-14 items-center justify-center rounded-[0.875rem] bg-success-bg">
+								<div class="flex h-14 w-14 items-center justify-center bg-success-bg">
 									<AppIcon :name="bioMode === 'facial' ? 'face' : 'fingerprint'" :size="60" color="var(--c-success)" />
 								</div>
 								<div class="flex flex-col">
@@ -46,13 +46,13 @@
 								</div>
 							</div>
 							<div v-if="bioMode" class="mt-3.5 flex flex-col gap-2.5">
-								<van-button native-type="button" v-if="!bioOn" class="u-btn success block" :disabled="busy" @click="enableBio">开启{{ bioName }}登录</van-button>
-								<van-button native-type="button" v-else class="u-btn danger-ghost block" :disabled="busy" @click="disable('biometric')">关闭{{ bioName }}登录</van-button>
+								<van-button type="success" block native-type="button" v-if="!bioOn" :disabled="busy" @click="enableBio">开启{{ bioName }}登录</van-button>
+								<van-button type="danger" plain block native-type="button" v-else :disabled="busy" @click="disable('biometric')">关闭{{ bioName }}登录</van-button>
 							</div>
 							<span v-else class="mt-3 block text-[0.9375rem] leading-relaxed text-ink-3">{{ checking ? '正在检测本机是否支持…' : '本机不支持指纹/面容，或还没有在手机设置里录入指纹。可以使用手势密码。' }}</span>
 						</div>
 
-						<div v-if="hasQuick && !serverBacked" class="flex gap-1.5 rounded-[0.625rem] bg-warning-bg p-3 text-[0.9375rem] leading-relaxed text-warning">
+						<div v-if="hasQuick && !serverBacked" class="flex gap-1.5 bg-warning-bg p-3 text-[0.9375rem] leading-relaxed text-warning">
 							<AppIcon name="info" :size="40" color="var(--c-warning)" />
 							<span>服务器暂未开通长期快捷登录，登录状态最长保持 12 小时，过期后需要输入一次密码。</span>
 						</div>
