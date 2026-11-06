@@ -10,23 +10,33 @@ const hasNativeSensors = () => Capacitor.getPlatform() === 'android' && Capacito
 
 /**
  * 读取原生 GPS 定位（WGS84）。返回 { longitude, latitude, altitude, accuracy }；
+ * requireAltitude 在 Android 上等待带海拔的 GPS 定位，超时后返回已取得的坐标。
  * 非 Android 或插件不可用时回退到 @capacitor/geolocation。
  */
-export async function getGpsLocation({ timeout = 20000, useLastKnown = true } = {}) {
+export async function getGpsLocation({ timeout = 20000, useLastKnown = true, requireAltitude = false, newerThanTimestamp = null } = {}) {
 	if (!hasNativeSensors()) {
 		const res = await getLocation({ highAccuracy: true, timeout });
-		return { longitude: res.longitude, latitude: res.latitude, altitude: res.altitude, accuracy: res.accuracy };
+		return { longitude: res.longitude, latitude: res.latitude, altitude: res.altitude, accuracy: res.accuracy, timestamp: res.timestamp };
 	}
 	const granted = await ensureLocationPermission();
 	if (!granted) {
-		throw new Error('permission denied');
+		throw new Error('定位权限被拒绝，请在系统设置中允许精确定位');
 	}
-	const res = await NativeSensors.getGpsLocation({ timeout, useLastKnown });
+	let res;
+	try {
+		res = await NativeSensors.getGpsLocation({ timeout, useLastKnown, requireAltitude, newerThanTimestamp });
+	} catch (error) {
+		if (error.code === 'PERMISSION_DENIED') throw new Error('请在系统设置中允许精确定位');
+		if (error.code === 'PROVIDER_DISABLED') throw new Error('系统定位服务未开启，请先打开 GPS');
+		if (error.code === 'TIMEOUT') throw new Error('GPS 定位超时，请到开阔处重试');
+		throw error;
+	}
 	return {
-		longitude: Number(res.longitude),
-		latitude: Number(res.latitude),
+		longitude: res.longitude != null ? Number(res.longitude) : null,
+		latitude: res.latitude != null ? Number(res.latitude) : null,
 		altitude: res.altitude != null ? Number(res.altitude) : null,
 		accuracy: res.accuracy != null ? Number(res.accuracy) : null,
+		timestamp: res.timestamp != null ? Number(res.timestamp) : null,
 	};
 }
 
@@ -37,14 +47,8 @@ export async function getPressure({ timeout = 3000 } = {}) {
 	if (!hasNativeSensors()) {
 		return null;
 	}
-	try {
-		const res = await NativeSensors.getPressure({ timeout });
-		const value = res && res.pressure != null ? Number(res.pressure) : null;
-		if (!Number.isFinite(value)) {
-			return null;
-		}
-		return value > 50000 ? value / 100 : value;
-	} catch (error) {
-		return null;
-	}
+	const res = await NativeSensors.getPressure({ timeout });
+	const value = res && res.pressure != null ? Number(res.pressure) : null;
+	if (value == null || !Number.isFinite(value)) return null;
+	return value > 50000 ? value / 100 : value;
 }

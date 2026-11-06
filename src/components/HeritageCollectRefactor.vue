@@ -26,24 +26,9 @@
 
           <div class="strategy-card">
             <div class="strategy-head">
-              <span class="strategy-title">全局采集策略</span>
+              <span class="strategy-title">海拔采集</span>
             </div>
-            <div class="strategy-group">
-              <label class="strategy-item">
-                <input type="radio" name="altitude-mode" value="dem" :checked="altitudeMode === 'dem'" @change="onModeChange({ detail: { value: 'dem' } })" />
-                <div class="strategy-copy">
-                  <span class="strategy-copy-title">DEM 优先模式（推荐）</span>
-                  <span class="strategy-copy-desc">优先后端 DEM 反查，弱网时自动降级硬件海拔</span>
-                </div>
-              </label>
-              <label class="strategy-item">
-                <input type="radio" name="altitude-mode" value="hardware" :checked="altitudeMode === 'hardware'" @change="onModeChange({ detail: { value: 'hardware' } })" />
-                <div class="strategy-copy">
-                  <span class="strategy-copy-title">硬件优先模式</span>
-                  <span class="strategy-copy-desc">跳过 DEM 请求，直接使用手机硬件高程</span>
-                </div>
-              </label>
-            </div>
+            <span class="strategy-copy-desc">按“我的 → 软件设置”中的来源和处理方式自动多次采样。气压海拔为估算值。</span>
           </div>
 
           <div class="form-row">
@@ -96,12 +81,13 @@
           <div class="form-row row-altitude">
             <span class="row-label required">海拔</span>
             <div class="altitude-cell">
-              <input class="row-input altitude-input" v-model="form.altitude" type="text" inputmode="decimal" placeholder="自动采集或手动填写" />
+              <input class="row-input altitude-input" v-model="form.altitude" type="text" inputmode="decimal" placeholder="自动采集或手动填写" @input="altitudeSource = 'manual'; altitudeDetail = ''" />
               <div class="alt-badge" :class="badgeClassMap[altitudeSource]">
                 <span class="alt-badge-text">{{ altitudeSourceLabel }}</span>
               </div>
             </div>
           </div>
+          <div v-if="altitudeDetail" class="altitude-detail">{{ altitudeDetail }}</div>
 
           <div class="form-row">
             <span class="row-label">省/自治区</span>
@@ -146,8 +132,8 @@
           </div>
 
           <div class="btn-group-compact">
-            <button type="button" class="btn-secondary" @click="handleCollectCoordinate">采集坐标</button>
-            <button type="button" class="btn-secondary" @click="handleCollectAltitude">采集海拔</button>
+            <button type="button" class="btn-secondary" :disabled="collectingLocation" @click="handleCollectCoordinate">采集坐标</button>
+            <button type="button" class="btn-secondary" :disabled="collectingLocation" @click="handleCollectAltitude">{{ collectingLocation ? '采集中…' : '采集海拔' }}</button>
           </div>
         </div>
       </div>
@@ -271,20 +257,16 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
-import config from '@/lib/config.js';
 import { CHINA_REGION_TREE, DEFAULT_REGION } from '@/lib/china_regions.js';
 import { addWatermark } from '@/lib/watermark.js';
 import { getUser } from '@/lib/auth.js';
-import { request } from '@/lib/request.js';
 import { toast } from '@/lib/ui.js';
 import { chooseImage } from '@/lib/native.js';
-import { getGpsLocation } from '@/lib/sensors.js';
+import { getGpsLocation, getPressure } from '@/lib/sensors.js';
+import { loadAltitudeSettings } from '@/lib/altitude-settings.js';
+import { collectHardwareAltitude } from '@/lib/altitude.js';
 import CoordinateCollectCard from './CoordinateCollectCard.vue';
 
-const DEM_TIMEOUT_MS = 15000;
-const ALTITUDE_MIN_M = -500;
-const ALTITUDE_MAX_M = 9000;
-const ALTITUDE_ZERO_EPS = 0.01;
 const GPS_TIMEOUT_MS = 12000;
 
 const props = defineProps({
@@ -317,7 +299,7 @@ function stepNodeClass(idx) {
   if (currentStep.value > idx) return 'done';
   return 'pending';
 }
-const altitudeMode = ref('dem');
+const collectingLocation = ref(false);
 const photos = ref([]);
 const signStatus = ref('');
 const coordRef = ref(null);
@@ -365,8 +347,8 @@ watch(
 );
 
 const altitudeSource = ref('manual');
+const altitudeDetail = ref('');
 const badgeClassMap = {
-  dem: 'badge-dem',
   hardware: 'badge-hardware',
   manual: 'badge-manual',
   alert: 'badge-alert',
@@ -420,8 +402,7 @@ const countyIndex = computed(() => {
 });
 
 const altitudeSourceLabel = computed(() => {
-  if (altitudeSource.value === 'dem') return '🟢 DEM国家高程校准';
-  if (altitudeSource.value === 'hardware') return '🟢 手机硬件直出';
+  if (altitudeSource.value === 'hardware') return '🟢 手机硬件采集';
   if (altitudeSource.value === 'manual') return '灰色 手动录入';
   return '🔴 信号断绝，请手动录入';
 });
@@ -449,11 +430,6 @@ function goStep2ToStep3() {
     return;
   }
   currentStep.value = 2;
-}
-
-function onModeChange(e) {
-  const v = e?.detail?.value;
-  altitudeMode.value = v === 'hardware' ? 'hardware' : 'dem';
 }
 
 function onCategoryChange(e) {
@@ -529,11 +505,11 @@ function collectSignature() {
 }
 
 function setMainAltitude(altitude, sourceTag, sourceKey) {
-  if (Number.isFinite(Number(altitude))) {
-    form.altitude = Number(altitude).toFixed(2);
-  }
-  if (sourceKey === 'dem') altitudeSource.value = 'dem';
-  else if (sourceKey === 'hardware') altitudeSource.value = 'hardware';
+  form.altitude = altitude != null && Number.isFinite(Number(altitude))
+    ? Number(altitude).toFixed(2)
+    : '';
+  altitudeDetail.value = sourceTag;
+  if (sourceKey === 'hardware') altitudeSource.value = 'hardware';
   else if (sourceKey === 'alert') altitudeSource.value = 'alert';
   else altitudeSource.value = 'manual';
   toast(sourceTag, { icon: 'none', duration: 1800 });
@@ -584,74 +560,8 @@ async function resolveWatermarkSnapshot() {
   };
 }
 
-function normalizeHardwareAltitude(rawAltitude) {
-  const altitude = Number(rawAltitude);
-  if (!Number.isFinite(altitude)) return null;
-  if (Math.abs(altitude) < ALTITUDE_ZERO_EPS) return null;
-  if (altitude < ALTITUDE_MIN_M || altitude > ALTITUDE_MAX_M) return null;
-  return altitude;
-}
-
-async function requestDemAltitude(longitude, latitude) {
-  const fallbackDirectUrl = `${config.WEB_BASE_URL}/api/dem-elevation-lookup/`;
-  const fallbackAppApiUrl = `${config.WEB_BASE_URL}/app-api/api/dem-elevation-lookup/`;
-  const fallbackByReplace = `${String(config.API_BASE_URL || '').replace(/\/app-api\/?$/, '')}/api/dem-elevation-lookup/`;
-  const urlCandidates = Array.from(new Set([fallbackDirectUrl, fallbackAppApiUrl, fallbackByReplace].filter(Boolean)));
-
-  let lastError = null;
-  for (const targetUrl of urlCandidates) {
-    let res;
-    try {
-      res = await request({
-        url: targetUrl,
-        method: 'POST',
-        timeout: DEM_TIMEOUT_MS,
-        header: { 'Content-Type': 'application/json' },
-        data: { longitude, latitude },
-      });
-    } catch (_) {
-      lastError = new Error('DEM 请求失败');
-      continue;
-    }
-    const data = res?.data && typeof res.data === 'object' ? res.data : {};
-    if (res.statusCode !== 200) {
-      lastError = new Error(`DEM HTTP ${res.statusCode || 'ERR'}`);
-      continue;
-    }
-    const demOk = data.code === 200 || data.success === true || data.status === 'success';
-    const demAltitude = data.altitude ?? data.elevation ?? (data.data && (data.data.altitude ?? data.data.elevation));
-    if (!demOk || demAltitude == null || Number.isNaN(Number(demAltitude))) {
-      lastError = new Error('DEM 返回无有效高程');
-      continue;
-    }
-    return Number(demAltitude);
-  }
-  throw lastError || new Error('DEM 请求失败');
-}
-
-async function resolveAltitude(lon, lat, gpsHardwareAlt) {
-  const hardware = normalizeHardwareAltitude(gpsHardwareAlt);
-
-  if (altitudeMode.value === 'hardware') {
-    if (hardware != null) {
-      return { altitude: hardware, sourceTag: '🟢 手机硬件直出', sourceKey: 'hardware' };
-    }
-    return { altitude: null, sourceTag: '🔴 硬件海拔无效，请手动录入', sourceKey: 'alert' };
-  }
-
-  try {
-    const demAltitude = await requestDemAltitude(lon, lat);
-    return { altitude: demAltitude, sourceTag: '🟢 DEM国家高程校准', sourceKey: 'dem' };
-  } catch (_) {
-    if (hardware != null) {
-      return { altitude: hardware, sourceTag: '🟡 手机硬件(无网保底)', sourceKey: 'hardware' };
-    }
-    return { altitude: null, sourceTag: '🔴 DEM不可用且硬件海拔无效，请手动录入', sourceKey: 'alert' };
-  }
-}
-
-async function getNativeGpsPosition() {
-  const gps = await getGpsLocation({ timeout: GPS_TIMEOUT_MS });
+async function getNativeGpsPosition({ requireAltitude = false } = {}) {
+  const gps = await getGpsLocation({ timeout: GPS_TIMEOUT_MS, requireAltitude });
   return {
     longitude: Number(gps.longitude),
     latitude: Number(gps.latitude),
@@ -661,40 +571,38 @@ async function getNativeGpsPosition() {
 }
 
 async function capturePointData() {
-  const gps = await getNativeGpsPosition();
-  const lon = Number(gps.longitude);
-  const lat = Number(gps.latitude);
-  const hardwareAlt = Number.isFinite(Number(gps.altitude)) ? Number(gps.altitude) : null;
-  const result = await resolveAltitude(lon, lat, hardwareAlt);
-  return {
-    longitude: lon,
-    latitude: lat,
-    altitude: result.altitude,
-    sourceTag: result.sourceTag,
-  };
+  return collectHardwareAltitude(loadAltitudeSettings(), { getGpsLocation, getPressure });
 }
 
 async function handleCollectCoordinate() {
+  if (collectingLocation.value) return;
+  collectingLocation.value = true;
   try {
     const r = await capturePointData();
     form.longitude = Number(r.longitude).toFixed(8);
     form.latitude = Number(r.latitude).toFixed(8);
-    setMainAltitude(r.altitude, r.sourceTag, r.sourceTag.includes('DEM') ? 'dem' : r.sourceTag.includes('硬件') ? 'hardware' : 'alert');
-  } catch (_) {
-    toast('定位采集失败，请重试', { icon: 'none' });
+    setMainAltitude(r.altitude, r.sourceTag, r.sourceKey);
+  } catch (error) {
+    toast(error?.errMsg || error?.message || '定位采集失败，请重试', { icon: 'none' });
+  } finally {
+    collectingLocation.value = false;
   }
 }
 
 async function handleCollectAltitude() {
+  if (collectingLocation.value) return;
+  collectingLocation.value = true;
   try {
     const r = await capturePointData();
     if (Number.isFinite(Number(r.longitude)) && Number.isFinite(Number(r.latitude))) {
       form.longitude = Number(r.longitude).toFixed(8);
       form.latitude = Number(r.latitude).toFixed(8);
     }
-    setMainAltitude(r.altitude, r.sourceTag, r.sourceTag.includes('DEM') ? 'dem' : r.sourceTag.includes('硬件') ? 'hardware' : 'alert');
-  } catch (_) {
-    toast('海拔采集失败，请重试', { icon: 'none' });
+    setMainAltitude(r.altitude, r.sourceTag, r.sourceKey);
+  } catch (error) {
+    toast(error?.errMsg || error?.message || '海拔采集失败，请重试', { icon: 'none' });
+  } finally {
+    collectingLocation.value = false;
   }
 }
 
@@ -790,7 +698,7 @@ function handleSubmit() {
   emitting('submit', {
     ...form,
     coord_list: coordList.value,
-    altitude_mode: altitudeMode.value,
+    altitude_mode: 'hardware',
     altitude_source: altitudeSource.value,
     photos: photos.value,
     signature_status: signStatus.value,
@@ -799,8 +707,6 @@ function handleSubmit() {
 
 defineExpose({
   form,
-  altitudeMode,
-  resolveAltitude,
   capturePointData,
 });
 </script>
@@ -984,35 +890,6 @@ defineExpose({
   font-weight: 700;
 }
 
-.strategy-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.strategy-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  padding: 3px 0;
-
-  input[type='radio'] {
-    accent-color: #1E5AA8;
-    margin-top: 3px;
-  }
-}
-
-.strategy-copy {
-  display: flex;
-  flex-direction: column;
-}
-
-.strategy-copy-title {
-  font-size: 13.5px;
-  color: #0f2c4f;
-  font-weight: 600;
-}
-
 .strategy-copy-desc {
   margin-top: 1px;
   font-size: 11.5px;
@@ -1103,12 +980,12 @@ defineExpose({
   font-size: 11px;
 }
 
-.badge-dem {
-  background: #f6ffed;
-  border: 0.5px solid #b7eb8f;
-  .alt-badge-text {
-    color: #389e0d;
-  }
+.altitude-detail {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .badge-hardware {

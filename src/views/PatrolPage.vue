@@ -18,26 +18,27 @@
 						</div>
 
 						<div v-else-if="site" class="site">
-							<div class="site-main">
-								<span class="site-name">{{ site.name }}</span>
-								<span v-if="site.address" class="site-addr">{{ site.address }}</span>
-								<div class="site-tags">
-									<span v-if="site.manual" class="u-badge info">手动选择</span>
-									<span v-else-if="distanceText" class="u-badge" :class="isFar ? 'warn' : 'ok'">距离约 {{ distanceText }}</span>
-									<span v-if="!locationOk" class="u-badge warn">未获取到定位</span>
+							<div class="site-content">
+								<div class="site-main">
+									<span class="site-name">{{ site.name }}</span>
+									<span v-if="site.address" class="site-addr">{{ site.address }}</span>
+									<div class="site-tags">
+										<span v-if="site.manual" class="u-badge info">手动选择</span>
+										<span v-else-if="distanceText" class="u-badge" :class="isFar ? 'warn' : 'ok'">距离约 {{ distanceText }}</span>
+										<span v-if="!locationOk" class="u-badge warn">未获取到定位</span>
+									</div>
 								</div>
+								<button type="button" class="u-btn sm change-btn" @click="openPicker">换一个</button>
 							</div>
-							<button type="button" class="u-btn sm change-btn" @click="openPicker">换一个</button>
+							<div v-if="isFar" class="far-tip">
+								<AppIcon name="alert" :size="40" color="#B45309" />
+								<span>您离这个文物点较远，请确认是否在现场。</span>
+							</div>
 						</div>
 
 						<div v-else class="locating">
 							<AppIcon name="alert" :size="56" color="#B45309" />
 							<span>{{ locateError || '附近没有找到文物点' }}</span>
-						</div>
-
-						<div v-if="site && isFar" class="far-tip">
-							<AppIcon name="alert" :size="40" color="#B45309" />
-							<span>您离这个文物点较远，请确认是否在现场。</span>
 						</div>
 
 						<div class="row-btns">
@@ -525,12 +526,15 @@
 	}
 
 	.site {
-		display: flex;
-		align-items: flex-start;
-		gap: 10px;
 		padding: 12px;
 		border-radius: 12px;
 		background: #F5F8FD;
+	}
+
+	.site-content {
+		display: flex;
+		align-items: flex-start;
+		gap: 10px;
 	}
 
 	.site-main {
@@ -570,7 +574,7 @@
 		gap: 6px;
 		margin-top: 10px;
 		padding: 9px 11px;
-		border-radius: 9px;
+		border-radius: 10px;
 		background: #FEF3E2;
 		color: #B45309;
 		font-size: 15px;

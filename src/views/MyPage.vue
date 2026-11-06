@@ -15,6 +15,17 @@
 					</div>
 
 					<div class="u-card menu">
+						<div class="menu-item" @click="goSettings">
+							<div class="menu-icon" style="background: #E8F0FB">
+								<AppIcon name="locate" :size="52" color="#1E5AA8" />
+							</div>
+							<div class="menu-text">
+								<span class="menu-title">软件设置</span>
+								<span class="menu-sub">海拔来源、采样与处理方式</span>
+							</div>
+							<AppIcon name="chevron-right" :size="44" color="#94A3B8" />
+						</div>
+
 						<div class="menu-item" @click="goSecurity">
 							<div class="menu-icon" style="background: #E7F6EC">
 								<AppIcon name="shield" :size="52" color="#15803D" />
@@ -130,6 +141,9 @@
 			this.loadMe();
 		},
 		methods: {
+			goSettings() {
+				navigateTo('/settings');
+			},
 			loadMe() {
 				apiRequest({ url: '/api/auth/me' })
 					.then((res) => {

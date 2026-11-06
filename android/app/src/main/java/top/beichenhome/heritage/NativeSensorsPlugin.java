@@ -41,6 +41,8 @@ public class NativeSensorsPlugin extends Plugin {
     public void getGpsLocation(PluginCall call) {
         final int timeout = call.getInt("timeout", 15000);
         final boolean useLastKnown = call.getBoolean("useLastKnown", true);
+        final boolean requireAltitude = call.getBoolean("requireAltitude", false);
+        final Long newerThanTimestamp = call.getLong("newerThanTimestamp");
         final Context ctx = getContext();
 
         if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -59,12 +61,17 @@ public class NativeSensorsPlugin extends Plugin {
             return;
         }
 
+        final Location[] bestLocation = new Location[1];
         try {
             if (useLastKnown) {
                 Location last = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                if (last != null && ageMs(last) <= LAST_KNOWN_MAX_AGE_MS) {
-                    call.resolve(toJs(last));
-                    return;
+                if (last != null && ageMs(last) <= LAST_KNOWN_MAX_AGE_MS
+                        && (newerThanTimestamp == null || last.getTime() > newerThanTimestamp)) {
+                    if (!requireAltitude || last.hasAltitude()) {
+                        call.resolve(toJs(last));
+                        return;
+                    }
+                    bestLocation[0] = last;
                 }
             }
         } catch (SecurityException e) {
@@ -77,13 +84,20 @@ public class NativeSensorsPlugin extends Plugin {
         final Runnable timeoutTask = () -> {
             if (done.compareAndSet(false, true)) {
                 safeRemove(lm, holder[0]);
-                call.reject("gps timeout", "TIMEOUT");
+                if (bestLocation[0] != null) {
+                    call.resolve(toJs(bestLocation[0]));
+                } else {
+                    call.reject("gps timeout", "TIMEOUT");
+                }
             }
         };
 
         holder[0] = new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
+                if (newerThanTimestamp != null && location.getTime() <= newerThanTimestamp) return;
+                bestLocation[0] = location;
+                if (requireAltitude && !location.hasAltitude()) return;
                 if (done.compareAndSet(false, true)) {
                     mainHandler.removeCallbacks(timeoutTask);
                     safeRemove(lm, this);

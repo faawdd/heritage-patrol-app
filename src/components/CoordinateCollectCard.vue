@@ -324,6 +324,7 @@ function onTypeChange(event, item) {
 
 function onFieldInput(event, item, fieldName) {
   item[fieldName] = event?.target?.value ?? '';
+  if (fieldName === 'altitude') item.sourceTag = '手动录入';
   emitModel();
 }
 
@@ -370,17 +371,17 @@ async function grabPoint(item) {
     if (Number.isFinite(Number(result.latitude))) {
       item.latitude = Number(result.latitude).toFixed(6);
     }
-    if (Number.isFinite(Number(result.altitude))) {
-      item.altitude = Number(result.altitude).toFixed(2);
-    }
+    item.altitude = result.altitude != null && Number.isFinite(Number(result.altitude))
+      ? Number(result.altitude).toFixed(2)
+      : '';
     if (result.sourceTag != null) {
       item.sourceTag = String(result.sourceTag);
     }
 
     emitModel();
-    toast('当前点位抓取成功', { icon: 'none' });
+    toast(result.sourceTag || '当前点位抓取成功', { icon: 'none', duration: 3000 });
   } catch (error) {
-    toast('定位抓取失败', { icon: 'none' });
+    toast(error?.errMsg || error?.message || '定位抓取失败', { icon: 'none' });
   } finally {
     setLoading(item.id, 'all', false);
   }
