@@ -1,16 +1,13 @@
 // 自定义原生插件 NativeSensors（android/app/src/main/java/.../NativeSensorsPlugin.java）：
 // - getGpsLocation：直接读取 Android LocationManager 的 GPS 提供者（含海拔），绕过融合定位
 // - getPressure：读取气压传感器（hPa）
-import { Capacitor, registerPlugin } from '@capacitor/core';
-import { ensureLocationPermission, getLocation } from './native.js';
-
-const NativeSensors = registerPlugin('NativeSensors');
+import { Capacitor } from '@capacitor/core';
+import { NativeSensors, ensureLocationPermission, getLocation } from './native.js';
 
 const hasNativeSensors = () => Capacitor.getPlatform() === 'android' && Capacitor.isPluginAvailable('NativeSensors');
 
 /**
  * 读取原生 GPS 定位（WGS84）。返回 { longitude, latitude, altitude, accuracy }；
- * requireAltitude 在 Android 上等待带海拔的 GPS 定位，超时后返回已取得的坐标。
  * 非 Android 或插件不可用时回退到 @capacitor/geolocation。
  */
 export async function getGpsLocation({ timeout = 20000, useLastKnown = true, requireAltitude = false, newerThanTimestamp = null } = {}) {

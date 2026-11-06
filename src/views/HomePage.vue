@@ -1,153 +1,119 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
-			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
-				<ion-refresher-content />
-			</ion-refresher>
-			<div class="u-page">
-				<AppHeader :title="`${greet}，${displayName}`" :subtitle="today" tall>
-					<template #right>
-						<div class="role-chip">{{ roleText }}</div>
-					</template>
-				</AppHeader>
-
-				<div class="u-body overlap">
-					<!-- 主操作 -->
-					<div class="cta u-fade-in" @click="goPatrol">
-						<div class="cta-icon">
-							<AppIcon name="camera" :size="72" color="#1E5AA8" :stroke="2" />
-						</div>
-						<div class="cta-text">
-							<span class="cta-title">开始巡查上报</span>
-							<span class="cta-sub">拍照 · 选择情况 · 一键上报</span>
-						</div>
-						<AppIcon name="chevron-right" :size="52" color="#FFFFFF" :stroke="2.6" />
-					</div>
-
-					<!-- 今日状态 -->
-					<div class="today-card u-card" :class="todayCount ? 'done' : 'todo'">
-						<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="64" :color="todayCount ? '#15803D' : '#B45309'" />
-						<div class="today-text">
-							<span class="today-title">{{ todayCount ? `今天已巡查 ${todayCount} 次` : '今天还没有巡查' }}</span>
-							<span class="today-sub">{{ todayCount ? '辛苦了，感谢您守护文物！' : '请到文物点现场拍照上报' }}</span>
-						</div>
-					</div>
-
-					<!-- 附近文物点 -->
-					<div class="u-section-title">
-						<span>离我最近的文物点</span>
-						<span class="u-link" @click="locate">刷新</span>
-					</div>
-					<div class="u-card site-card">
-						<div v-if="siteState === 'loading'" class="site-loading">
-							<AppIcon name="locate" :size="56" color="#94A3B8" />
-							<span>正在定位，请稍候…</span>
-						</div>
-						<div v-else-if="siteState === 'ok'" class="site-body">
-							<div class="site-icon">
-								<AppIcon name="landmark" :size="60" color="#1E5AA8" />
-							</div>
-							<div class="site-info">
-								<span class="site-name">{{ nearestSite.name }}</span>
-								<span class="site-addr">{{ nearestSite.address || '暂无地址' }}</span>
-								<div class="site-dist">
-									<AppIcon name="pin" :size="32" color="#D99A1E" />
-									<span>距离约 {{ distanceText }}</span>
-								</div>
-							</div>
-						</div>
-						<div v-else class="site-loading">
-							<AppIcon name="alert" :size="56" color="#B45309" />
-							<span>{{ siteError }}</span>
-							<button type="button" class="u-btn sm" @click="locate">重新定位</button>
-						</div>
-					</div>
-
-					<!-- 我的巡查统计 -->
-					<div class="u-section-title">
-						<span>我的巡查</span>
-						<span class="u-link" @click="goRecords">全部记录</span>
-					</div>
-					<div class="stats">
-						<div class="stat">
-							<span class="stat-num">{{ todayCount }}</span>
-							<span class="stat-label">今天</span>
-						</div>
-						<div class="stat">
-							<span class="stat-num">{{ monthCount }}</span>
-							<span class="stat-label">本月</span>
-						</div>
-						<div class="stat">
-							<span class="stat-num">{{ totalLabel }}</span>
-							<span class="stat-label">累计</span>
-						</div>
-						<div class="stat">
-							<span class="stat-num danger">{{ problemCount }}</span>
-							<span class="stat-label">发现问题</span>
-						</div>
-					</div>
-
-					<div v-if="recent.length" class="u-card recent">
-						<div v-for="item in recent" :key="item.id" class="recent-item" @click="goRecords">
-							<div class="dot" :class="item.is_normal ? 'ok' : 'bad'" />
-							<div class="recent-main">
-								<span class="recent-name">{{ item.site_name }}</span>
-								<span class="recent-time">{{ friendly(item.inspect_time) }}</span>
-							</div>
-							<span class="u-badge" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
-						</div>
-					</div>
-
-					<!-- 管理员功能 -->
-					<template v-if="isAdmin">
-						<div class="u-section-title"><span>管理工作台</span></div>
-						<div class="admin-stats u-card">
-							<div class="admin-stat">
-								<span class="stat-num">{{ adminStats.totalSites }}</span>
-								<span class="stat-label">文物点总数</span>
-							</div>
-							<div class="divider" />
-							<div class="admin-stat">
-								<span class="stat-num">{{ adminStats.pendingProjects }}</span>
-								<span class="stat-label">进行中项目</span>
-							</div>
-						</div>
-						<div class="grid">
-							<div v-for="item in adminFeatures" :key="item.key" class="grid-item" @click="open(item.url)">
-								<div class="grid-icon" :style="{ background: item.bg }">
-									<AppIcon :name="item.icon" :size="56" :color="item.color" />
-								</div>
-								<span class="grid-text">{{ item.name }}</span>
-							</div>
-						</div>
-					</template>
+	<div class="app-page">
+		<!-- 固定头部 -->
+		<div class="home-header relative isolate shrink-0 overflow-hidden px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)]">
+			<div class="flex items-start justify-between gap-3">
+				<div class="min-w-0 flex-1">
+					<span class="mb-0.5 block text-[0.6875rem] font-semibold tracking-[0.12em] text-on-hero/75">基层文物巡查 · 野外作业终端</span>
+					<h1 class="m-0 truncate text-[1.3125rem] font-bold leading-tight text-on-hero">{{ greet }}，{{ displayName }}</h1>
+					<p class="mt-0.5 text-[0.8125rem] font-normal text-on-hero/85">{{ today }}</p>
 				</div>
+				<van-tag type="primary" size="large" class="shrink-0 !bg-on-hero/15 !text-on-hero">{{ roleText }}</van-tag>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+
+		<div class="app-content home-content flex flex-col overflow-y-auto bg-page">
+			<div class="home-body flex flex-col gap-2 p-3">
+					<van-button type="primary" size="large" block native-type="button" class="home-primary" @click="goPatrol">
+						<AppIcon name="camera" :size="48" color="currentColor" />
+						<span class="ml-2 text-lg font-semibold">开始巡查</span>
+					</van-button>
+
+					<van-cell-group inset class="!m-0">
+						<van-cell class="stats-header" is-link :title="todayCount ? `今日已巡查 ${todayCount} 次` : '今日待巡查'" value="查看记录" @click="goRecords">
+							<template #icon>
+								<AppIcon :name="todayCount ? 'check-circle' : 'clock'" :size="32" :color="todayCount ? 'var(--c-success)' : 'var(--c-warning)'" class="mr-2 self-center" />
+							</template>
+						</van-cell>
+						<van-grid :column-num="problemCount > 0 ? 4 : 3" :border="false" clickable>
+							<van-grid-item>
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ todayCount }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">今天</span>
+							</van-grid-item>
+							<van-grid-item>
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ monthCount }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">本月</span>
+							</van-grid-item>
+							<van-grid-item>
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ totalLabel }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">累计</span>
+							</van-grid-item>
+							<van-grid-item v-if="problemCount > 0">
+								<span class="text-xl font-extrabold leading-tight tabular-nums text-danger">{{ problemCount }}</span>
+								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">问题</span>
+							</van-grid-item>
+						</van-grid>
+					</van-cell-group>
+
+					<van-cell-group inset class="!m-0">
+						<van-cell v-if="siteState === 'loading'" title="最近文物点" label="正在定位…" center>
+							<template #icon><AppIcon name="locate" :size="36" color="var(--c-text-3)" class="mr-3" /></template>
+						</van-cell>
+						<van-cell v-else-if="siteState === 'ok'" :title="nearestSite.name" label="最近文物点" center is-link :value="distanceText" @click="goPatrol">
+							<template #icon><AppIcon name="landmark" :size="36" color="var(--c-primary)" class="mr-3" /></template>
+						</van-cell>
+						<van-cell v-else title="最近文物点" :label="siteError" center>
+							<template #icon><AppIcon name="alert" :size="36" color="var(--c-warning)" class="mr-3" /></template>
+							<template #right-icon>
+								<van-button type="primary" plain size="small" native-type="button" @click="locate">重试</van-button>
+							</template>
+						</van-cell>
+					</van-cell-group>
+
+					<template v-if="isAdmin">
+						<van-cell-group inset class="admin-group !m-0">
+							<van-cell title="管理工作台" :value="`${adminStats.totalSites} 文物点 · ${adminStats.pendingProjects} 在办项目`" />
+							<van-grid :column-num="3" :border="false" clickable>
+								<van-grid-item v-for="item in adminFeatures" :key="item.key" :text="item.name" @click="open(item.url)">
+									<template #icon><AppIcon :name="item.icon" :size="40" color="var(--c-primary)" /></template>
+								</van-grid-item>
+							</van-grid>
+						</van-cell-group>
+					</template>
+
+					<van-cell-group v-if="recent.length" inset title="最近巡查" class="recent-list !m-0">
+						<van-cell
+							v-for="item in recent.slice(0, 2)"
+							:key="item.id"
+							center
+							is-link
+							:title="item.site_name"
+							:label="friendly(item.inspect_time)"
+							@click="goRecords"
+						>
+							<template #icon>
+								<AppIcon :name="item.is_normal ? 'check-circle' : 'alert'" :size="32" :color="item.is_normal ? 'var(--c-success)' : 'var(--c-danger)'" class="mr-3" />
+							</template>
+							<template #value>
+								<van-tag :type="item.is_normal ? 'success' : 'danger'" plain>{{ item.is_normal ? '正常' : '问题' }}</van-tag>
+							</template>
+						</van-cell>
+					</van-cell-group>
+			</div>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage, IonRefresher, IonRefresherContent } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import { getUser, isAdminUser, setUser } from '@/lib/auth.js';
 	import { getRoleLabel } from '@/lib/i18n.js';
-	import { apiRequest } from '@/lib/request.js';
+	import { apiRequest, extractError } from '@/lib/request.js';
 	import { navigateTo, switchTab } from '@/lib/nav.js';
 	import { dateLabel, formatDistance, friendlyTime, getLocation, greeting, monthKey, todayKey } from '@/lib/format.js';
 
 	const ADMIN_FEATURES = [
-		{ key: 'heritages', name: '文物点管理', icon: 'landmark', url: '/tabs/admin', color: '#1E5AA8', bg: '#E8F0FB' },
-		{ key: 'projects', name: '建设项目', icon: 'file', url: '/tabs/admin?tab=projects', color: '#B45309', bg: '#FEF3E2' },
-		{ key: 'collect', name: '现场采集', icon: 'map', url: '/collect', color: '#15803D', bg: '#E7F6EC' },
-		{ key: 'collectRecords', name: '采集记录', icon: 'records', url: '/collect/records', color: '#7C3AED', bg: '#F1EAFE' },
-		{ key: 'kml', name: 'KML 检查', icon: 'grid', url: '/kml', color: '#0E7490', bg: '#E0F4F8' },
-		{ key: 'tools', name: '管理工具', icon: 'chart', url: '/tabs/admin?tab=tools', color: '#C62828', bg: '#FDECEC' },
+		{ key: 'heritages', name: '文物点管理', icon: 'landmark', url: '/tabs/admin' },
+		{ key: 'projects', name: '建设项目', icon: 'file', url: '/tabs/admin?tab=projects' },
+		{ key: 'collect', name: '现场采集', icon: 'map', url: '/collect' },
+		{ key: 'collectRecords', name: '采集记录', icon: 'records', url: '/collect/records' },
+		{ key: 'kml', name: 'KML 检查', icon: 'grid', url: '/kml' },
+		{ key: 'tools', name: '管理工具', icon: 'chart', url: '/tabs/admin?tab=tools' },
 	];
 
 	export default {
-		components: { AppHeader, AppIcon, IonContent, IonPage, IonRefresher, IonRefresherContent },
+		components: { AppHeader, AppIcon, },
 		data() {
 			return {
 				user: {},
@@ -192,18 +158,13 @@
 				return formatDistance(this.nearestSite && this.nearestSite.distance);
 			},
 		},
-		ionViewWillEnter() {
+		activated() {
 			this.user = getUser() || {};
 			this.greet = greeting();
 			this.today = dateLabel();
 			this.refresh();
 		},
 		methods: {
-			onRefresh(event) {
-				this.greet = greeting();
-				this.today = dateLabel();
-				this.refresh().finally(() => event.target.complete());
-			},
 			refresh() {
 				const tasks = [this.loadProfile(), this.loadRecords(), this.locate()];
 				if (this.isAdmin) {
@@ -236,14 +197,14 @@
 							this.siteState = 'ok';
 						} else {
 							this.siteState = 'error';
-							this.siteError = '附近没有找到文物点';
+							this.siteError = extractError(res, '附近没有找到文物点');
 						}
 					})
 					.catch((err) => {
 						this.siteState = 'error';
-						this.siteError = err && err.errMsg && /location|定位|auth/i.test(err.errMsg)
-							? '定位失败，请打开手机定位(GPS)'
-							: '定位失败，请检查定位和网络';
+						this.siteError = err && err.isLocationError
+							? err.errMsg
+							: '网络异常，查找附近文物点失败';
 					});
 			},
 			loadAdminData() {
@@ -282,290 +243,30 @@
 </script>
 
 <style scoped>
-	.role-chip {
-		padding: 5px 11px;
-		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.18);
-		border: 1px solid rgba(255, 255, 255, 0.35);
-		font-size: 13px;
-		font-weight: 700;
-		color: #FFFFFF;
-		white-space: nowrap;
-	}
-
-	.overlap {
-		margin-top: -48px;
-		position: relative;
-		z-index: 2;
-	}
-
-	.cta {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		padding: 18px 16px;
-		margin-bottom: 14px;
-		border-radius: 16px;
-		background: linear-gradient(120deg, #D99A1E 0%, #E8AE34 100%);
-		box-shadow: 0 8px 18px rgba(217, 154, 30, 0.38);
-	}
-
-	.cta:active {
-		transform: scale(0.98);
-	}
-
-	.cta-icon {
-		width: 60px;
-		height: 60px;
-		border-radius: 15px;
-		background: #FFFFFF;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.cta-text {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.cta-title {
-		font-size: 23px;
-		font-weight: 800;
-		color: #FFFFFF;
-		letter-spacing: 1px;
-	}
-
-	.cta-sub {
-		margin-top: 3px;
-		font-size: 14px;
-		color: rgba(255, 255, 255, 0.92);
-	}
-
-	.today-card {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		border-left: 6px solid #B45309;
-	}
-
-	.today-card.done {
-		border-left-color: #15803D;
-	}
-
-	.today-text {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.today-title {
-		font-size: 18px;
-		font-weight: 800;
-		color: #0F172A;
-	}
-
-	.today-sub {
-		font-size: 14px;
-		color: #64748B;
-		margin-top: 2px;
-	}
-
-	.site-loading {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-		padding: 8px 0;
-		font-size: 16px;
-		color: #475569;
-	}
-
-	.site-body {
-		display: flex;
-		gap: 12px;
-	}
-
-	.site-icon {
-		width: 52px;
-		height: 52px;
-		border-radius: 13px;
-		background: #E8F0FB;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.site-info {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.site-name {
-		font-size: 19px;
-		font-weight: 800;
-		color: #0F172A;
-	}
-
-	.site-addr {
-		margin-top: 3px;
-		font-size: 14px;
-		color: #64748B;
-	}
-
-	.site-dist {
-		margin-top: 6px;
-		display: flex;
-		align-items: center;
-		gap: 4px;
-		font-size: 15px;
-		font-weight: 700;
-		color: #B45309;
-	}
-
-	.stats {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 8px;
-		margin-bottom: 14px;
-	}
-
-	.stat {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 14px 0;
-		border-radius: 12px;
-		background: #FFFFFF;
-		box-shadow: 0 4px 14px rgba(15, 47, 92, 0.06);
-	}
-
-	.stat-num {
-		font-size: 24px;
-		font-weight: 800;
-		color: #1E5AA8;
-		line-height: 1.2;
-	}
-
-	.stat-num.danger {
-		color: #C62828;
-	}
-
-	.stat-label {
-		margin-top: 3px;
-		font-size: 14px;
-		color: #475569;
-	}
-
-	.recent {
-		padding-top: 6px;
-		padding-bottom: 6px;
-	}
-
-	.recent-item {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		padding: 12px 0;
-		border-bottom: 1px solid #EEF2F7;
-	}
-
-	.recent-item:last-child {
-		border-bottom: none;
-	}
-
-	.dot {
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		flex-shrink: 0;
-	}
-
-	.dot.ok {
-		background: #15803D;
-	}
-
-	.dot.bad {
-		background: #C62828;
-	}
-
-	.recent-main {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.recent-name {
-		font-size: 17px;
-		font-weight: 700;
-		color: #0F172A;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
-
-	.recent-time {
-		font-size: 14px;
-		color: #64748B;
-	}
-
-	.admin-stats {
-		display: flex;
-		align-items: center;
-	}
-
-	.admin-stat {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.divider {
-		width: 1px;
-		height: 40px;
-		background: #E2E8F0;
-	}
-
-	.grid {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 10px;
-		margin-bottom: 14px;
-	}
-
-	.grid-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 7px;
-		padding: 14px 4px;
-		border-radius: 12px;
-		background: #FFFFFF;
-		box-shadow: 0 4px 14px rgba(15, 47, 92, 0.06);
-	}
-
-	.grid-item:active {
-		transform: scale(0.97);
-	}
-
-	.grid-icon {
-		width: 52px;
-		height: 52px;
-		border-radius: 14px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.grid-text {
-		font-size: 15px;
-		font-weight: 700;
-		color: #0F172A;
-	}
+@reference "../theme/tailwind.css";
+.home-header {
+	background-color: var(--c-primary);
+}
+.home-header::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 0;
+	background-image:
+		linear-gradient(to right, rgb(255 255 255 / 14%) 1px, transparent 1px),
+		linear-gradient(to bottom, rgb(255 255 255 / 14%) 1px, transparent 1px);
+	background-size: 20px 20px;
+	pointer-events: none;
+}
+.home-content {
+	overscroll-behavior-y: none;
+	-webkit-overflow-scrolling: touch;
+}
+@media (max-height: 800px) {
+	.home-body .recent-list { display: none; }
+}
+@media (max-height: 640px) {
+	.home-body .stats-header,
+	.home-body .admin-group { display: none; }
+}
 </style>

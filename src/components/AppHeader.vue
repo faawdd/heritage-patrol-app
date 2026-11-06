@@ -1,23 +1,23 @@
 <template>
-	<div class="app-header" :class="{ tall }">
-		<div class="app-header-bar">
-			<button v-if="back" type="button" class="app-header-back" aria-label="返回" @click="goBack">
-				<AppIcon name="chevron-right" :size="48" color="#FFFFFF" :stroke="2.6" class="flip" />
-			</button>
-			<div class="app-header-text">
-				<span class="app-header-title">{{ title }}</span>
-				<span v-if="subtitle" class="app-header-sub">{{ subtitle }}</span>
+	<div class="sticky top-0 z-20 shrink-0 overflow-hidden border-b border-line bg-surface px-4 pt-[calc(env(safe-area-inset-top,0px)+0.25rem)] text-ink" :class="tall ? 'pb-14' : 'pb-2'">
+		<div class="relative z-[1] flex min-h-10 items-center gap-2">
+			<van-button v-if="back" native-type="button" class="!m-0 !-ml-2 !flex !h-11 !w-11 !shrink-0 !items-center !justify-center !border-0 !bg-transparent !p-0" aria-label="返回" @click="goBack">
+				<AppIcon name="chevron-right" :size="48" color="var(--c-text)" :stroke="2.6" class="rotate-180" />
+			</van-button>
+			<div class="flex min-w-0 flex-1 flex-col">
+				<span class="overflow-hidden text-ellipsis whitespace-nowrap text-[1.0625rem] font-semibold leading-[1.3] tracking-[0.0125rem]">{{ title }}</span>
+				<span v-if="subtitle" class="mt-0.5 text-xs text-ink-3">{{ subtitle }}</span>
 			</div>
-			<div class="app-header-right">
+			<div class="flex items-center">
 				<slot name="right" />
 			</div>
 		</div>
-		<slot />
+		<div class="relative z-[1]"><slot /></div>
 	</div>
 </template>
 
 <script>
-	// 渐变色自定义头部：放在 <ion-content> 内部顶端，随内容滚动（与原 uni-app 自定义导航栏一致）。
+	// 顶部栏吸顶固定，仅其下方内容区滚动。
 	import AppIcon from './AppIcon.vue';
 	import { navigateBack } from '@/lib/nav.js';
 
@@ -38,83 +38,3 @@
 	};
 </script>
 
-<style>
-	.app-header {
-		position: relative;
-		padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px 18px;
-		background: linear-gradient(150deg, #2A6BC2 0%, #1E5AA8 45%, #0F2F5C 100%);
-		color: #FFFFFF;
-		overflow: hidden;
-	}
-
-	.app-header::after {
-		content: '';
-		position: absolute;
-		right: -60px;
-		top: -40px;
-		width: 210px;
-		height: 210px;
-		border-radius: 50%;
-		background: radial-gradient(circle, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 70%);
-		pointer-events: none;
-	}
-
-	.app-header.tall {
-		padding-bottom: 60px;
-	}
-
-	.app-header-bar {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		align-items: center;
-		min-height: 48px;
-		gap: 8px;
-	}
-
-	.app-header-back {
-		width: 40px;
-		height: 40px;
-		margin-left: -8px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background: transparent;
-		border: none;
-		padding: 0;
-	}
-
-	.app-header-back .flip {
-		transform: rotate(180deg);
-	}
-
-	.app-header-text {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.app-header-title {
-		font-size: 22px;
-		font-weight: 800;
-		letter-spacing: 1px;
-		line-height: 1.3;
-	}
-
-	.app-header-sub {
-		margin-top: 3px;
-		font-size: 14px;
-		color: rgba(255, 255, 255, 0.82);
-	}
-
-	.app-header-right {
-		display: flex;
-		align-items: center;
-	}
-
-	.app-header > :not(.app-header-bar) {
-		position: relative;
-		z-index: 1;
-	}
-</style>

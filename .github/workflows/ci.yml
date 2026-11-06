@@ -25,6 +25,10 @@ jobs:
           cache: gradle
 
       - run: npm ci
+      - run: npm run typecheck:location
+      - run: npm run test:location
+      - run: node --test tests/altitude.test.js
+      - run: npm run test:ui
       - run: npm run build
       - run: npx cap sync android
 

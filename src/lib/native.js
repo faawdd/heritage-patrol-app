@@ -1,5 +1,5 @@
 // 原生能力封装（替代 uni.getLocation / chooseImage / previewImage / makePhoneCall / openLocation 等）。
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import { App } from '@capacitor/app';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Clipboard } from '@capacitor/clipboard';
@@ -7,8 +7,7 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 import { FileOpener } from '@capacitor-community/file-opener';
 import { Geolocation } from '@capacitor/geolocation';
 import { Haptics, ImpactStyle, NotificationType } from '@capacitor/haptics';
-import { modalController } from '@ionic/vue';
-import ImagePreview from '@/components/ImagePreview.vue';
+import { previewImages } from './ui.js';
 import { getAuthHeader } from './auth.js';
 
 export const isNative = () => Capacitor.isNativePlatform();
@@ -28,14 +27,15 @@ export async function getAppVersion() {
 	return typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '';
 }
 
-export async function ensureLocationPermission() {
+export async function ensureLocationPermission({ highAccuracy = false } = {}) {
 	if (!isNative()) {
 		return true;
 	}
 	try {
-		let status = await Geolocation.checkPermissions();
-		if (status.location !== 'granted' && status.coarseLocation !== 'granted') {
-			status = await Geolocation.requestPermissions({ permissions: ['location', 'coarseLocation'] });
+		const permissionPlugin = isAndroid() && Capacitor.isPluginAvailable('NativeSensors') ? NativeSensors : Geolocation;
+		let status = await permissionPlugin.checkPermissions();
+		if (status.location !== 'granted' && (highAccuracy || status.coarseLocation !== 'granted')) {
+			status = await permissionPlugin.requestPermissions({ permissions: ['location'] });
 		}
 		return status.location === 'granted' || status.coarseLocation === 'granted';
 	} catch (error) {
@@ -46,38 +46,69 @@ export async function ensureLocationPermission() {
 
 function normalizeLocationError(error) {
 	const message = String((error && (error.message || error.errorMessage)) || error || '');
+	const code = String((error && error.code) || '');
 	let errMsg = '定位失败，请稍后重试';
-	if (/denied|permission/i.test(message) || (error && error.code === 1)) {
-		errMsg = '定位权限被拒绝，请在系统设置中允许定位';
-	} else if (/disabled|services|provider/i.test(message)) {
-		errMsg = '系统定位服务未开启，请先打开 GPS';
-	} else if (/timeout/i.test(message) || (error && error.code === 3)) {
-		errMsg = '定位超时，请到开阔处重试';
+	if (code === 'PERMISSION_DENIED' || code === 'OS-PLUG-GLOC-0003' || /denied|permission/i.test(message) || code === '1') {
+		errMsg = '定位权限被拒绝，请在系统设置中允许本应用使用位置信息';
+	} else if (code === 'TIMEOUT' || code === 'OS-PLUG-GLOC-0010' || /timeout|timed out|in time/i.test(message) || code === '3') {
+		errMsg = '定位超时，请确认已允许精确位置，并到室外开阔处重试';
+	} else if (code === 'LOCATION_DISABLED' || code === 'PROVIDER_DISABLED' || code === 'OS-PLUG-GLOC-0007' || code === 'OS-PLUG-GLOC-0009' || /disabled|not enabled|turned off/i.test(message)) {
+		errMsg = '手机定位(GPS)未开启，请在下拉菜单中打开"位置信息"';
+	} else if (code === 'UNAVAILABLE') {
+		errMsg = '系统定位服务不可用，请检查定位设置后重试';
 	}
-	return { errMsg, message, raw: error };
+	return { errMsg, code, message, raw: error, isLocationError: true };
+}
+
+export const NativeSensors = registerPlugin('NativeSensors');
+
+function toLocationResult(c, timestamp, extra = {}) {
+	return {
+		latitude: Number(c.latitude),
+		longitude: Number(c.longitude),
+		altitude: c.altitude != null ? Number(c.altitude) : null,
+		accuracy: c.accuracy != null ? Number(c.accuracy) : null,
+		altitudeAccuracy: c.altitudeAccuracy != null ? Number(c.altitudeAccuracy) : null,
+		speed: c.speed != null ? Number(c.speed) : null,
+		timestamp,
+		...extra,
+	};
+}
+
+async function getPluginLocation({ highAccuracy, timeout, maximumAge }) {
+	const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: highAccuracy, timeout, maximumAge });
+	return toLocationResult(pos.coords || {}, pos.timestamp);
 }
 
 /**
  * 获取当前位置（WGS84），返回与 uni.getLocation 相似的结构：
  * { latitude, longitude, altitude, accuracy, altitudeAccuracy, speed }
+ *
+ * Android 上优先使用自定义原生插件（同时监听 GPS 与系统网络定位，并利用缓存位置），
+ * 因为 @capacitor/geolocation 在装有 Google 服务的手机上只走 Google 融合定位，国内无法使用其网络定位，
+ * 室内基本只能等 GPS 而超时。原生失败时直接报告原因，不再追加一次 Google 低精度定位。
+ * 默认为 GPS 冷启动预留 60 秒；浏览器和其他平台仍使用 @capacitor/geolocation。
  */
-export async function getLocation({ highAccuracy = true, timeout = 15000, maximumAge = 0 } = {}) {
-	const granted = await ensureLocationPermission();
+export async function getLocation({ highAccuracy = true, timeout = isAndroid() ? 60000 : 20000, maximumAge = 30000 } = {}) {
+	const granted = await ensureLocationPermission({ highAccuracy });
 	if (!granted) {
-		throw { errMsg: '定位权限被拒绝，请在系统设置中允许定位' };
+		throw { errMsg: '定位权限被拒绝，请在系统设置中允许本应用使用位置信息', code: 'PERMISSION_DENIED', isLocationError: true };
+	}
+	if (isAndroid() && Capacitor.isPluginAvailable('NativeSensors')) {
+		try {
+			const res = await NativeSensors.getLocation({
+				timeout,
+				maximumAge,
+				desiredAccuracy: highAccuracy ? 50 : 500,
+			});
+			return toLocationResult(res, res.timestamp, { provider: res.provider, cached: !!res.cached, stale: !!res.stale });
+		} catch (error) {
+			console.warn('Android location request failed', error);
+			throw normalizeLocationError(error);
+		}
 	}
 	try {
-		const pos = await Geolocation.getCurrentPosition({ enableHighAccuracy: highAccuracy, timeout, maximumAge });
-		const c = pos.coords || {};
-		return {
-			latitude: Number(c.latitude),
-			longitude: Number(c.longitude),
-			altitude: c.altitude != null ? Number(c.altitude) : null,
-			accuracy: c.accuracy != null ? Number(c.accuracy) : null,
-			altitudeAccuracy: c.altitudeAccuracy != null ? Number(c.altitudeAccuracy) : null,
-			speed: c.speed != null ? Number(c.speed) : null,
-			timestamp: pos.timestamp,
-		};
+		return await getPluginLocation({ highAccuracy, timeout, maximumAge });
 	} catch (error) {
 		throw normalizeLocationError(error);
 	}
@@ -118,13 +149,8 @@ export async function previewImage(urls, current) {
 	if (!list.length) {
 		return;
 	}
-	const index = Math.max(0, typeof current === 'number' ? current : list.indexOf(current));
-	const modal = await modalController.create({
-		component: ImagePreview,
-		componentProps: { urls: list, index },
-		cssClass: 'image-preview-modal',
-	});
-	await modal.present();
+	const index = Math.min(list.length - 1, Math.max(0, typeof current === 'number' ? current : list.indexOf(current)));
+	return previewImages(list, index);
 }
 
 export function makePhoneCall(phoneNumber) {

@@ -1,151 +1,151 @@
 <template>
-  <div class="wizard-page">
-    <div class="wizard-header">
-      <div class="header-top">
-        <span class="page-title">不可移动文物现场数据采集</span>
-        <span class="page-subtitle">横向流程式录入</span>
-      </div>
-      <div class="stepper-wrap">
-        <div v-for="(step, idx) in stepDefs" :key="step.key" class="stepper-item">
-          <div class="stepper-node" :class="stepNodeClass(idx)">
-            <span class="stepper-node-text">{{ currentStep > idx ? '✓' : idx + 1 }}</span>
+  <div class="flex h-full flex-col overflow-hidden bg-fill">
+    <div class="sticky top-0 z-20 border-b border-line bg-surface shadow-card">
+      <div class="flex px-2.5 pb-2 pt-2.5">
+        <div v-for="(step, idx) in stepDefs" :key="step.key" class="relative flex flex-1 flex-col items-center">
+          <div
+            class="flex size-[1.375rem] items-center justify-center border"
+            :class="currentStep >= idx ? 'border-primary bg-primary' : 'border-ink-4 bg-surface'"
+          >
+            <span class="text-xs font-bold" :class="currentStep >= idx ? 'text-on-primary' : 'text-ink-3'">{{ currentStep > idx ? '✓' : idx + 1 }}</span>
           </div>
-          <span class="stepper-label" :class="{ active: currentStep === idx }">{{ step.label }}</span>
-          <div v-if="idx < stepDefs.length - 1" class="stepper-line" :class="{ done: currentStep > idx }"></div>
+          <span
+            class="mt-1 text-center text-[0.625rem] leading-snug min-[431px]:text-[0.6875rem]"
+            :class="currentStep === idx ? 'font-bold text-primary' : 'text-ink-3'"
+          >{{ step.label }}</span>
+          <div
+            v-if="idx < stepDefs.length - 1"
+            class="absolute left-1/2 top-[0.6875rem] h-px w-full translate-x-[0.6875rem]"
+            :class="currentStep > idx ? 'bg-primary' : 'bg-ink-4'"
+          ></div>
         </div>
       </div>
     </div>
 
-    <div class="wizard-content">
-      <div v-if="currentStep === 0" class="step-panel">
-        <div class="card step-card">
-          <div class="card-head">
-            <span class="card-title">第一步：基础地理</span>
-            <span class="card-tag">信息校核</span>
+    <div class="flex-1 overflow-hidden px-2 pt-2">
+      <div v-if="currentStep === 0" class="h-full overflow-y-auto pb-2">
+        <div class="mb-1 border border-line bg-surface p-3 shadow-card">
+          <div class="mb-1 flex items-center justify-between">
+            <span class="text-[0.9375rem] font-bold text-ink">第一步：基础地理</span>
+            <span class="border border-primary/35 bg-primary-light px-2 py-0.5 text-[0.6875rem] text-ink-2">信息校核</span>
           </div>
 
-          <div class="strategy-card">
-            <div class="strategy-head">
-              <span class="strategy-title">海拔采集</span>
+          <div class="mb-2 border border-primary/35 bg-primary-light p-2.5">
+            <div class="mb-1">
+              <span class="text-sm font-bold text-ink">海拔采集</span>
             </div>
-            <span class="strategy-copy-desc">按“我的 → 软件设置”中的来源和处理方式自动多次采样。气压海拔为估算值。</span>
+            <span class="text-xs text-ink-2">按“我的 → 软件设置”中的来源和处理方式自动多次采样。气压海拔为估算值。</span>
           </div>
 
-          <div class="form-row">
-            <span class="row-label required">文物名称</span>
-            <input class="row-input" v-model="form.name" placeholder="请输入文物名称" maxlength="200" />
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">文物名称</span>
+            <van-field v-model="form.name" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" placeholder="请输入文物名称" maxlength="200" :border="false" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">曾用名</span>
-            <input class="row-input" v-model="form.former_name" placeholder="选填" maxlength="200" />
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">曾用名</span>
+            <van-field v-model="form.former_name" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" placeholder="选填" maxlength="200" :border="false" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">编号模式</span>
-            <div class="mode-switch">
-              <div class="mode-item" :class="{ active: form.surveyCodeAuto }" @click="form.surveyCodeAuto = true">自动</div>
-              <div class="mode-item" :class="{ active: !form.surveyCodeAuto }" @click="form.surveyCodeAuto = false">手动</div>
-            </div>
-          </div>
-
-          <div v-if="!form.surveyCodeAuto" class="form-row">
-            <span class="row-label required">普查编号</span>
-            <input class="row-input" v-model="form.code" placeholder="请输入普查编号" maxlength="50" />
-          </div>
-
-          <div class="form-row">
-            <span class="row-label required">时代</span>
-            <input class="row-input" v-model="form.era" placeholder="如：汉、唐宋" maxlength="100" />
-          </div>
-
-          <div class="form-row">
-            <span class="row-label required">文物类别</span>
-            <div class="picker-wrap">
-              <select class="picker-value" :value="categoryIndex" @change="onCategoryChange({ detail: { value: Number($event.target.value) } })">
-                <option v-for="(label, i) in categoryLabels" :key="i" :value="i">{{ label }}</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <span class="row-label required">经度</span>
-            <input class="row-input" v-model="form.longitude" type="text" inputmode="decimal" placeholder="自动采集或手动填写" />
-          </div>
-
-          <div class="form-row">
-            <span class="row-label required">纬度</span>
-            <input class="row-input" v-model="form.latitude" type="text" inputmode="decimal" placeholder="自动采集或手动填写" />
-          </div>
-
-          <div class="form-row row-altitude">
-            <span class="row-label required">海拔</span>
-            <div class="altitude-cell">
-              <input class="row-input altitude-input" v-model="form.altitude" type="text" inputmode="decimal" placeholder="自动采集或手动填写" @input="altitudeSource = 'manual'; altitudeDetail = ''" />
-              <div class="alt-badge" :class="badgeClassMap[altitudeSource]">
-                <span class="alt-badge-text">{{ altitudeSourceLabel }}</span>
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">编号模式</span>
+            <div class="flex flex-1 justify-end">
+              <div class="flex overflow-hidden border border-line">
+                <div
+                  class="flex min-h-11 min-w-14 items-center justify-center px-2 text-center text-xs"
+                  :class="form.surveyCodeAuto ? 'bg-primary text-on-primary' : 'bg-fill text-ink-2'"
+                  @click="form.surveyCodeAuto = true"
+                >自动</div>
+                <div
+                  class="flex min-h-11 min-w-14 items-center justify-center px-2 text-center text-xs"
+                  :class="!form.surveyCodeAuto ? 'bg-primary text-on-primary' : 'bg-fill text-ink-2'"
+                  @click="form.surveyCodeAuto = false"
+                >手动</div>
               </div>
             </div>
           </div>
-          <div v-if="altitudeDetail" class="altitude-detail">{{ altitudeDetail }}</div>
 
-          <div class="form-row">
-            <span class="row-label">省/自治区</span>
-            <div class="picker-wrap">
-              <select class="picker-value" :value="provinceIndex" @change="onProvinceChange({ detail: { value: Number($event.target.value) } })">
-                <option v-for="(label, i) in provinceOptions" :key="i" :value="i">{{ label }}</option>
-              </select>
+          <div v-if="!form.surveyCodeAuto" class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">普查编号</span>
+            <van-field v-model="form.code" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" placeholder="请输入普查编号" maxlength="50" :border="false" />
+          </div>
+
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">时代</span>
+            <van-field v-model="form.era" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" placeholder="如：汉、唐宋" maxlength="100" :border="false" />
+          </div>
+
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">文物类别</span>
+            <AppSelect class="row-select" :options="categoryLabels" :model-value="categoryIndex" title="文物类别" @change="onCategoryChange" />
+          </div>
+
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">经度</span>
+            <van-field v-model="form.longitude" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" type="text" inputmode="decimal" placeholder="自动采集或手动填写" :border="false" />
+          </div>
+
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">纬度</span>
+            <van-field v-model="form.latitude" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" type="text" inputmode="decimal" placeholder="自动采集或手动填写" :border="false" />
+          </div>
+
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill py-1">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">海拔</span>
+            <div class="flex flex-1 items-center justify-end gap-1">
+              <van-field v-model="form.altitude" class="min-h-11 min-w-[5.3rem] flex-1 bg-transparent! p-0! text-sm" input-align="right" type="text" inputmode="decimal" placeholder="自动采集或手动填写" :border="false" @update:model-value="onManualAltitude" />
+              <div class="border px-1.5 py-0.5" :class="badgeClassMap[altitudeSource]">
+                <span class="text-[0.6875rem]">{{ altitudeSourceLabel }}</span>
+              </div>
+              <div v-if="altitudeDetail" class="break-words py-1 text-right text-xs text-ink-2">{{ altitudeDetail }}</div>
             </div>
           </div>
 
-          <div class="form-row">
-            <span class="row-label">市/州</span>
-            <div class="picker-wrap">
-              <select class="picker-value" :value="cityIndex" @change="onCityChange({ detail: { value: Number($event.target.value) } })">
-                <option v-for="(label, i) in cityOptions" :key="i" :value="i">{{ label }}</option>
-              </select>
-            </div>
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">省/自治区</span>
+            <AppSelect class="row-select" :options="provinceOptions" :model-value="provinceIndex" title="省/自治区" @change="onProvinceChange" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">县/区</span>
-            <div class="picker-wrap">
-              <select class="picker-value" :value="countyIndex" @change="onCountyChange({ detail: { value: Number($event.target.value) } })">
-                <option v-for="(label, i) in countyOptions" :key="i" :value="i">{{ label }}</option>
-              </select>
-            </div>
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">市/州</span>
+            <AppSelect class="row-select" :options="cityOptions" :model-value="cityIndex" title="市/州" @change="onCityChange" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">乡镇/街道</span>
-            <input class="row-input" v-model="form.township" placeholder="选填" maxlength="50" />
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">县/区</span>
+            <AppSelect class="row-select" :options="countyOptions" :model-value="countyIndex" title="县/区" @change="onCountyChange" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">村/社区</span>
-            <input class="row-input" v-model="form.village" placeholder="选填" maxlength="50" />
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">乡镇/街道</span>
+            <van-field v-model="form.township" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" placeholder="选填" maxlength="50" :border="false" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">详细地址</span>
-            <input class="row-input" v-model="form.address" placeholder="选填" maxlength="500" />
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">村/社区</span>
+            <van-field v-model="form.village" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" placeholder="选填" maxlength="50" :border="false" />
           </div>
 
-          <div class="btn-group-compact">
-            <button type="button" class="btn-secondary" :disabled="collectingLocation" @click="handleCollectCoordinate">采集坐标</button>
-            <button type="button" class="btn-secondary" :disabled="collectingLocation" @click="handleCollectAltitude">{{ collectingLocation ? '采集中…' : '采集海拔' }}</button>
+          <div class="flex min-h-11 items-center justify-between gap-2">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">详细地址</span>
+            <van-field v-model="form.address" class="min-h-11 min-w-0 flex-1 bg-transparent! p-0! text-sm" input-align="right" placeholder="选填" maxlength="500" :border="false" />
+          </div>
+
+          <div class="mt-2 flex gap-1.5">
+            <van-button type="primary" plain native-type="button" class="flex-1" :disabled="collectingLocation" @click="handleCollectCoordinate">采集坐标</van-button>
+            <van-button type="primary" plain native-type="button" class="flex-1" :disabled="collectingLocation" @click="handleCollectAltitude">{{ collectingLocation ? '采集中…' : '采集海拔' }}</van-button>
           </div>
         </div>
       </div>
 
-      <div v-if="currentStep === 1" class="step-panel">
-        <div class="card step-card step2-focus">
-          <div class="card-head">
-            <span class="card-title">第二步：多点坐标</span>
-            <span class="card-tag warm">高频核心操作区</span>
+      <div v-if="currentStep === 1" class="h-full overflow-y-auto pb-2">
+        <div class="step2-focus mb-1 border border-warning/45 bg-warning-bg p-3 shadow-card">
+          <div class="mb-1 flex items-center justify-between">
+            <span class="text-[0.9375rem] font-bold text-ink">第二步：多点坐标</span>
+            <span class="border border-warning/45 bg-warning-bg px-2 py-0.5 text-[0.6875rem] text-warning">高频核心操作区</span>
           </div>
-          <div class="focus-tip">
-            <span class="focus-tip-text">围绕遗址走动采集时，请优先使用“新增定位点”和“实时定位”完成边界点/标志点录入。</span>
+          <div class="mb-2 border border-dashed border-warning/45 bg-warning-bg px-2 py-1.5">
+            <span class="text-xs leading-relaxed text-warning">围绕遗址走动采集时，请优先使用“新增定位点”和“实时定位”完成边界点/标志点录入。</span>
           </div>
           <CoordinateCollectCard
             ref="coordRef"
@@ -153,107 +153,104 @@
             :heritage-name="form.name"
             :capture-point-data="capturePointData"
           />
-          <div class="step2-meta">
-            <span class="step2-meta-text">当前边界点：{{ boundaryPointCount }} 个（至少 3 个）</span>
+          <div class="mt-2">
+            <span class="text-xs font-semibold text-warning">当前边界点：{{ boundaryPointCount }} 个（至少 3 个）</span>
           </div>
         </div>
       </div>
 
-      <div v-if="currentStep === 2" class="step-panel">
-        <div class="card step-card">
-          <div class="card-head">
-            <span class="card-title">第三步：多媒体/审核</span>
-            <span class="card-tag">提交前复核</span>
+      <div v-if="currentStep === 2" class="h-full overflow-y-auto pb-2">
+        <div class="mb-1 border border-line bg-surface p-3 shadow-card">
+          <div class="mb-1 flex items-center justify-between">
+            <span class="text-[0.9375rem] font-bold text-ink">第三步：多媒体/审核</span>
+            <span class="border border-primary/35 bg-primary-light px-2 py-0.5 text-[0.6875rem] text-ink-2">提交前复核</span>
           </div>
 
-          <div class="form-row column-row">
-            <div class="column-head">
-              <span class="row-label required">现场照片</span>
-              <span class="column-meta">最多 10 张</span>
+          <div class="border-b border-fill py-2">
+            <div class="mb-1 flex items-baseline justify-between">
+              <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">现场照片</span>
+              <span class="text-[0.7188rem] text-ink-3">最多 10 张</span>
             </div>
-            <div class="photo-grid">
-              <div v-for="(item, idx) in photos" :key="item.id" class="photo-item">
-                <img :src="item.path" class="photo-img" />
-                <div class="photo-remove" @click="removePhoto(idx)">
-                  <span class="photo-remove-text">删</span>
+            <div class="grid grid-cols-2 gap-1.5 min-[431px]:grid-cols-3">
+              <div v-for="(item, idx) in photos" :key="item.id" class="relative h-[5.25rem] overflow-hidden bg-fill">
+                <img :src="item.path" class="block size-full object-cover" />
+                <div class="absolute right-0.5 top-0.5 flex size-11 items-start justify-end" @click="removePhoto(idx)">
+                  <span class="flex size-[1.125rem] items-center justify-center bg-black/50 text-[0.625rem] text-white">删</span>
                 </div>
               </div>
-              <div v-if="photos.length < 10" class="photo-add" @click="pickPhoto">
-                <span class="photo-add-text">添加照片</span>
+              <div
+                v-if="photos.length < 10"
+                class="relative flex h-[5.25rem] items-center justify-center overflow-hidden border border-dashed border-primary/35 bg-primary-light"
+                @click="pickPhoto"
+              >
+                <span class="text-[0.7813rem] text-primary">添加照片</span>
               </div>
             </div>
           </div>
 
-          <div class="form-row">
-            <span class="row-label">保护级别</span>
-            <div class="picker-wrap">
-              <select class="picker-value" :value="protectionIndex" @change="onProtectionChange({ detail: { value: Number($event.target.value) } })">
-                <option v-for="(label, i) in protectionLabels" :key="i" :value="i">{{ label }}</option>
-              </select>
-            </div>
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">保护级别</span>
+            <AppSelect class="row-select" :options="protectionLabels" :model-value="protectionIndex" title="保护级别" @change="onProtectionChange" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">权属</span>
-            <div class="picker-wrap">
-              <select class="picker-value" :value="ownershipIndex" @change="onOwnershipChange({ detail: { value: Number($event.target.value) } })">
-                <option v-for="(label, i) in ownershipLabels" :key="i" :value="i">{{ label }}</option>
-              </select>
-            </div>
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">权属</span>
+            <AppSelect class="row-select" :options="ownershipLabels" :model-value="ownershipIndex" title="权属" @change="onOwnershipChange" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label">保存现状</span>
-            <div class="picker-wrap">
-              <select class="picker-value" :value="preservationIndex" @change="onPreservationChange({ detail: { value: Number($event.target.value) } })">
-                <option v-for="(label, i) in preservationLabels" :key="i" :value="i">{{ label }}</option>
-              </select>
-            </div>
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">保存现状</span>
+            <AppSelect class="row-select" :options="preservationLabels" :model-value="preservationIndex" title="保存现状" @change="onPreservationChange" />
           </div>
 
-          <div class="form-row">
-            <span class="row-label required">普查员签名</span>
-            <button type="button" class="btn-secondary single-btn" @click="collectSignature">采集签名</button>
+          <div class="flex min-h-11 items-center justify-between gap-2 border-b border-fill">
+            <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink after:text-danger after:content-['_*'] min-[431px]:w-[6.5rem] min-[431px]:text-sm">普查员签名</span>
+            <van-button type="primary" plain native-type="button" class="max-w-[11.25rem] flex-1" @click="collectSignature">采集签名</van-button>
           </div>
-          <div v-if="signStatus" class="inline-hint">
-            <span class="inline-hint-text">{{ signStatus }}</span>
+          <div v-if="signStatus" class="mb-1 mt-1">
+            <span class="text-xs text-ink-2">{{ signStatus }}</span>
           </div>
 
-          <div class="form-row column-row">
-            <div class="column-head">
-              <span class="row-label">现场备注</span>
-              <span class="column-meta">限 2000 字</span>
+          <div class="py-2">
+            <div class="mb-1 flex items-baseline justify-between">
+              <span class="w-[5.5rem] shrink-0 text-[0.8125rem] text-ink min-[431px]:w-[6.5rem] min-[431px]:text-sm">现场备注</span>
+              <span class="text-[0.7188rem] text-ink-3">限 2000 字</span>
             </div>
-            <textarea
-              class="remark-input"
+            <van-field
               v-model="form.remark"
+              class="border border-line bg-surface! p-2! text-[0.8438rem]"
+              type="textarea"
+              rows="4"
+              autosize
               maxlength="2000"
               placeholder="请填写现场情况、病害信息、交通与环境说明"
+              :border="false"
             />
           </div>
         </div>
       </div>
     </div>
 
-    <div class="wizard-footer">
-      <div v-if="currentStep === 0" class="footer-row single">
-        <button type="button" class="btn-flow btn-flow-primary btn-flow-wide" @click="goStep1ToStep2">下一步：采集坐标</button>
+    <div class="border-t border-line bg-surface px-2 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))]">
+      <div v-if="currentStep === 0" class="flex items-center justify-center gap-1.5">
+        <van-button type="primary" native-type="button" class="w-4/5" @click="goStep1ToStep2">下一步：采集坐标</van-button>
       </div>
 
-      <div v-if="currentStep === 1" class="footer-row split">
-        <button type="button" class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</button>
-        <button type="button" class="btn-flow btn-flow-primary right" @click="goStep2ToStep3">下一步：多媒体/审核</button>
+      <div v-if="currentStep === 1" class="flex items-center gap-1.5">
+        <van-button native-type="button" class="flex-[0_0_30%]" @click="goPrevStep">返回上一步</van-button>
+        <van-button type="primary" native-type="button" class="flex-[0_0_calc(70%-0.3125rem)]" @click="goStep2ToStep3">下一步：多媒体/审核</van-button>
       </div>
 
-      <div v-if="currentStep === 2" class="footer-row split">
-        <button type="button" class="btn-flow btn-flow-ghost left" @click="goPrevStep">返回上一步</button>
-        <button type="button" class="btn-flow btn-flow-submit right" :disabled="loading" @click="handleSubmit">
+      <div v-if="currentStep === 2" class="flex items-center gap-1.5">
+        <van-button native-type="button" class="flex-[0_0_30%]" @click="goPrevStep">返回上一步</van-button>
+        <van-button type="success" native-type="button" class="flex-[0_0_calc(70%-0.3125rem)]" :disabled="loading" @click="handleSubmit">
           {{ loading ? '提交中...' : '完成并提交数据' }}
-        </button>
+        </van-button>
       </div>
     </div>
   </div>
 </template>
+
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
@@ -266,6 +263,7 @@ import { getGpsLocation, getPressure } from '@/lib/sensors.js';
 import { loadAltitudeSettings } from '@/lib/altitude-settings.js';
 import { collectHardwareAltitude } from '@/lib/altitude.js';
 import CoordinateCollectCard from './CoordinateCollectCard.vue';
+import AppSelect from './AppSelect.vue';
 
 const GPS_TIMEOUT_MS = 12000;
 
@@ -294,11 +292,6 @@ const stepDefs = [
   { key: 'step3', label: '第三步：多媒体/审核' },
 ];
 
-function stepNodeClass(idx) {
-  if (currentStep.value === idx) return 'active';
-  if (currentStep.value > idx) return 'done';
-  return 'pending';
-}
 const collectingLocation = ref(false);
 const photos = ref([]);
 const signStatus = ref('');
@@ -349,9 +342,10 @@ watch(
 const altitudeSource = ref('manual');
 const altitudeDetail = ref('');
 const badgeClassMap = {
-  hardware: 'badge-hardware',
-  manual: 'badge-manual',
-  alert: 'badge-alert',
+  dem: 'border-success/45 bg-success-bg text-success',
+  hardware: 'border-warning/45 bg-warning-bg text-warning',
+  manual: 'border-line bg-fill text-ink-2',
+  alert: 'border-danger/45 bg-danger-bg text-danger',
 };
 
 const categoryLabels = computed(() => (props.meta?.categoryChoices || []).map((item) => item.label));
@@ -505,14 +499,17 @@ function collectSignature() {
 }
 
 function setMainAltitude(altitude, sourceTag, sourceKey) {
-  form.altitude = altitude != null && Number.isFinite(Number(altitude))
-    ? Number(altitude).toFixed(2)
-    : '';
+  form.altitude = altitude != null && Number.isFinite(Number(altitude)) ? Number(altitude).toFixed(2) : '';
   altitudeDetail.value = sourceTag;
   if (sourceKey === 'hardware') altitudeSource.value = 'hardware';
   else if (sourceKey === 'alert') altitudeSource.value = 'alert';
   else altitudeSource.value = 'manual';
   toast(sourceTag, { icon: 'none', duration: 1800 });
+}
+
+function onManualAltitude() {
+  altitudeSource.value = 'manual';
+  altitudeDetail.value = '';
 }
 
 function getWatermarkUserName() {
@@ -560,8 +557,8 @@ async function resolveWatermarkSnapshot() {
   };
 }
 
-async function getNativeGpsPosition({ requireAltitude = false } = {}) {
-  const gps = await getGpsLocation({ timeout: GPS_TIMEOUT_MS, requireAltitude });
+async function getNativeGpsPosition() {
+  const gps = await getGpsLocation({ timeout: GPS_TIMEOUT_MS });
   return {
     longitude: Number(gps.longitude),
     latitude: Number(gps.latitude),
@@ -711,570 +708,31 @@ defineExpose({
 });
 </script>
 
-<style scoped lang="scss">
-.wizard-page {
-  height: 100%;
-  background: #eef2f7;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.wizard-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: #ffffff;
-  border-bottom: 0.5px solid #e6ebf2;
-  box-shadow: 0 4px 12px rgba(5, 24, 56, 0.06);
-}
-
-.header-top {
-  padding: 9px 11px 5px;
-}
-
-.page-title {
-  display: block;
-  font-size: 17px;
-  color: #001529;
-  font-weight: 700;
-}
-
-.page-subtitle {
-  display: block;
-  margin-top: 2px;
-  font-size: 12px;
-  color: #5f6f85;
-}
-
-.stepper-wrap {
-  padding: 4px 10px 8px;
-  display: flex;
-}
-
-.stepper-item {
-  position: relative;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stepper-node {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid #d9d9d9;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.stepper-node.pending {
-  border-color: #d9d9d9;
-}
-
-.stepper-node.active,
-.stepper-node.done {
-  border-color: #1E5AA8;
-  background: #1E5AA8;
-}
-
-.stepper-node-text {
-  font-size: 12px;
-  color: #8c8c8c;
-  font-weight: 700;
-}
-
-.stepper-node.active .stepper-node-text,
-.stepper-node.done .stepper-node-text {
-  color: #ffffff;
-}
-
-.stepper-label {
-  margin-top: 4px;
-  font-size: 11px;
-  color: #8c8c8c;
-  text-align: center;
-  line-height: 1.35;
-}
-
-.stepper-label.active {
-  color: #004da8;
-  font-weight: 700;
-}
-
-.stepper-line {
-  position: absolute;
-  top: 11px;
-  left: 50%;
-  width: 100%;
-  height: 1px;
-  transform: translateX(11px);
-  background: #d9d9d9;
-}
-
-.stepper-line.done {
-  background: #1E5AA8;
-}
-
-.wizard-content {
-  flex: 1;
-  overflow: hidden;
-  padding: 7px 8px 0;
-}
-
-.step-panel {
-  height: 100%;
-  overflow-y: auto;
-  padding-bottom: 9px;
-  box-sizing: border-box;
-}
-
-.card {
-  border-radius: 7px;
-  border: 0.5px solid #e8edf3;
-  background: #ffffff;
-  box-shadow: 0 3px 9px rgba(14, 35, 78, 0.04);
-  padding: 9px;
-}
-
-.step-card {
-  margin-bottom: 4px;
-}
-
-.card-head {
-  margin-bottom: 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.card-title {
-  font-size: 15px;
-  color: #0b1f3a;
-  font-weight: 700;
-}
-
-.card-tag {
-  font-size: 11px;
-  color: #4f6a8b;
-  background: #f0f5ff;
-  border: 0.5px solid #d6e4ff;
-  padding: 3px 5px;
-  border-radius: 999px;
-}
-
-.card-tag.warm {
-  color: #ad6800;
-  background: #fffbe6;
-  border-color: #ffe58f;
-}
-
-.strategy-card {
-  background: #f5fafe;
-  border: 0.5px solid #d6ecff;
-  border-radius: 6px;
-  padding: 7px;
-  margin-bottom: 6px;
-}
-
-.strategy-head {
-  margin-bottom: 3px;
-}
-
-.strategy-title {
-  font-size: 14px;
-  color: #113a6b;
-  font-weight: 700;
-}
-
-.strategy-copy-desc {
-  margin-top: 1px;
-  font-size: 11.5px;
-  color: #58708e;
-}
-
-.form-row {
-  min-height: 41px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  border-bottom: 0.5px solid #edf1f6;
-}
-
-.form-row:last-child {
-  border-bottom: none;
-}
-
-.row-label {
-  width: 105px;
-  flex-shrink: 0;
-  font-size: 14px;
-  color: #173251;
-}
-
-.row-label.required::after {
-  content: ' *';
-  color: #cf1322;
-}
-
-.row-input,
-.picker-value {
-  flex: 1;
-  min-width: 0;
+<style scoped>
+/* AppSelect 内部按钮文字右对齐，与 van-field 右对齐一致 */
+.row-select :deep(button) {
+  min-height: 2.75rem;
   text-align: right;
-  font-size: 14px;
-  color: #1a2a40;
-  min-height: 34px;
-  border: none;
-  background: transparent;
-  outline: none;
-  padding: 0;
-  font-family: inherit;
-}
-
-.picker-value {
-  width: 100%;
-  text-align-last: right;
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.picker-wrap {
-  flex: 1;
-  min-width: 0;
-}
-
-.row-input::placeholder {
-  color: #b6bfcc;
-}
-
-.row-altitude {
-  align-items: flex-start;
-  padding-top: 5px;
-  padding-bottom: 5px;
-}
-
-.altitude-cell {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 5px;
-}
-
-.altitude-input {
-  flex: 1;
-  min-width: 85px;
-}
-
-.alt-badge {
-  padding: 3px 5px;
-  border-radius: 4px;
-}
-
-.alt-badge-text {
-  font-size: 11px;
-}
-
-.altitude-detail {
-  color: #64748b;
-  font-size: 12px;
-  line-height: 1.5;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.badge-hardware {
-  background: #fffbe6;
-  border: 0.5px solid #ffe58f;
-  .alt-badge-text {
-    color: #d48806;
-  }
-}
-
-.badge-manual {
-  background: #fafafa;
-  border: 0.5px solid #d9d9d9;
-  .alt-badge-text {
-    color: #595959;
-  }
-}
-
-.badge-alert {
-  background: #fff1f0;
-  border: 0.5px solid #ffa39e;
-  .alt-badge-text {
-    color: #cf1322;
-  }
-}
-
-.mode-switch {
-  flex: 1;
-  display: flex;
-  justify-content: flex-end;
-  border: 0.5px solid #d9e2ec;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.mode-item {
-  min-width: 55px;
-  text-align: center;
-  font-size: 12px;
-  color: #5d7088;
-  background: #f5f7fa;
-  padding: 4px 7px;
-}
-
-.mode-item.active {
-  color: #ffffff;
-  background: #1E5AA8;
-}
-
-.btn-group-compact {
-  margin-top: 6px;
-  display: flex;
-  gap: 5px;
-}
-
-.btn-secondary {
-  flex: 1;
-  height: 36px;
-  border-radius: 5px;
-  border: 0.5px solid #b8dcff;
-  background: #eaf5ff;
-  color: #0456a7;
-  font-size: 13.5px;
-  line-height: 36px;
-}
-
-.single-btn {
-  max-width: 180px;
-  flex: 0 0 auto;
-  padding: 0 14px;
-}
-
-.step2-focus {
-  background: #fffbe6;
-  border-color: #ffe58f;
-  box-shadow: 0 5px 12px rgba(173, 104, 0, 0.12);
-}
-
-.focus-tip {
-  margin-bottom: 6px;
-  background: #fff7d1;
-  border: 0.5px dashed #ffd666;
-  border-radius: 5px;
-  padding: 5px 6px;
-}
-
-.focus-tip-text {
-  font-size: 12px;
-  color: #8d5a00;
-  line-height: 1.6;
-}
-
-.step2-meta {
-  margin-top: 6px;
-}
-
-.step2-meta-text {
-  font-size: 12px;
-  color: #ad6800;
-  font-weight: 600;
 }
 
 .step2-focus :deep(.coord-card) {
-  background: #fffdf2;
-  border-color: #ffd666;
+  background: var(--c-warning-bg);
+  border-color: rgba(var(--c-warning-rgb), 0.45);
 }
 
 .step2-focus :deep(.btn-add),
 .step2-focus :deep(.btn-grab) {
-  background: #fff7e6;
-  border-color: #faad14;
-  color: #ad6800;
+  background: var(--c-warning-bg);
+  border-color: var(--c-warning);
+  color: var(--c-warning);
   font-weight: 700;
 }
 
-.column-row {
-  display: block;
-  padding-top: 6px;
-  padding-bottom: 6px;
+:deep(.van-radio__icon) {
+  margin-top: 0.125rem;
 }
 
-.column-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 4px;
-}
-
-.column-meta {
-  font-size: 11.5px;
-  color: #8093ad;
-}
-
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
-}
-
-.photo-item,
-.photo-add {
-  position: relative;
-  height: 84px;
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.photo-item {
-  background: #edf1f5;
-}
-
-.photo-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.photo-remove {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.52);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.photo-remove-text {
-  font-size: 10px;
-  color: #ffffff;
-}
-
-.photo-add {
-  border: 0.5px dashed #9ccfff;
-  background: #f8fbff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.photo-add-text {
-  font-size: 12.5px;
-  color: #0958d9;
-}
-
-.inline-hint {
-  margin: 4px 0 5px;
-}
-
-.inline-hint-text {
-  font-size: 12px;
-  color: #4f657f;
-}
-
-.remark-input {
-  width: 100%;
-  min-height: 85px;
-  border-radius: 5px;
-  border: 0.5px solid #d7e0eb;
-  padding: 7px;
-  box-sizing: border-box;
-  font-size: 13.5px;
-  color: #1f314b;
-  background: #ffffff;
-  font-family: inherit;
-}
-
-.wizard-footer {
-  background: #ffffff;
-  border-top: 0.5px solid #e7ecf2;
-  padding: 5px 8px calc(5px + env(safe-area-inset-bottom));
-}
-
-.footer-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.footer-row.single {
-  justify-content: center;
-}
-
-.footer-row.split .left {
-  flex: 0 0 30%;
-}
-
-.footer-row.split .right {
-  flex: 0 0 calc(70% - 5px);
-}
-
-.btn-flow {
-  height: 44px;
-  border-radius: 5px;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 44px;
-  border: 0.5px solid transparent;
-}
-
-.btn-flow-wide {
-  width: 80%;
-}
-
-.btn-flow-primary {
-  background: #1E5AA8;
-  color: #ffffff;
-}
-
-.btn-flow-ghost {
-  background: #ffffff;
-  color: #5c6f86;
-  border-color: #cfd8e5;
-}
-
-.btn-flow-submit {
-  background: #1f9d55;
-  color: #ffffff;
-}
-
-.btn-flow-submit[disabled] {
-  opacity: 0.65;
-}
-
-@media screen and (max-width: 430px) {
-  .row-label {
-    width: 88px;
-    font-size: 13px;
-  }
-
-  .row-input,
-  .picker-value {
-    font-size: 13px;
-  }
-
-  .stepper-label {
-    font-size: 10px;
-  }
-
-  .btn-flow {
-    font-size: 14px;
-  }
-
-  .photo-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+:deep(.van-field__control::placeholder) {
+  color: var(--c-text-4);
 }
 </style>

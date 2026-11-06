@@ -53,5 +53,5 @@ export function formatDistance(km) {
 }
 
 export function getLocation() {
-	return nativeGetLocation({ highAccuracy: true, timeout: 15000 });
+	return nativeGetLocation({ highAccuracy: true });
 }

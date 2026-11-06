@@ -1,0 +1,40 @@
+/* Tailwind CSS v4：只引入 theme + utilities，不引入 preflight，避免干扰 Vant 与 OpenLayers/Leaflet 地图样式 */
+/* 工具类不放入 @layer：未分层的 Vant/全局样式优先级高于任何分层样式，放入 layer 会使工具类失效；本文件需在 main.js 中最后引入 */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css";
+
+/* 深色模式由 <html data-theme="dark"> 驱动，与 settings.js 一致 */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* 设计令牌映射：Tailwind 工具类直接使用主题 CSS 变量，主题色/深浅色切换自动生效 */
+@theme inline {
+	--color-primary: var(--c-primary);
+	--color-primary-light: var(--c-primary-light);
+	--color-on-primary: var(--c-on-primary);
+	--color-on-hero: var(--c-on-hero);	--color-surface: var(--c-surface);
+	--color-page: var(--c-bg);
+	--color-line: var(--c-line);
+	--color-fill: var(--c-fill);
+	--color-ink: var(--c-text);
+	--color-ink-2: var(--c-text-2);
+	--color-ink-3: var(--c-text-3);
+	--color-ink-4: var(--c-text-4);
+	--color-success: var(--c-success);
+	--color-warning: var(--c-warning);
+	--color-danger: var(--c-danger);
+	--color-info: var(--c-info);
+	--color-success-bg: var(--c-success-bg);
+	--color-warning-bg: var(--c-warning-bg);
+	--color-danger-bg: var(--c-danger-bg);
+	--radius-card: var(--r-card);
+	--shadow-card: var(--shadow-sm);
+	--font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@utility bg-gradient-primary {
+	background: var(--g-primary);
+}
+
+@utility bg-gradient-hero {
+	background: var(--g-hero);
+}

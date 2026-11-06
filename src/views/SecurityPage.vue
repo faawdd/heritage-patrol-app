@@ -1,70 +1,69 @@
 <template>
-	<ion-page>
-		<ion-content :fullscreen="true">
+	<div class="app-page">
+		<div class="app-content">
 			<div class="u-page">
 				<AppHeader title="快捷登录" subtitle="不用每次输入密码" back />
 
-				<div class="u-body body">
+				<div class="u-body pt-3.5 pb-[1.875rem]">
 					<div v-if="settingGesture" class="u-card">
 						<GestureSetter @confirm="onGestureSet" @cancel="settingGesture = false" />
 					</div>
 
 					<template v-else>
-						<div class="u-card intro">
-							<AppIcon name="shield" :size="64" color="#15803D" />
+						<div class="u-card flex items-center gap-3 text-base leading-relaxed text-ink-2">
+							<AppIcon name="shield" :size="64" color="var(--c-success)" />
 							<span>开启后，打开软件时画一下手势或按一下指纹就能登录，不用再输入密码。</span>
 						</div>
 
 						<!-- 手势 -->
-						<div class="u-card method">
-							<div class="method-head">
-								<div class="method-icon" style="background: #E8F0FB">
-									<AppIcon name="gesture" :size="60" color="#1E5AA8" />
+						<div class="u-card">
+							<div class="flex items-center gap-3">
+								<div class="flex h-14 w-14 items-center justify-center bg-primary-light">
+									<AppIcon name="gesture" :size="60" color="var(--c-primary)" />
 								</div>
-								<div class="method-text">
-									<span class="method-title">手势密码</span>
-									<span class="method-state" :class="{ on: quick && quick.gestureHash }">{{ quick && quick.gestureHash ? '已开启' : '未开启' }}</span>
+								<div class="flex flex-col">
+									<span class="text-xl font-extrabold text-ink">手势密码</span>
+									<span class="mt-0.5 text-[0.9375rem] font-semibold text-ink-4" :class="quick && quick.gestureHash ? 'text-success' : ''">{{ quick && quick.gestureHash ? '已开启' : '未开启' }}</span>
 								</div>
 							</div>
-							<div class="method-actions">
-								<button type="button" class="u-btn primary block" :disabled="busy" @click="settingGesture = true">
+							<div class="mt-3.5 flex flex-col gap-2.5">
+								<van-button type="primary" block native-type="button" :disabled="busy" @click="settingGesture = true">
 									{{ quick && quick.gestureHash ? '修改手势' : '设置手势' }}
-								</button>
-								<button type="button" v-if="quick && quick.gestureHash" class="u-btn danger-ghost block" :disabled="busy" @click="disable('gesture')">关闭手势</button>
+								</van-button>
+								<van-button type="danger" plain block native-type="button" v-if="quick && quick.gestureHash" :disabled="busy" @click="disable('gesture')">关闭手势</van-button>
 							</div>
 						</div>
 
 						<!-- 指纹 / 面容 -->
-						<div class="u-card method">
-							<div class="method-head">
-								<div class="method-icon" style="background: #E7F6EC">
-									<AppIcon :name="bioMode === 'facial' ? 'face' : 'fingerprint'" :size="60" color="#15803D" />
+						<div class="u-card">
+							<div class="flex items-center gap-3">
+								<div class="flex h-14 w-14 items-center justify-center bg-success-bg">
+									<AppIcon :name="bioMode === 'facial' ? 'face' : 'fingerprint'" :size="60" color="var(--c-success)" />
 								</div>
-								<div class="method-text">
-									<span class="method-title">{{ bioName }}登录</span>
-									<span class="method-state" :class="{ on: bioOn }">{{ bioStateText }}</span>
+								<div class="flex flex-col">
+									<span class="text-xl font-extrabold text-ink">{{ bioName }}登录</span>
+									<span class="mt-0.5 text-[0.9375rem] font-semibold text-ink-4" :class="bioOn ? 'text-success' : ''">{{ bioStateText }}</span>
 								</div>
 							</div>
-							<div v-if="bioMode" class="method-actions">
-								<button type="button" v-if="!bioOn" class="u-btn success block" :disabled="busy" @click="enableBio">开启{{ bioName }}登录</button>
-								<button type="button" v-else class="u-btn danger-ghost block" :disabled="busy" @click="disable('biometric')">关闭{{ bioName }}登录</button>
+							<div v-if="bioMode" class="mt-3.5 flex flex-col gap-2.5">
+								<van-button type="success" block native-type="button" v-if="!bioOn" :disabled="busy" @click="enableBio">开启{{ bioName }}登录</van-button>
+								<van-button type="danger" plain block native-type="button" v-else :disabled="busy" @click="disable('biometric')">关闭{{ bioName }}登录</van-button>
 							</div>
-							<span v-else class="method-note">{{ checking ? '正在检测本机是否支持…' : '本机不支持指纹/面容，或还没有在手机设置里录入指纹。可以使用手势密码。' }}</span>
+							<span v-else class="mt-3 block text-[0.9375rem] leading-relaxed text-ink-3">{{ checking ? '正在检测本机是否支持…' : '本机不支持指纹/面容，或还没有在手机设置里录入指纹。可以使用手势密码。' }}</span>
 						</div>
 
-						<div v-if="hasQuick && !serverBacked" class="warn">
-							<AppIcon name="info" :size="40" color="#B45309" />
+						<div v-if="hasQuick && !serverBacked" class="flex gap-1.5 bg-warning-bg p-3 text-[0.9375rem] leading-relaxed text-warning">
+							<AppIcon name="info" :size="40" color="var(--c-warning)" />
 							<span>服务器暂未开通长期快捷登录，登录状态最长保持 12 小时，过期后需要输入一次密码。</span>
 						</div>
 					</template>
 				</div>
 			</div>
-		</ion-content>
-	</ion-page>
+		</div>
+	</div>
 </template>
 
 <script>
-	import { IonContent, IonPage } from '@ionic/vue';
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
 	import GestureSetter from '@/components/GestureSetter.vue';
@@ -83,7 +82,7 @@
 	} from '@/lib/quickLogin.js';
 
 	export default {
-		components: { IonContent, IonPage, AppHeader, AppIcon, GestureSetter },
+		components: { AppHeader, AppIcon, GestureSetter },
 		data() {
 			return {
 				user: {},
@@ -117,7 +116,7 @@
 				return '未开启';
 			},
 		},
-		ionViewWillEnter() {
+		mounted() {
 			if (!getToken()) {
 				reLaunch('/login');
 				return;
@@ -167,7 +166,7 @@
 					title: `关闭${name}登录`,
 					content: `关闭后不能再用${name}登录。确定关闭吗？`,
 					confirmText: '确定关闭',
-					confirmColor: '#C62828',
+					confirmColor: 'var(--c-danger)',
 				});
 				if (res.confirm) {
 					disableQuickLoginMethod(method);
@@ -179,81 +178,4 @@
 	};
 </script>
 
-<style scoped>
-	.body {
-		padding-top: 14px;
-		padding-bottom: 30px;
-	}
 
-	.intro {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-		font-size: 16px;
-		color: #334155;
-		line-height: 1.6;
-	}
-
-	.method-head {
-		display: flex;
-		align-items: center;
-		gap: 12px;
-	}
-
-	.method-icon {
-		width: 56px;
-		height: 56px;
-		border-radius: 14px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.method-text {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.method-title {
-		font-size: 20px;
-		font-weight: 800;
-		color: #0F172A;
-	}
-
-	.method-state {
-		margin-top: 2px;
-		font-size: 15px;
-		color: #94A3B8;
-		font-weight: 600;
-	}
-
-	.method-state.on {
-		color: #15803D;
-	}
-
-	.method-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		margin-top: 14px;
-	}
-
-	.method-note {
-		display: block;
-		margin-top: 12px;
-		font-size: 15px;
-		color: #64748B;
-		line-height: 1.6;
-	}
-
-	.warn {
-		display: flex;
-		gap: 6px;
-		padding: 12px;
-		border-radius: 10px;
-		background: #FEF3E2;
-		color: #B45309;
-		font-size: 15px;
-		line-height: 1.6;
-	}
-</style>

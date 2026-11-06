@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from '@ionic/vue-router';
+import { createRouter, createWebHistory } from 'vue-router';
 import TabsPage from '@/views/TabsPage.vue';
 import { getUser, isAdminUser, isLoggedIn } from '@/lib/auth.js';
 import { installNav } from '@/lib/nav.js';
@@ -13,6 +13,7 @@ const routes = [
 			{ path: '', redirect: '/tabs/home' },
 			{ path: 'home', component: () => import('@/views/HomePage.vue') },
 			{ path: 'records', component: () => import('@/views/RecordsPage.vue') },
+			{ path: 'tasks', component: () => import('@/views/TasksPage.vue') },
 			{ path: 'patrol', component: () => import('@/views/PatrolPage.vue') },
 			{ path: 'admin', component: () => import('@/views/AdminPage.vue'), meta: { admin: true } },
 			{ path: 'my', component: () => import('@/views/MyPage.vue') },

@@ -1,76 +1,59 @@
 <template>
-	<ion-page>
-		<ion-header>
-			<ion-toolbar class="app-toolbar">
-				<ion-buttons slot="start"><ion-back-button default-href="/tabs/admin" /></ion-buttons>
-				<ion-title>我的采集记录</ion-title>
-			</ion-toolbar>
-		</ion-header>
-		<ion-content>
-			<ion-refresher slot="fixed" @ionRefresh="onRefresh($event)"><ion-refresher-content /></ion-refresher>
-			<div class="page">
-				<div class="header">
-					<span class="header-title">我的采集记录</span>
-					<span class="header-count">共 {{ total }} 条</span>
-				</div>
+	<div class="app-page">
+		<div class="app-content">
+			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+			<div class="relative box-border min-h-full bg-page">
+				<AppHeader title="我的采集记录" :subtitle="`共 ${total} 条采集登记`" back />
 
-				<div class="list-scroll">
-					<div v-if="loading && !records.length" class="loading-wrap">
-						<span class="loading-text">加载中…</span>
+				<van-list v-model:loading="loadingMore" v-model:error="listError" :finished="!hasMore" :disabled="refreshing" error-text="加载失败，点击重试" @load="onInfinite" class="box-border px-3.5 py-3 pb-[calc(84px+env(safe-area-inset-bottom))]">
+					<div v-if="loading && !records.length" class="py-8 text-center">
+						<span class="text-sm text-ink-3">加载中…</span>
 					</div>
 
-					<div v-for="item in records" :key="item.id" class="card">
-						<div class="card-left">
-							<img v-if="item.cover_url" :src="item.cover_url" class="thumb" />
-							<div v-else class="thumb-placeholder">
-								<span class="thumb-icon">🏛</span>
+					<div v-for="item in records" :key="item.id" class="mb-2.5 flex gap-3 bg-surface p-3 shadow-card">
+						<div class="w-[4.5rem] shrink-0">
+							<img v-if="item.cover_url" :src="item.cover_url" class="block h-[4.5rem] w-[4.5rem] object-cover" />
+							<div v-else class="flex h-[4.5rem] w-[4.5rem] items-center justify-center bg-fill">
+								<AppIcon name="landmark" :size="56" color="var(--c-text-4)" />
 							</div>
 						</div>
-						<div class="card-body">
-							<div class="card-row">
-								<span class="card-name">{{ item.name }}</span>
-								<div class="level-badge">{{ item.protection_level }}</div>
+						<div class="flex min-w-0 flex-1 flex-col gap-0.5 p-0">
+							<div class="flex items-start justify-between gap-1.5">
+								<span class="min-w-0 flex-1 text-base font-extrabold leading-[1.35] text-ink">{{ item.name }}</span>
+								<div class="shrink-0 whitespace-nowrap bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning">{{ item.protection_level }}</div>
 							</div>
-							<span class="card-code">编号：{{ item.survey_code }}</span>
-							<span class="card-meta">{{ item.era }} · {{ item.category }}</span>
-							<span class="card-addr">{{ item.address || '（地址未填）' }}</span>
-							<div class="card-footer">
-								<span class="card-time">{{ item.collected_at }}</span>
-								<span class="card-photos">📷 {{ item.photo_count }} 张</span>
-							</div>
-							<div class="card-actions">
-								<button type="button" class="btn-export" @click="exportDocx(item)">导出 DOCX</button>
+							<span class="text-[0.8125rem] tabular-nums text-ink-3">编号：{{ item.survey_code }}</span>
+							<span class="text-[0.8125rem] text-ink-2">{{ item.era }} · {{ item.category }}</span>
+							<span class="overflow-hidden text-ellipsis whitespace-nowrap text-[0.8125rem] text-ink-3">{{ item.address || '（地址未填）' }}</span>
+							<div class="mt-1.5 flex items-center justify-between gap-2">
+								<span class="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs text-ink-3">{{ item.collected_at ? `${item.collected_at} · ` : '' }}照片 {{ item.photo_count || 0 }} 张</span>
+								<van-button type="primary" plain native-type="button" class="shrink-0" @click="exportDocx(item)">导出登记表</van-button>
 							</div>
 						</div>
 					</div>
 
-					<div v-if="!loading && !records.length" class="empty-tip">
-						<span class="empty-icon">🗂</span>
-						<span class="empty-text">暂无采集记录</span>
-						<button type="button" class="btn-go-collect" @click="goCollect">去采集</button>
+					<div v-if="!loading && !records.length" class="flex flex-col items-center gap-2.5 py-12">
+						<AppIcon name="records" :size="80" color="var(--c-line-strong)" />
+						<span class="text-[0.9375rem] text-ink-3">暂无采集记录</span>
+						<van-button type="primary" native-type="button" @click="goCollect">去采集</van-button>
 					</div>
 
-					<div v-if="loading && records.length" class="load-more-tip"><span>加载中…</span></div>
-					<div v-if="!hasMore && records.length" class="load-more-tip"><span>— 已显示全部 —</span></div>
-				</div>
+					<div v-if="loading && records.length" class="p-2.5 text-center text-[0.8125rem] text-ink-4"><span>加载中…</span></div>
+					<div v-if="!hasMore && records.length" class="p-2.5 text-center text-[0.8125rem] text-ink-4"><span>— 已显示全部 —</span></div>
+				</van-list>
 			</div>
 
-			<ion-infinite-scroll threshold="100px" :disabled="!hasMore" @ionInfinite="onInfinite($event)">
-				<ion-infinite-scroll-content />
-			</ion-infinite-scroll>
-
-			<div class="fab" @click="goCollect">
-				<span class="fab-icon">＋</span>
+			<div class="fixed right-5 bottom-[calc(24px+env(safe-area-inset-bottom))] z-10 flex h-[3.375rem] w-[3.375rem] items-center justify-center bg-gradient-primary shadow-card" @click="goCollect">
+				<span class="-mt-0.5 text-[1.875rem] leading-none text-on-primary">＋</span>
 			</div>
-		</ion-content>
-	</ion-page>
+		</van-pull-refresh>
+		</div>
+	</div>
 </template>
 
 <script>
-	import {
-		IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent,
-		IonRefresher, IonRefresherContent, IonInfiniteScroll, IonInfiniteScrollContent,
-	} from '@ionic/vue';
+	import AppHeader from '@/components/AppHeader.vue';
+	import AppIcon from '@/components/AppIcon.vue';
 	import config from '@/lib/config.js';
 	import { getAuthHeader } from '@/lib/auth.js';
 	import { request } from '@/lib/request.js';
@@ -82,38 +65,41 @@
 	const PAGE_SIZE = 10;
 
 	export default {
-		components: {
-			IonPage, IonHeader, IonToolbar, IonButtons, IonBackButton, IonTitle, IonContent,
-			IonRefresher, IonRefresherContent, IonInfiniteScroll, IonInfiniteScrollContent,
-		},
+		components: { AppHeader, AppIcon },
 		data() {
 			return {
+				refreshing: false,
 				records: [],
 				total: 0,
-				page: 1,
+				page: 0,
 				hasMore: true,
 				loading: false,
+				loadingMore: false,
+				listError: false,
 			};
 		},
 
-		ionViewWillEnter() {
-			this.fetchRecords(1, true);
-		},
-
 		methods: {
-			async onRefresh(event) {
-				await this.fetchRecords(1, true);
-				event.target.complete();
+			async onRefresh() {
+				try {
+					await this.fetchRecords(1, true);
+				} finally {
+					this.refreshing = false;
+				}
 			},
 
-			async onInfinite(event) {
-				await this.loadMore();
-				event.target.complete();
+			async onInfinite() {
+				try {
+					await this.loadMore();
+				} finally {
+					this.loadingMore = false;
+				}
 			},
 
 			async fetchRecords(page = 1, replace = false) {
 				if (this.loading) return;
 				this.loading = true;
+				this.listError = false;
 				try {
 					const res = await request({
 						url: `${API}/api/collect/my-records`,
@@ -123,12 +109,15 @@
 					if (res.statusCode === 200) {
 						const items = res.data.items || [];
 						const pagination = res.data.pagination || {};
-						this.total = pagination.total || 0;
+						this.total = pagination.total ?? res.data.total ?? (replace || page === 1 ? items.length : this.records.length + items.length);
 						this.hasMore = page < (pagination.total_pages || 1);
 						this.page = page;
 						this.records = replace || page === 1 ? items : [...this.records, ...items];
+					} else {
+						throw new Error('加载失败，请稍后重试');
 					}
 				} catch (_) {
+					this.listError = true;
 					toast('加载失败，请稍后重试', { icon: 'none' });
 				} finally {
 					this.loading = false;
@@ -168,80 +157,5 @@
 </script>
 
 <style scoped>
-.page {
-	background: #f0f4f8;
-	min-height: 100%;
-	position: relative;
-	box-sizing: border-box;
-}
-
-.header {
-	background: #163F77; padding: 16px 16px 12px;
-	display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
-}
-.header-title { font-size: 17px; font-weight: 700; color: #fff; }
-.header-count { font-size: 12px; color: rgba(255,255,255,.7); }
-
-.list-scroll {
-	padding: 8px;
-	padding-bottom: calc(70px + env(safe-area-inset-bottom));
-	box-sizing: border-box;
-}
-
-.card {
-	display: flex; background: #fff; border-radius: 10px;
-	margin-bottom: 10px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.08);
-}
-.card-left { width: 80px; flex-shrink: 0; }
-.thumb { width: 80px; height: 80px; object-fit: cover; display: block; }
-.thumb-placeholder {
-	width: 80px; height: 80px; background: #f1f5f9;
-	display: flex; align-items: center; justify-content: center;
-}
-.thumb-icon { font-size: 30px; }
-.card-body { flex: 1; padding: 10px 12px; overflow: hidden; }
-.card-row { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
-.card-name { font-size: 15px; font-weight: 700; color: #1e293b; flex: 1; margin-right: 6px; }
-.level-badge {
-	font-size: 9px; color: #854d0e; background: #fef3c7;
-	padding: 2px 6px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
-}
-.card-code { font-size: 11px; color: #64748b; display: block; margin-bottom: 2px; }
-.card-meta { font-size: 12px; color: #475569; display: block; margin-bottom: 2px; }
-.card-addr { font-size: 11px; color: #94a3b8; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
-.card-footer { display: flex; justify-content: space-between; }
-.card-time { font-size: 11px; color: #94a3b8; }
-.card-photos { font-size: 11px; color: #64748b; }
-.card-actions { display: flex; justify-content: flex-end; margin-top: 5px; }
-.btn-export {
-	font-size: 11px; line-height: 1.2; padding: 5px 9px;
-	background: #174B8F; color: #fff; border: none; border-radius: 5px; min-height: 36px;
-}
-
-.empty-tip { text-align: center; padding: 40px 0; }
-.empty-icon { font-size: 40px; display: block; margin-bottom: 8px; }
-.empty-text { font-size: 14px; color: #94a3b8; display: block; margin-bottom: 16px; }
-.btn-go-collect {
-	background: #1E5AA8; color: #fff; border: none;
-	border-radius: 8px; padding: 10px 30px; font-size: 14px;
-}
-
-.loading-wrap { text-align: center; padding: 30px 0; }
-.loading-text { font-size: 14px; color: #94a3b8; }
-.load-more-tip { text-align: center; padding: 10px; font-size: 12px; color: #cbd5e1; }
-
-.fab {
-	position: fixed; right: 24px; bottom: calc(40px + env(safe-area-inset-bottom));
-	width: 50px; height: 50px; border-radius: 50%;
-	background: #1E5AA8; box-shadow: 0 4px 16px rgba(30,90,168,.4);
-	display: flex; align-items: center; justify-content: center; z-index: 10;
-}
-.fab-icon { font-size: 28px; color: #fff; line-height: 1; margin-top: -2px; }
-
-@media screen and (max-width: 360px) {
-	.card { flex-direction: column; }
-	.card-left, .thumb, .thumb-placeholder { width: 100%; height: 85px; }
-	.card-footer { flex-direction: column; gap: 2px; }
-	.btn-export { width: 100%; }
-}
+@reference "../theme/tailwind.css";
 </style>

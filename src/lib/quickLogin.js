@@ -2,7 +2,7 @@ import { BiometricAuth, BiometryType } from '@aparajita/capacitor-biometric-auth
 import { Capacitor } from '@capacitor/core';
 import sha256 from './sha256.js';
 import { getItem, setItem, removeItem } from './storage.js';
-import { getDeviceToken, getTokenExpiry, getToken, isTokenFresh, setDeviceToken } from './auth.js';
+import { canUseOfflinePatrol, getUser, unlockOfflinePatrol, getDeviceToken, getTokenExpiry, getToken, isTokenFresh, setDeviceToken } from './auth.js';
 import { issueDeviceToken, loginWithDeviceToken } from './request.js';
 
 const SETTINGS_KEY = 'heritage_app_quick_login';
@@ -139,9 +139,15 @@ export async function authenticateBiometric(mode = 'fingerprint') {
  * 3. 否则需要密码登录。
  */
 export function resumeSession() {
+	const offlineAllowed = () => canUseOfflinePatrol() && getQuickLogin()?.username === getUser()?.username;
+	if (navigator.onLine === false && offlineAllowed()) {
+		unlockOfflinePatrol();
+		return Promise.resolve({ offline: true });
+	}
 	if (getDeviceToken()) {
 		return loginWithDeviceToken().catch((err) => {
-			if (err && err.code === 'network' && isTokenFresh()) {
+			if (err && err.code === 'network' && offlineAllowed()) {
+				unlockOfflinePatrol();
 				return { offline: true };
 			}
 			return Promise.reject(err);

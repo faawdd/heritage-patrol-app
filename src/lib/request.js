@@ -3,6 +3,7 @@ import {
 	clearAccessToken,
 	getAuthHeader,
 	getDeviceToken,
+	getUser,
 	setDeviceToken,
 	setSession,
 } from './auth.js';
@@ -211,8 +212,11 @@ async function toBlob(file) {
 /**
  * 上传文件（multipart/form-data）。file 可为 Blob/File，或 dataURL / blob: / http(s) 路径。
  */
-export async function apiUpload({ url, file, filePath, fileName = 'photo.jpg', name = 'file', formData = {}, retry = true }) {
-	const blob = await toBlob(file || filePath);
+export async function apiUpload({ url, file, filePath, files, fileName = 'photo.jpg', name = 'file', formData = {}, retry = true }) {
+	const userId = getUser()?.id;
+	const authHeader = getAuthHeader();
+	const blobs = await Promise.all((files || [file || filePath]).map(toBlob));
+	if (getUser()?.id !== userId) throw new Error('账号已切换，请使用原账号同步巡查');
 	const form = new FormData();
 	Object.keys(formData || {}).forEach((key) => {
 		const value = formData[key];
@@ -220,11 +224,14 @@ export async function apiUpload({ url, file, filePath, fileName = 'photo.jpg', n
 			form.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
 		}
 	});
-	form.append(name, blob, (file && file.name) || fileName);
-	const res = await request({ url, method: 'POST', header: getAuthHeader(), body: form, timeout: 120000 });
+	blobs.forEach((blob, index) => form.append(name, blob, files ? `photo-${index + 1}.jpg` : (file && file.name) || fileName));
+	const res = await request({ url, method: 'POST', header: authHeader, body: form, timeout: 120000 });
 	if (res.statusCode === 401 && retry) {
 		return refreshSession().then(
-			() => apiUpload({ url, file: blob, fileName, name, formData, retry: false }),
+			() => {
+				if (getUser()?.id !== userId) throw new Error('账号已切换，请使用原账号同步巡查');
+				return apiUpload({ url, files: files ? blobs : undefined, file: blobs[0], fileName, name, formData, retry: false });
+			},
 			() => {
 				redirectToLogin();
 				return res;

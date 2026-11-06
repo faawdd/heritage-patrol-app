@@ -1,108 +1,121 @@
-// 交互反馈（替代 uni.showToast / showLoading / showModal / showActionSheet），基于 Ionic overlay 控制器。
-import { actionSheetController, alertController, loadingController, toastController } from '@ionic/vue';
-import { checkmarkCircleOutline, alertCircleOutline } from 'ionicons/icons';
+import { reactive } from 'vue';
+import { allowMultipleToast, showToast, showLoadingToast, showDialog, closeDialog, showImagePreview } from 'vant';
 
-let loadingEl = null;
-let loadingPending = null;
+allowMultipleToast();
+
+let loading = null;
+let activeDialog = null;
+let activePreview = null;
+let resolveActionSheet = null;
+
+export const actionSheetState = reactive({ show: false, title: '', actions: [] });
 
 export async function toast(message, options = {}) {
 	const opts = typeof options === 'string' ? { icon: options } : options;
-	const icon = opts.icon === 'success' ? checkmarkCircleOutline : opts.icon === 'error' ? alertCircleOutline : undefined;
-	const el = await toastController.create({
+	return showToast({
 		message: String(message || ''),
-		duration: opts.duration || 2000,
+		duration: opts.duration ?? 2000,
 		position: opts.position || 'middle',
-		icon,
-		cssClass: 'app-toast',
+		type: opts.icon === 'success' ? 'success' : opts.icon === 'error' ? 'fail' : 'text',
 	});
-	await el.present();
-	return el;
 }
 
 export async function showLoading(message = '加载中…') {
-	if (loadingEl || loadingPending) {
-		if (loadingEl) {
-			loadingEl.message = message;
-		}
+	if (loading) {
+		loading.message = message;
 		return;
 	}
-	loadingPending = loadingController.create({ message, spinner: 'crescent', backdropDismiss: false });
-	const el = await loadingPending;
-	loadingPending = null;
-	loadingEl = el;
-	await el.present();
+	loading = showLoadingToast({ message, duration: 0, forbidClick: true });
 }
 
 export async function hideLoading() {
-	if (loadingPending) {
-		await loadingPending;
-	}
-	if (loadingEl) {
-		const el = loadingEl;
-		loadingEl = null;
-		await el.dismiss().catch(() => {});
-	}
+	loading?.close();
+	loading = null;
 }
 
-/**
- * 模态对话框，返回 { confirm, cancel }（与 uni.showModal 结果一致）。
- */
-export async function showModal({ title = '提示', content = '', showCancel = true, confirmText = '确定', cancelText = '取消', danger = false, confirmColor } = {}) {
-	return new Promise((resolve) => {
-		const buttons = [];
-		if (showCancel) {
-			buttons.push({ text: cancelText, role: 'cancel', handler: () => resolve({ confirm: false, cancel: true }) });
+export function showModal({ title = '提示', content = '', showCancel = true, confirmText = '确定', cancelText = '取消', danger = false, confirmColor } = {}) {
+	return new Promise((resolve, reject) => {
+		activeDialog?.cancel();
+		const dialog = {
+			showCancel,
+			cancel() {
+				closeDialog();
+				finish(false);
+			},
+		};
+		function finish(confirmed) {
+			if (activeDialog === dialog) activeDialog = null;
+			resolve({ confirm: confirmed, cancel: !confirmed });
 		}
-		buttons.push({
-			text: confirmText,
-			role: 'confirm',
-			cssClass: danger || confirmColor === '#C62828' ? 'alert-btn-danger' : 'alert-btn-primary',
-			handler: () => resolve({ confirm: true, cancel: false }),
-		});
-		alertController.create({
-			header: title,
+		activeDialog = dialog;
+		showDialog({
+			title,
 			message: content,
-			buttons,
-			backdropDismiss: showCancel,
-			cssClass: 'app-alert',
-		}).then((el) => {
-			el.onDidDismiss().then(({ role }) => {
-				if (role === 'backdrop') {
-					resolve({ confirm: false, cancel: true });
-				}
-			});
-			el.present();
+			showCancelButton: showCancel,
+			confirmButtonText: confirmText,
+			cancelButtonText: cancelText,
+			confirmButtonClass: danger || confirmColor ? 'is-danger' : '',
+			confirmButtonColor: danger ? '#C62828' : confirmColor,
+			closeOnClickOverlay: showCancel,
+			closeOnPopstate: false,
+		}).then(() => finish(true), (error) => {
+			if (error === 'cancel' || error === 'overlay') finish(false);
+			else {
+				if (activeDialog === dialog) activeDialog = null;
+				reject(error);
+			}
 		});
 	});
 }
 
 export async function confirm(content, title = '提示', options = {}) {
-	const res = await showModal({ title, content, ...options });
-	return res.confirm;
+	return (await showModal({ title, content, ...options })).confirm;
 }
 
 export async function alert(content, title = '提示') {
 	await showModal({ title, content, showCancel: false });
 }
 
-/**
- * 操作菜单，返回被选中的下标；取消返回 -1。
- */
-export async function showActionSheet(itemList, header) {
-	return new Promise((resolve) => {
-		actionSheetController.create({
-			header,
-			buttons: [
-				...itemList.map((text, index) => ({ text, handler: () => resolve(index) })),
-				{ text: '取消', role: 'cancel', handler: () => resolve(-1) },
-			],
-		}).then((el) => {
-			el.onDidDismiss().then(({ role }) => {
-				if (role === 'backdrop') {
-					resolve(-1);
-				}
-			});
-			el.present();
-		});
+export function finishActionSheet(action) {
+	actionSheetState.show = false;
+	resolveActionSheet?.(action?.index ?? -1);
+	resolveActionSheet = null;
+}
+
+export function showActionSheet(itemList, header) {
+	finishActionSheet();
+	actionSheetState.title = header || '';
+	actionSheetState.actions = itemList.map((name, index) => ({ name, index }));
+	actionSheetState.show = true;
+	return new Promise(resolve => { resolveActionSheet = resolve; });
+}
+
+export function previewImages(images, startPosition) {
+	let resolveClosed;
+	const closed = new Promise(resolve => { resolveClosed = resolve; });
+	const instance = showImagePreview({
+		images, startPosition, loop: false, closeable: true,
+		onClose: () => { activePreview = null; },
+		onClosed: () => { resolveClosed(); },
 	});
+	activePreview = instance;
+	return { close: () => instance.close(), closed };
+}
+
+// Android 返回键先处理浮层，不能直接离开浮层后的页面。
+export function dismissOverlay(force = false) {
+	if (actionSheetState.show) {
+		finishActionSheet();
+		return true;
+	}
+	if (activePreview) {
+		activePreview.close();
+		activePreview = null;
+		return true;
+	}
+	if (activeDialog) {
+		if (force || activeDialog.showCancel) activeDialog.cancel();
+		return true;
+	}
+	return !!loading;
 }

@@ -5,12 +5,16 @@ const REFRESH_TOKEN_KEY = 'heritage_app_refresh_token';
 const USER_KEY = 'heritage_app_user';
 const DEVICE_TOKEN_KEY = 'heritage_app_device_token';
 const LAST_USERNAME_KEY = 'heritage_app_last_username';
+const OFFLINE_USER_KEY = 'heritage_app_offline_user';
+let offlineUnlocked = false;
 
 export function setSession(sessionOrToken, user) {
+	offlineUnlocked = false;
 	if (typeof sessionOrToken === 'string') {
 		setItem(TOKEN_KEY, sessionOrToken);
 		removeItem(REFRESH_TOKEN_KEY);
 		setUser(user || {});
+		rememberOfflineUser(user);
 		return;
 	}
 
@@ -36,6 +40,24 @@ export function setSession(sessionOrToken, user) {
 	}
 
 	setUser(userPayload);
+	rememberOfflineUser(userPayload);
+}
+
+function rememberOfflineUser(user) {
+	if (user?.id) {
+		// This proof is written only after the server has authenticated the account.
+		window.localStorage.setItem(OFFLINE_USER_KEY, String(user.id));
+	}
+}
+
+export function canUseOfflinePatrol() {
+	const user = getUser();
+	return !!user?.id && getItem(OFFLINE_USER_KEY) === String(user.id);
+}
+
+export function unlockOfflinePatrol() {
+	if (!canUseOfflinePatrol()) throw new Error('首次使用必须联网登录');
+	offlineUnlocked = true;
 }
 
 export function setUser(user) {
@@ -89,13 +111,14 @@ export function clearAccessToken() {
 }
 
 export function clearSession() {
+	offlineUnlocked = false;
 	clearAccessToken();
 	removeItem(USER_KEY);
 	removeItem(DEVICE_TOKEN_KEY);
 }
 
 export function isLoggedIn() {
-	return !!getToken();
+	return !!getToken() || (offlineUnlocked && canUseOfflinePatrol());
 }
 
 function base64UrlDecode(input) {
