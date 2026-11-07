@@ -63,15 +63,24 @@ export async function syncPatrols() {
 	if (!userId) return { uploaded: 0 };
 	syncing = (async () => {
 		let uploaded = 0;
+		let distanceSupported = false;
 		for (const row of await listPending(userId)) {
 			if (getUser()?.id !== userId || navigator.onLine === false || !isLoggedIn()) break;
 			try {
+				if (row.distance_meters != null && !distanceSupported) {
+					const capability = await apiRequest({ url: '/api/inspections/capabilities' });
+					if (capability.statusCode !== 200 || capability.data?.distance_meters !== true) {
+						throw new Error('服务器尚不支持巡查距离，请更新服务器后重试；记录已保存在本机');
+					}
+					distanceSupported = true;
+				}
 				const res = await apiUpload({
 					url: '/api/inspections/upload',
 					files: row.photos,
 					name: 'photos',
 					formData: {
 						site_id: row.site_id, latitude: row.latitude, longitude: row.longitude,
+						distance_meters: row.distance_meters,
 						is_normal: row.is_normal, issue_details: row.issue_details,
 						client_id: row.client_id, inspect_time: row.inspect_time,
 					},

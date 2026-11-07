@@ -23,6 +23,7 @@
 						<van-button type="primary" block :disabled="syncing" @click="syncPending">{{ syncing ? '正在同步…' : '立即同步 / 重试' }}</van-button>
 						<div v-for="item in pending" :key="item.key">
 							<p>{{ item.site_name }} · {{ new Date(item.inspect_time).toLocaleString() }} · {{ item.photos.length }} 张照片</p>
+							<p>距文物点直线距离：{{ distanceLabel(item.distance_meters) }}</p>
 							<p v-if="item.error" class="text-danger">{{ item.error }}</p>
 							<van-button size="small" @click="previewPending(item)">查看本地照片</van-button>
 						</div>
@@ -54,14 +55,15 @@
 							<div class="flex items-start gap-2">
 								<div class="min-w-0 flex-1">
 									<span class="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.9375rem] font-semibold leading-[1.3] text-ink">{{ item.site_name || '未知文物点' }}</span>
-									<div class="mt-1 flex items-center gap-1 overflow-hidden whitespace-nowrap text-xs text-ink-3">
+									<div class="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-3">
 										<AppIcon name="clock" :size="28" color="var(--c-text-3)" />
 										<span>{{ timeOf(item.inspect_time) }}</span>
 										<template v-if="item.latitude != null && item.longitude != null">
 											<AppIcon class="ml-2" name="pin" :size="28" color="var(--c-text-4)" />
-											<span class="overflow-hidden text-ellipsis text-ink-4">{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</span>
+											<span class="text-ink-4">{{ coord(item.longitude) }}, {{ coord(item.latitude) }}</span>
 										</template>
 									</div>
+									<div class="mt-1 text-xs text-ink-3">距文物点直线距离：{{ distanceLabel(item.distance_meters) }}</div>
 								</div>
 								<span class="u-badge shrink-0 px-2 py-0.5 text-xs" :class="item.is_normal ? 'ok' : 'bad'">{{ item.is_normal ? '正常' : '有问题' }}</span>
 							</div>
@@ -93,6 +95,7 @@
 	import EmptyState from '@/components/EmptyState.vue';
 	import { loadPatrolRecords, PATROL_CHANGED, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
 	import { friendlyTime, todayKey } from '@/lib/format.js';
+	import { distanceLabel } from '@/lib/distance.js';
 	import { previewImage } from '@/lib/native.js';
 	import { switchTab } from '@/lib/nav.js';
 	import { toast } from '@/lib/ui.js';
@@ -150,6 +153,7 @@
 			window.removeEventListener(PATROL_CHANGED, this.loadPending);
 		},
 		methods: {
+			distanceLabel,
 			async loadPending() {
 				try { this.pending = await pendingPatrols(); }
 				catch (error) { toast(error.message || '本地记录读取失败'); }
@@ -204,7 +208,7 @@
 			},
 			coord(value) {
 				if (value === null || value === undefined || value === '') return '-';
-				return Number(value).toFixed(5);
+				return Number(value).toFixed(6);
 			},
 			preview(item) {
 				const urls = item.photo_urls?.length ? item.photo_urls : [item.photo_url];

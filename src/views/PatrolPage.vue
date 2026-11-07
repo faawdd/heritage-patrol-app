@@ -71,6 +71,8 @@
 							<div class="step-no">{{ photos.length ? '✓' : '2' }}</div>
 							<span class="step-title">拍摄现场照片</span>
 						</div>
+						<div v-if="photos.length && !reportLocation" class="far-tip">旧版草稿的照片坐标无法确认，请删除全部照片后重新添加，以确保水印与上报坐标一致。</div>
+						<div v-else-if="reportLocation && !reportLocationOk" class="far-tip">照片和上报使用的是文物点坐标或默认坐标，并非手机定位坐标。如需现场定位，请删除照片后重新定位。</div>
 						<div v-if="!photos.length" class="shoot" @click="takePhoto">
 							<div class="shoot-icon">
 								<AppIcon name="camera" :size="68" color="var(--c-on-primary)" />
@@ -97,6 +99,7 @@
 							<div class="step-no">3</div>
 							<span class="step-title">文物点情况</span>
 						</div>
+						<div class="mx-4 mb-3 text-sm text-ink-2">距文物点直线距离：{{ distanceLabel(reportDistance) }}<span v-if="reportDistance == null">（定位或文物点坐标不可用）</span></div>
 						<div class="status-row">
 							<div class="status-btn ok" :class="{ active: status === 'normal' }" @click="setStatus('normal')">
 								<AppIcon name="check-circle" :size="72" :color="status === 'normal' ? 'var(--c-on-primary)' : 'var(--c-success)'" />
@@ -215,6 +218,7 @@
 	import AppIcon from '@/components/AppIcon.vue';
 	import EmptyState from '@/components/EmptyState.vue';
 	import { heritageLevelAccent } from '@/lib/heritage-level.js';
+	import { distanceLabel, distanceMeters } from '@/lib/distance.js';
 	import { addWatermark } from '@/lib/watermark.js';
 	import { getUser } from '@/lib/auth.js';
 	import { enqueuePatrol, loadTasks, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
@@ -238,6 +242,8 @@
 				locationOk: false,
 				locateError: '',
 				location: { latitude: 0, longitude: 0 },
+				reportLocation: null,
+				reportLocationOk: false,
 				site: null,
 				pickerOpen: false,
 				keyword: '',
@@ -273,6 +279,9 @@
 			distanceText() {
 				return this.site ? formatDistance(this.site.distance) : '';
 			},
+			reportDistance() {
+				return this.reportLocationOk ? distanceMeters(this.reportLocation, this.site) : null;
+			},
 			isFar() {
 				return !!(this.site && !this.site.manual && Number(this.site.distance) > FAR_KM);
 			},
@@ -285,11 +294,12 @@
 				return tags || note;
 			},
 			canSubmit() {
-				return !!(this.site && this.photos.length && !this.processing && (this.status === 'normal' || (this.status === 'problem' && this.issueText)));
+				return !!(this.site && this.photos.length && this.reportLocation && !this.processing && (this.status === 'normal' || (this.status === 'problem' && this.issueText)));
 			},
 			submitHint() {
 				if (!this.site) return '请先确认文物点';
 				if (!this.photos.length) return '请拍摄现场照片';
+				if (!this.reportLocation) return '旧版草稿坐标无法确认，请删除全部照片后重新添加';
 				if (this.processing) return '请等待照片处理完成';
 				if (!this.status) return '请选择「正常」或「有问题」';
 				if (this.status === 'problem' && !this.issueText) return '请选择或填写发现的问题';
@@ -312,6 +322,8 @@
 						this.site = draft.site;
 						this.location = draft.location;
 						this.locationOk = draft.locationOk;
+						this.reportLocation = draft.reportLocation || null;
+						this.reportLocationOk = !!draft.reportLocationOk;
 						this.status = draft.status;
 						this.chips = draft.chips;
 						this.issueNote = draft.issueNote;
@@ -340,6 +352,7 @@
 		},
 		methods: {
 			heritageLevelAccent,
+			distanceLabel,
 			setStep(step) {
 				this.currentStep = step;
 				this.persistDraft();
@@ -361,6 +374,7 @@
 				const userId = this.user.id;
 				const draft = {
 					site: { ...this.site }, location: { ...this.location }, locationOk: this.locationOk,
+					reportLocation: this.reportLocation ? { ...this.reportLocation } : null, reportLocationOk: this.reportLocationOk,
 					status: this.status, chips: [...this.chips], issueNote: this.issueNote,
 					capturedAt: this.capturedAt,
 					currentStep: this.currentStep,
@@ -456,6 +470,8 @@
 				if (this.photos.length) await this.persistDraft();
 				else {
 					this.capturedAt = '';
+					this.reportLocation = null;
+					this.reportLocationOk = false;
 					try {
 						await this.draftSaving;
 						await removeCache(this.user.id, 'draft');
@@ -463,11 +479,20 @@
 				}
 			},
 			async addPhoto(path) {
-				const marked = await addWatermark(path, this.watermarkText());
+				if (this.photos.length && !this.reportLocation) throw new Error('旧版草稿坐标无法确认，请删除全部照片后重新添加');
+				const reportLocation = this.reportLocation || {
+					latitude: Number(Number(this.location.latitude).toFixed(6)),
+					longitude: Number(Number(this.location.longitude).toFixed(6)),
+				};
+				const reportLocationOk = this.reportLocation ? this.reportLocationOk : this.locationOk;
+				if (!Number.isFinite(reportLocation.latitude) || !Number.isFinite(reportLocation.longitude)) throw new Error('坐标无效，请重新定位后添加照片');
+				const marked = await addWatermark(path, this.watermarkText(reportLocation));
 				if (marked.blob.size > 10 * 1024 * 1024) {
 					URL.revokeObjectURL(marked.url);
 					throw new Error('照片超过 10 MB，请降低分辨率');
 				}
+				this.reportLocation = reportLocation;
+				this.reportLocationOk = reportLocationOk;
 				this.photos.push({ url: marked.url, file: marked.blob });
 				if (!this.capturedAt) this.capturedAt = new Date().toISOString();
 				await this.persistDraft();
@@ -512,12 +537,12 @@
 					this.processing = false;
 				}
 			},
-			watermarkText() {
+			watermarkText(location) {
 				const d = new Date();
 				const time = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 				const name = this.user.full_name || this.user.username || '-';
-				const lng = Number(this.location.longitude || 0).toFixed(6);
-				const lat = Number(this.location.latitude || 0).toFixed(6);
+				const lng = location.longitude.toFixed(6);
+				const lat = location.latitude.toFixed(6);
 				return `巡查人: ${name}\n文物点: ${this.site ? this.site.name : '-'}\n时间: ${time}\n坐标: ${lng}, ${lat}`;
 			},
 			preview(index) {
@@ -567,8 +592,9 @@
 					const row = await enqueuePatrol({
 							site_id: this.site.id,
 							site_name: this.site.name,
-							latitude: this.location.latitude,
-							longitude: this.location.longitude,
+							latitude: this.reportLocation.latitude,
+							longitude: this.reportLocation.longitude,
+							distance_meters: this.reportDistance,
 							is_normal: this.status === 'normal',
 							issue_details: this.status === 'problem' ? this.issueText : '',
 							inspect_time: this.capturedAt || new Date().toISOString(),
@@ -596,6 +622,8 @@
 				this.currentStep = 0;
 				this.success = null;
 				this.capturedAt = '';
+				this.reportLocation = null;
+				this.reportLocationOk = false;
 				this.revokePhoto();
 				this.status = '';
 				this.chips = [];

@@ -9,7 +9,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "test:ui": "node --experimental-vm-modules --test tests/ui-navigation.test.js tests/patrol-steps.test.js tests/heritage-level.test.js",
+    "test:ui": "node --experimental-vm-modules --test tests/ui-navigation.test.js tests/patrol-steps.test.js tests/patrol-distance.test.js tests/heritage-level.test.js",
     "typecheck:location": "vue-tsc -p tsconfig.location.json",
     "test:location": "node --experimental-strip-types --test tests/location-services.test.ts && node --experimental-vm-modules --test tests/location.test.js tests/location-adapter.test.js",
     "dev": "vite",
