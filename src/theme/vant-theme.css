@@ -58,9 +58,6 @@
 	--van-tabbar-item-active-color: var(--c-primary);
 	--van-tabbar-item-active-background: var(--c-surface);
 
-	/* === 对话框 === */
-	
-
 	/* === Toast === */
 	--van-toast-background: rgba(38, 51, 45, 0.92);
 	--van-toast-font-size: 0.875rem;
@@ -178,6 +175,17 @@
 /* === 对话框：更大的按钮，便于点按 === */
 .van-dialog {
 	width: min(86vw, 340px);
+	--van-dialog-background: var(--c-surface);
+	--van-dialog-has-title-message-text-color: var(--c-text-2);
+	--van-text-color: var(--c-text);
+}
+.van-toast {
+	--van-toast-background: rgba(38, 51, 45, 0.96);
+	--van-toast-text-color: #FFFFFF;
+	--van-toast-loading-icon-color: #FFFFFF;
+}
+[data-theme="dark"] .van-toast {
+	--van-toast-background: rgba(12, 16, 14, 0.96);
 }
 .van-dialog__header {
 	padding-top: 22px;

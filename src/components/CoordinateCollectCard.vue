@@ -30,7 +30,7 @@
     </div>
 
     <div v-if="pointWindowVisible && activePoint" class="fixed inset-0 z-[999] flex items-end justify-center bg-black/40 px-0 pb-2" @click.self="closePointWindow">
-      <div class="max-h-[82vh] w-[calc(100%-0.75rem)] overflow-y-auto border border-line bg-surface p-2" :style="pointThemeStyle(activePointIndex)">
+      <div class="point-window max-h-[82vh] w-[calc(100%-0.75rem)] overflow-y-auto border p-2" :style="{ borderColor: getPointTheme(activePointIndex).border }">
         <div class="mb-1 flex items-center justify-between">
           <span class="text-[0.9375rem] font-bold text-ink">定位点 {{ activePointIndex + 1 }} 坐标窗口</span>
           <van-button native-type="button" @click="closePointWindow">关闭</van-button>
@@ -419,6 +419,13 @@ defineExpose({
   coordList,
 });
 </script>
+
+<style scoped>
+.point-window {
+  background-color: var(--c-surface);
+  box-shadow: var(--shadow-lg);
+}
+</style>
 
 <style scoped>
 :deep(.min-h-10) { min-height: 2.75rem !important; }

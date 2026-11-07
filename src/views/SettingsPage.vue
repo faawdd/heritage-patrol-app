@@ -4,9 +4,10 @@
 			<div class="u-page">
 				<AppHeader title="软件设置" back />
 				<div class="u-body pt-3">
-					<div class="u-card flex flex-col gap-4">
-						<div>
-							<h2 class="m-0 text-base font-semibold text-ink">海拔获取设置</h2>
+					<div class="settings-sections">
+						<details class="u-card settings-section">
+							<summary class="settings-summary"><span>海拔获取设置</span><AppIcon name="chevron-down" :size="40" color="var(--c-text-2)" /></summary>
+							<div class="settings-content">
 							<label class="altitude-field">海拔来源
 								<select v-model="altitude.source">
 									<option value="both">GPS 和气压计</option>
@@ -31,9 +32,11 @@
 							<p class="text-xs text-ink-3">默认标准气压 1013.25 hPa，建议填写当地最新海平面气压。气压海拔受天气影响，GPS 与气压海拔基准可能不同，融合值仅供估算。采样时请停留在同一位置。</p>
 							<p class="text-xs text-ink-3">两种来源分别处理后等权平均；一种不可用时使用可用来源并提示。仅气压计模式仍需 GPS 获取坐标。</p>
 							<van-button type="primary" block native-type="button" @click="saveAltitude">保存海拔设置</van-button>
-						</div>
-						<div>
-							<h2 class="m-0 text-base font-semibold text-ink">深色模式</h2>
+							</div>
+						</details>
+						<details class="u-card settings-section">
+							<summary class="settings-summary"><span>深色模式</span><AppIcon name="chevron-down" :size="40" color="var(--c-text-2)" /></summary>
+							<div class="settings-content">
 							<div class="mt-2 flex gap-1.5">
 								<van-button
 									v-for="mode in themeModes"
@@ -47,10 +50,12 @@
 								>{{ mode.name }}</van-button>
 							</div>
 							<p class="mb-0 mt-2 text-xs text-ink-3">「跟随系统」会随手机深色模式自动切换</p>
-						</div>
+							</div>
+						</details>
 
-						<div>
-							<h2 class="m-0 text-base font-semibold text-ink">主题色</h2>
+						<details class="u-card settings-section">
+							<summary class="settings-summary"><span>主题色</span><AppIcon name="chevron-down" :size="40" color="var(--c-text-2)" /></summary>
+							<div class="settings-content">
 							<div class="mt-2 grid grid-cols-2 gap-2.5">
 								<button
 									v-for="color in themeColors"
@@ -68,10 +73,12 @@
 									<AppIcon v-if="prefs.color === color.key" name="check" :size="36" color="var(--c-primary)" />
 								</button>
 							</div>
-						</div>
+							</div>
+						</details>
 
-						<div>
-							<h2 class="m-0 text-base font-semibold text-ink">字体大小</h2>
+						<details class="u-card settings-section">
+							<summary class="settings-summary"><span>字体大小</span><AppIcon name="chevron-down" :size="40" color="var(--c-text-2)" /></summary>
+							<div class="settings-content">
 							<div class="mt-2 flex gap-1.5">
 								<van-button
 									v-for="font in fontSizes"
@@ -85,7 +92,8 @@
 								>{{ font.name }}</van-button>
 							</div>
 							<p class="mb-0 mt-2 border border-dashed border-[var(--c-line-strong)] bg-fill px-3 py-2 text-base text-ink-2">巡查上报，记录文物点情况</p>
-						</div>
+							</div>
+						</details>
 					</div>
 				</div>
 			</div>
@@ -139,6 +147,13 @@ export default {
 </script>
 
 <style scoped>
+.settings-sections { display: flex; flex-direction: column; gap: 0.75rem; }
+.settings-section { padding: 0; }
+.settings-summary { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; min-height: 52px; padding: 0.75rem 1rem; color: var(--c-text); font-size: 1rem; font-weight: 600; cursor: pointer; list-style: none; }
+.settings-summary::-webkit-details-marker { display: none; }
+.settings-summary .app-icon { transition: transform 0.2s; }
+.settings-section[open] .settings-summary .app-icon { transform: rotate(180deg); }
+.settings-content { padding: 0 1rem 1rem; border-top: 1px solid var(--c-line); }
 .altitude-field { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.75rem; color: var(--c-text); font-size: 0.875rem; }
 .altitude-field select, .altitude-field input { min-height: 44px; width: 100%; padding: 0.5rem; border: 1px solid var(--c-line); background: var(--c-surface); color: var(--c-text); }
 .color-option {
