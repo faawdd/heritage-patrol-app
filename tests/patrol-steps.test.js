@@ -119,6 +119,31 @@ test('all watermarks, saved draft and submitted coordinates use the first photo 
 	assert.match(watermarks.at(-1), /坐标: 91\.200000, 43\.100000/);
 });
 
+test('photo watermarks include the selected site code and keep it consistent across photos', async () => {
+	const { view, watermarks, messages } = await setup();
+	view.user = { id: 42, username: 'test' };
+	view.site = { id: 1, name: '测试文物点', sip_code: '650100-0001' };
+	await view.addPhoto('first');
+	view.pickerOpen = true;
+	view.chooseSite({ id: 1, name: '更新后的名称', sip_code: 'NEW-CODE' });
+	assert.equal(view.pickerOpen, false);
+	view.chooseSite({ id: 2, name: '其他文物点', sip_code: 'OTHER' });
+	assert.match(messages.at(-1), /先删除已拍照片/);
+	await view.addPhoto('second');
+	for (const text of watermarks) {
+		assert.match(text, /文物点: 测试文物点\n四普编号: 650100-0001\n时间:/);
+		assert.match(text, /坐标: 0\.000000, 0\.000000/);
+	}
+});
+
+test('photo watermark reports missing site code without inventing one', async () => {
+	const { view, watermarks } = await setup();
+	view.user = { id: 42 };
+	view.site = { id: 1, name: '测试文物点' };
+	await view.addPhoto('first');
+	assert.match(watermarks[0], /四普编号: 未提供/);
+});
+
 test('restored snapshots survive relocalization; old drafts require replacing photos', async () => {
 	const draft = {
 		site: { id: 1 }, location: { latitude: 42, longitude: 90 }, locationOk: true,

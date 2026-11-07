@@ -446,8 +446,9 @@
 				this.sites = this.tasks.filter(item => !this.keyword || [item.name, item.address, item.sip_code].join(' ').includes(this.keyword));
 			},
 			chooseSite(item) {
-				if (this.photos.length && this.site?.id !== item.id) {
-					toast('请先删除已拍照片，再切换文物点，避免照片水印与任务不一致');
+				if (this.photos.length) {
+					if (this.site?.id !== item.id) toast('请先删除已拍照片，再切换文物点，避免照片水印与任务不一致');
+					else this.pickerOpen = false;
 					return;
 				}
 				this.site = {
@@ -543,7 +544,8 @@
 				const name = this.user.full_name || this.user.username || '-';
 				const lng = location.longitude.toFixed(6);
 				const lat = location.latitude.toFixed(6);
-				return `巡查人: ${name}\n文物点: ${this.site ? this.site.name : '-'}\n时间: ${time}\n坐标: ${lng}, ${lat}`;
+				const code = this.site?.sip_code || '未提供';
+				return `巡查人: ${name}\n文物点: ${this.site ? this.site.name : '-'}\n四普编号: ${code}\n时间: ${time}\n坐标: ${lng}, ${lat}`;
 			},
 			preview(index) {
 				previewImage(this.photos.map(photo => photo.url), index);

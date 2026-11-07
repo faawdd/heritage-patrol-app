@@ -36,7 +36,7 @@ export function addWatermark(src, text, options = {}) {
 				ctx.textBaseline = 'bottom';
 				lines.forEach((line, index) => {
 					const y = height - padding - (lines.length - 1 - index) * lineHeight;
-					ctx.fillText(line, width - padding, y);
+					ctx.fillText(line, width - padding, y, Math.max(1, width - 2 * padding));
 				});
 
 				canvas.toBlob((blob) => {
