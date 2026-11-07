@@ -40,6 +40,7 @@ UI 与返回导航回归测试：`npm run test:ui`；原生定位回归测试：
 
 主题弹窗回归测试：启动 `npm run dev`，在本地浏览器控制台执行 `(await import('/tests/theme.browser.js')).runThemeTests()`，检查浅色、深色及各主题色下提示文字对比度和坐标窗口背景。
 软件设置分区回归测试：在同一浏览器控制台执行 `(await import('/tests/settings.browser.js')).runSettingsTests()`，检查折叠、展开及设置保存。
+外观回归测试：执行 `(await import('/tests/appearance.browser.js')).runAppearanceTests()`，检查等级标签对比度、窄屏布局和空状态；将浏览器宽度设为 320px 后执行 `(await import('/tests/appearance.browser.js')).runAdminNarrowTest()` 检查文物列表。
 
 现场采集在“我的 → 软件设置”中配置 GPS、气压计或两者、采样组数及平均值或中位数。默认三组，分别计算两种来源后等权平均；单一来源不可用时使用可用结果并提示。需要开启精确定位并在采样期间停留在同一位置。气压海拔基于可配置的当地海平面气压（默认 1013.25 hPa）估算，受天气及高程基准影响，不能代替测绘高程。
 

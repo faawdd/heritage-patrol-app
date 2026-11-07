@@ -20,7 +20,7 @@
 						<div class="flex min-w-0 flex-1 flex-col gap-0.5 p-0">
 							<div class="flex items-start justify-between gap-1.5">
 								<span class="min-w-0 flex-1 text-base font-extrabold leading-[1.35] text-ink">{{ item.name }}</span>
-								<div class="shrink-0 whitespace-nowrap bg-warning-bg px-2 py-0.5 text-xs font-bold text-warning">{{ item.protection_level }}</div>
+								<div v-if="item.protection_level" class="level-badge max-w-1/2 shrink-0 break-words" :class="heritageLevelAccent(item.protection_level)">{{ item.protection_level }}</div>
 							</div>
 							<span class="text-[0.8125rem] tabular-nums text-ink-3">编号：{{ item.survey_code }}</span>
 							<span class="text-[0.8125rem] text-ink-2">{{ item.era }} · {{ item.category }}</span>
@@ -32,11 +32,9 @@
 						</div>
 					</div>
 
-					<div v-if="!loading && !records.length" class="flex flex-col items-center gap-2.5 py-12">
-						<AppIcon name="records" :size="80" color="var(--c-line-strong)" />
-						<span class="text-[0.9375rem] text-ink-3">暂无采集记录</span>
+					<EmptyState v-if="!loading && !records.length && !listError" message="暂无采集记录" hint="开始现场采集后，记录将显示在这里。">
 						<van-button type="primary" native-type="button" @click="goCollect">去采集</van-button>
-					</div>
+					</EmptyState>
 
 					<div v-if="loading && records.length" class="p-2.5 text-center text-[0.8125rem] text-ink-4"><span>加载中…</span></div>
 					<div v-if="!hasMore && records.length" class="p-2.5 text-center text-[0.8125rem] text-ink-4"><span>— 已显示全部 —</span></div>
@@ -54,6 +52,8 @@
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
+	import EmptyState from '@/components/EmptyState.vue';
+	import { heritageLevelAccent } from '@/lib/heritage-level.js';
 	import config from '@/lib/config.js';
 	import { getAuthHeader } from '@/lib/auth.js';
 	import { request } from '@/lib/request.js';
@@ -65,7 +65,7 @@
 	const PAGE_SIZE = 10;
 
 	export default {
-		components: { AppHeader, AppIcon },
+		components: { AppHeader, AppIcon, EmptyState },
 		data() {
 			return {
 				refreshing: false,
@@ -80,6 +80,7 @@
 		},
 
 		methods: {
+			heritageLevelAccent,
 			async onRefresh() {
 				try {
 					await this.fetchRecords(1, true);

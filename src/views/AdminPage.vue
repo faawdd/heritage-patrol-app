@@ -61,9 +61,10 @@
 								<span class="heritage-code">{{ item.sip_code || t('common.notAvailable') }}</span>
 								<span class="heritage-name">{{ item.name }}</span>
 								<span class="heritage-category">{{ item.category || t('common.notAvailable') }}</span>
+								<span v-if="item.level" class="level-badge heritage-level" :class="heritageLevelAccent(item.level)" :title="item.level" :aria-label="item.level">{{ heritageLevelShortLabel(item.level) }}</span>
 								<AppIcon name="chevron-right" :size="32" color="var(--c-text-4)" />
 							</div>
-							<div v-if="!heritages.length" class="u-card u-empty">{{ t('admin.noHeritageMatched') }}</div>
+							<div v-if="!heritages.length" class="u-card u-empty"><EmptyState :message="t('admin.noHeritageMatched')" hint="试试调整搜索或筛选条件。" /></div>
 						</div>
 
 						<div v-if="heritageTotalPages > 1" class="heritage-pagination mt-1 flex shrink-0 items-center justify-between gap-2">
@@ -142,7 +143,7 @@
 								<van-button type="primary" size="small" native-type="button" @click="openProjectOnline(item)">{{ t('admin.openProjectOnline') }}</van-button>
 							</div>
 							</div>
-							<div v-if="!group.items.length" class="u-card u-empty">{{ group.key === 'completed' ? '暂无已完成流程项目' : t('admin.noProjectMatched') }}</div>
+							<div v-if="!group.items.length" class="u-card u-empty"><EmptyState :message="group.key === 'completed' ? '暂无已完成流程项目' : t('admin.noProjectMatched')" /></div>
 							</template>
 						</section>
 						</div>
@@ -172,7 +173,9 @@
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
+	import EmptyState from '@/components/EmptyState.vue';
 	import AppSelect from '@/components/AppSelect.vue';
+	import { heritageLevelAccent, heritageLevelShortLabel } from '@/lib/heritage-level.js';
 	import { openApiEntry } from '@/lib/webview.js';
 	import config from '@/lib/config.js';
 	import { getUser, isAdminUser } from '@/lib/auth.js';
@@ -182,7 +185,7 @@
 	import { t } from '@/lib/i18n.js';
 
 	export default {
-		components: { AppHeader, AppIcon, AppSelect },
+		components: { AppHeader, AppIcon, AppSelect, EmptyState },
 		data() {
 			return {
 				currentTab: 'heritages',
@@ -291,6 +294,8 @@
 			this.stopObservingHeritageLayout();
 		},
 		methods: {
+			heritageLevelAccent,
+			heritageLevelShortLabel,
 			t,
 			request(url, method = 'GET', data = null) {
 				return apiRequest({ url, method, data });
@@ -490,6 +495,10 @@
 .heritage-search, .project-search { flex-shrink: 0; }
 .heritage-list { display: flex; flex: 1; flex-direction: column; gap: 0.25rem; min-height: 0; overflow: hidden; }
 .heritage-list .heritage-row { flex: 0 0 2.75rem; min-height: 2.5rem; margin-bottom: 0; }
+.heritage-level { flex-shrink: 0; max-width: 5.5rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; display: block; }
+@media (max-width: 360px) {
+	.heritage-level, .heritage-category { max-width: 3.5rem; }
+}
 .heritage-list .u-empty { flex: 1; }
 .heritage-pagination { min-height: 2.25rem; }
 .projects-layout { height: 100%; }
@@ -530,7 +539,7 @@
 }
 
 .heritage-name {
-	min-width: 0;
+	min-width: 3em;
 	flex: 1;
 	overflow: hidden;
 	color: var(--c-text);

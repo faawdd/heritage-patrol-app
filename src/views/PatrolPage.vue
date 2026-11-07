@@ -156,7 +156,7 @@
 					</div>
 					<div class="sheet-list">
 						<div v-if="searching" class="u-empty">正在搜索…</div>
-						<div v-else-if="!sites.length" class="u-empty">没有找到文物点，换个名字试试</div>
+						<EmptyState v-else-if="!sites.length" message="没有找到文物点" hint="试试其他名称或编号。" />
 						<div
 							v-for="item in sites"
 							:key="item.id"
@@ -167,7 +167,8 @@
 							<div class="site-option-main">
 								<span class="site-option-name">{{ item.name }}</span>
 								<span v-if="item.sip_code" class="site-option-code">{{ item.sip_code }}</span>
-								<span class="site-option-sub">{{ [item.level, item.address].filter(Boolean).join(' · ') || '' }}</span>
+								<span v-if="item.level" class="level-badge" :class="heritageLevelAccent(item.level)">{{ item.level }}</span>
+								<span v-if="item.address" class="site-option-sub">{{ item.address }}</span>
 							</div>
 							<AppIcon v-if="site && site.id === item.id" name="check" :size="48" color="var(--c-primary)" :stroke="3" />
 						</div>
@@ -212,6 +213,8 @@
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
+	import EmptyState from '@/components/EmptyState.vue';
+	import { heritageLevelAccent } from '@/lib/heritage-level.js';
 	import { addWatermark } from '@/lib/watermark.js';
 	import { getUser } from '@/lib/auth.js';
 	import { enqueuePatrol, loadTasks, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
@@ -225,7 +228,7 @@
 	const FAR_KM = 1;
 
 	export default {
-		components: { AppHeader, AppIcon, },
+		components: { AppHeader, AppIcon, EmptyState },
 		data() {
 			return {
 				user: {},
@@ -336,6 +339,7 @@
 			this.revokePhoto();
 		},
 		methods: {
+			heritageLevelAccent,
 			setStep(step) {
 				this.currentStep = step;
 				this.persistDraft();
@@ -702,6 +706,7 @@
 .site-option:active { @apply bg-fill; }
 .site-option.active { @apply bg-primary-light; }
 .site-option-main { @apply flex min-w-0 flex-1 flex-col gap-0.5; }
+.site-option-main .level-badge { align-self: flex-start; }
 .site-option-name { @apply text-[0.9375rem] font-bold text-ink; }
 .site-option-code { @apply mt-0.5 bg-fill text-[0.6875rem]; }
 .site-option-sub { @apply text-xs leading-[1.45] text-ink-3; overflow-wrap: anywhere; }

@@ -27,18 +27,22 @@
 						</van-cell>
 						<van-grid :column-num="problemCount > 0 ? 4 : 3" :border="false" clickable>
 							<van-grid-item>
+								<span class="stat-icon"><AppIcon name="clock" :size="30" color="var(--c-primary)" /></span>
 								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ todayCount }}</span>
 								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">今天</span>
 							</van-grid-item>
 							<van-grid-item>
+								<span class="stat-icon"><AppIcon name="calendar" :size="30" color="var(--c-info)" /></span>
 								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ monthCount }}</span>
 								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">本月</span>
 							</van-grid-item>
 							<van-grid-item>
+								<span class="stat-icon"><AppIcon name="records" :size="30" color="var(--c-success)" /></span>
 								<span class="text-xl font-extrabold leading-tight tabular-nums text-primary">{{ totalLabel }}</span>
 								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">累计</span>
 							</van-grid-item>
 							<van-grid-item v-if="problemCount > 0">
+								<span class="stat-icon"><AppIcon name="alert" :size="30" color="var(--c-danger)" /></span>
 								<span class="text-xl font-extrabold leading-tight tabular-nums text-danger">{{ problemCount }}</span>
 								<span class="mt-0.5 text-[0.6875rem] font-medium text-ink-3">问题</span>
 							</van-grid-item>
@@ -65,7 +69,7 @@
 							<van-cell title="管理工作台" :value="`${adminStats.totalSites} 文物点 · ${adminStats.pendingProjects} 在办项目`" />
 							<van-grid :column-num="3" :border="false" clickable>
 								<van-grid-item v-for="item in adminFeatures" :key="item.key" :text="item.name" @click="open(item.url)">
-									<template #icon><AppIcon :name="item.icon" :size="40" color="var(--c-primary)" /></template>
+									<template #icon><span class="feature-icon"><AppIcon :name="item.icon" :size="40" color="var(--c-primary)" /></span></template>
 								</van-grid-item>
 							</van-grid>
 						</van-cell-group>
@@ -246,7 +250,17 @@
 @reference "../theme/tailwind.css";
 .home-header {
 	background-color: var(--c-primary);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
+.stat-icon, .feature-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: var(--c-primary-light);
+}
+.stat-icon { width: 1.75rem; height: 1.75rem; margin-bottom: 0.25rem; }
+.feature-icon { width: 2rem; height: 2rem; }
 .home-header::before {
 	content: "";
 	position: absolute;

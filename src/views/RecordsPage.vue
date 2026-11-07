@@ -40,12 +40,12 @@
 					</div>
 
 					<div v-else-if="!visible.length" class="u-card u-empty">
-						<AppIcon name="records" :size="96" color="var(--c-text-4)" />
-						<span>{{ records.length ? '没有符合条件的记录' : '还没有巡查记录' }}</span>
+						<EmptyState :message="records.length ? '没有符合条件的记录' : '还没有巡查记录'" :hint="records.length ? '试试切换筛选条件。' : '完成巡查上报后，记录将显示在这里。'">
 						<van-button type="primary" v-if="!records.length" native-type="button" @click="goPatrol">
 							<AppIcon name="camera" :size="44" color="var(--c-on-primary)" />
 							<span>去巡查上报</span>
 						</van-button>
+						</EmptyState>
 					</div>
 
 					<div v-for="group in groups" :key="group.day" class="group">
@@ -90,6 +90,7 @@
 <script>
 	import AppHeader from '@/components/AppHeader.vue';
 	import AppIcon from '@/components/AppIcon.vue';
+	import EmptyState from '@/components/EmptyState.vue';
 	import { loadPatrolRecords, PATROL_CHANGED, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
 	import { friendlyTime, todayKey } from '@/lib/format.js';
 	import { previewImage } from '@/lib/native.js';
@@ -97,7 +98,7 @@
 	import { toast } from '@/lib/ui.js';
 
 	export default {
-		components: { AppHeader, AppIcon, },
+		components: { AppHeader, AppIcon, EmptyState },
 		data() {
 			return {
 				refreshing: false,

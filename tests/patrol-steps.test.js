@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 import { SourceTextModule, SyntheticModule, createContext } from 'node:vm';
 import { parse } from 'vue/compiler-sfc';
+import { heritageLevelAccent } from '../src/lib/heritage-level.js';
 
 const { descriptor } = parse(await readFile(new URL('../src/views/PatrolPage.vue', import.meta.url), 'utf8'));
 
@@ -25,6 +26,8 @@ async function setup({ draft, chooseImage = async () => ({ webPath: 'photo:test'
 	const stubs = {
 		'@/components/AppHeader.vue': { default: {} },
 		'@/components/AppIcon.vue': { default: {} },
+		'@/components/EmptyState.vue': { default: {} },
+		'@/lib/heritage-level.js': { heritageLevelAccent },
 		'@/lib/watermark.js': { addWatermark: async () => ({ blob: new Blob(['photo']), url: 'blob:test' }) },
 		'@/lib/auth.js': { getUser: () => ({ id: 42, username: 'test' }) },
 		'@/lib/patrol.js': {
