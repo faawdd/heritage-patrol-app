@@ -246,6 +246,7 @@ test('record coordinates display the same six decimal places as photo watermarks
 			'@/lib/patrol.js': { loadPatrolRecords() {}, PATROL_CHANGED: '', pendingPatrols() {}, syncPatrols() {} },
 			'@/lib/format.js': { friendlyTime() {}, todayKey() {} },
 			'@/lib/distance.js': { distanceLabel },
+			'@/lib/auth.js': { getUser() {} },
 			'@/lib/native.js': { previewImage() {} },
 			'@/lib/nav.js': { switchTab() {} },
 			'@/lib/ui.js': { toast() {} },

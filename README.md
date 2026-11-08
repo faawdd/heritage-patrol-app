@@ -38,6 +38,8 @@ scripts/sync-version.mjs   版本号同步脚本
 
 UI 与返回导航回归测试：`npm run test:ui`；原生定位回归测试：`npm run test:location`。
 
+巡查记录按权限分页显示：看护员仅看本人，管理员看本人及当前有任务的看护员的全部记录，超级管理员看所有记录。离线时只能查看已缓存的页，数据和权限范围为上次联网查询时的快照；首页统计仍为本人最近记录。请先更新服务端再更新 App。
+
 巡查上报以首次添加照片时的坐标为准，同一条记录的照片水印和上报坐标均保留六位小数；删除全部照片后可重新定位并生成水印。未取得手机定位时沿用文物点或默认坐标并在拍照页提示。旧版草稿无法确认水印坐标，须删除原有照片并重新添加后才能上报；已上传的历史记录和照片不会自动修改。
 
 新添加的巡查照片水印包含文物点名称及任务中的四普编号；编号缺失时显示“未提供”。已有照片的水印不会自动更新。
@@ -48,6 +50,7 @@ UI 与返回导航回归测试：`npm run test:ui`；原生定位回归测试：
 软件设置分区回归测试：在同一浏览器控制台执行 `(await import('/tests/settings.browser.js')).runSettingsTests()`，检查折叠、展开及设置保存。
 外观回归测试：执行 `(await import('/tests/appearance.browser.js')).runAppearanceTests()`，检查等级标签对比度、窄屏布局和空状态；将浏览器宽度设为 320px 后执行 `(await import('/tests/appearance.browser.js')).runAdminNarrowTest()` 检查文物列表。
 巡查距离渲染测试：执行 `(await import('/tests/patrol-distance.browser.js')).runPatrolDistanceTests()`，检查已同步和待同步记录的距离。
+巡查记录渲染测试：执行 `(await import('/tests/records-access.browser.js')).runRecordsAccessTests()`，检查巡查员、分页和筛选。
 
 现场采集在“我的 → 软件设置”中配置 GPS、气压计或两者、采样组数及平均值或中位数。默认三组，分别计算两种来源后等权平均；单一来源不可用时使用可用结果并提示。需要开启精确定位并在采样期间停留在同一位置。气压海拔基于可配置的当地海平面气压（默认 1013.25 hPa）估算，受天气及高程基准影响，不能代替测绘高程。
 

@@ -100,20 +100,27 @@ export async function syncPatrols() {
 	return syncing;
 }
 
-export async function loadPatrolRecords() {
+export async function loadPatrolRecords({ page = 1, status = 'all' } = {}) {
 	const userId = getUser()?.id;
-	const cached = await readCache(userId, 'records');
+	if (!userId) throw new Error('请先登录');
+	const cacheKey = `records-v2:${status}:${page}`;
+	const cached = await readCache(userId, cacheKey);
 	requireAccount(userId);
-	if (navigator.onLine === false) return { items: cached?.value || [], cached: true };
+	if (navigator.onLine === false) {
+		if (!cached) throw new Error('该页没有离线缓存，请联网加载');
+		return { ...cached.value, cached: true };
+	}
 	try {
 		requireAccount(userId);
-		const res = await apiRequest({ url: '/api/inspections/mine' });
+		const res = await apiRequest({ url: '/api/inspections/records', data: { page, page_size: 20, status } });
 		requireAccount(userId);
 		if (res.statusCode !== 200) throw new Error(extractError(res, '加载巡查记录失败'));
-		await saveCache(userId, 'records', res.data.items || []);
-		return { items: res.data.items || [] };
+		await saveCache(userId, cacheKey, res.data);
+		requireAccount(userId);
+		return res.data;
 	} catch (error) {
-		if (cached && error.errMsg) return { items: cached.value, cached: true };
+		requireAccount(userId);
+		if (cached && error.errMsg) return { ...cached.value, cached: true };
 		throw error;
 	}
 }

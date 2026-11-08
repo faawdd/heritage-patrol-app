@@ -3,7 +3,7 @@
 		<div class="app-content">
 			<van-pull-refresh v-model="refreshing" @refresh="onRefresh">
 			<div class="u-page">
-				<AppHeader title="巡查记录" :subtitle="`共 ${records.length >= 100 ? '最近 100' : records.length} 条记录`">
+				<AppHeader title="巡查记录" :subtitle="`共 ${counts.all} 条记录`">
 					<div class="mt-2 flex gap-2">
 						<van-button
 							v-for="item in filters"
@@ -11,7 +11,7 @@
 							native-type="button"
 							class="flex-1"
 							:type="filter === item.key ? 'primary' : 'default'"
-							@click="filter = item.key"
+							@click="changeFilter(item.key)"
 						>{{ item.name }} {{ counts[item.key] }}</van-button>
 					</div>
 				</AppHeader>
@@ -36,13 +36,13 @@
 
 					<div v-else-if="loadError && !records.length" class="u-card u-empty">
 						<AppIcon name="alert" :size="88" color="var(--c-warning)" />
-						<span>加载失败，请检查网络</span>
+						<span>{{ loadError }}</span>
 						<van-button size="small" native-type="button" @click="load">重新加载</van-button>
 					</div>
 
 					<div v-else-if="!visible.length" class="u-card u-empty">
-						<EmptyState :message="records.length ? '没有符合条件的记录' : '还没有巡查记录'" :hint="records.length ? '试试切换筛选条件。' : '完成巡查上报后，记录将显示在这里。'">
-						<van-button type="primary" v-if="!records.length" native-type="button" @click="goPatrol">
+						<EmptyState :message="counts.all ? '没有符合条件的记录' : '还没有巡查记录'" :hint="counts.all ? '试试切换筛选条件。' : '完成巡查上报后，记录将显示在这里。'">
+						<van-button type="primary" v-if="!counts.all" native-type="button" @click="goPatrol">
 							<AppIcon name="camera" :size="44" color="var(--c-on-primary)" />
 							<span>去巡查上报</span>
 						</van-button>
@@ -55,6 +55,7 @@
 							<div class="flex items-start gap-2">
 								<div class="min-w-0 flex-1">
 									<span class="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.9375rem] font-semibold leading-[1.3] text-ink">{{ item.site_name || '未知文物点' }}</span>
+									<div v-if="item.inspector_name" class="mt-1 text-xs text-ink-3">巡查员：{{ item.inspector_name }}</div>
 									<div class="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-3">
 										<AppIcon name="clock" :size="28" color="var(--c-text-3)" />
 										<span>{{ timeOf(item.inspect_time) }}</span>
@@ -82,6 +83,11 @@
 							<span v-if="item.photo_urls?.length > 1">共 {{ item.photo_urls.length }} 张（点击查看）</span>
 						</div>
 					</div>
+					<div v-if="pages > 1" class="flex items-center justify-between gap-2 py-3">
+						<van-button size="small" :disabled="loading || page <= 1" @click="changePage(page - 1)">上一页</van-button>
+						<span class="text-sm text-ink-3">第 {{ page }} / {{ pages }} 页</span>
+						<van-button size="small" :disabled="loading || page >= pages" @click="changePage(page + 1)">下一页</van-button>
+					</div>
 				</div>
 			</div>
 		</van-pull-refresh>
@@ -96,6 +102,7 @@
 	import { loadPatrolRecords, PATROL_CHANGED, pendingPatrols, syncPatrols } from '@/lib/patrol.js';
 	import { friendlyTime, todayKey } from '@/lib/format.js';
 	import { distanceLabel } from '@/lib/distance.js';
+	import { getUser } from '@/lib/auth.js';
 	import { previewImage } from '@/lib/native.js';
 	import { switchTab } from '@/lib/nav.js';
 	import { toast } from '@/lib/ui.js';
@@ -106,8 +113,13 @@
 			return {
 				refreshing: false,
 				loading: false,
-				loadError: false,
+				loadError: '',
 				records: [],
+				counts: { all: 0, ok: 0, bad: 0 },
+				page: 1,
+				pages: 1,
+				accountId: null,
+				loadVersion: 0,
 				pending: [],
 				syncing: false,
 				cached: false,
@@ -120,13 +132,7 @@
 			};
 		},
 		computed: {
-			counts() {
-				const bad = this.records.filter((r) => !r.is_normal).length;
-				return { all: this.records.length, ok: this.records.length - bad, bad };
-			},
 			visible() {
-				if (this.filter === 'ok') return this.records.filter((r) => r.is_normal);
-				if (this.filter === 'bad') return this.records.filter((r) => !r.is_normal);
 				return this.records;
 			},
 			groups() {
@@ -144,6 +150,16 @@
 			},
 		},
 		activated() {
+			const userId = getUser()?.id;
+			if (this.accountId !== userId) {
+				this.accountId = userId;
+				this.records = [];
+				this.pending = [];
+				this.counts = { all: 0, ok: 0, bad: 0 };
+				this.page = 1;
+				this.pages = 1;
+				this.filter = 'all';
+			}
 			this.load();
 		},
 		mounted() {
@@ -154,8 +170,22 @@
 		},
 		methods: {
 			distanceLabel,
+			changeFilter(filter) {
+				if (filter === this.filter) return;
+				this.filter = filter;
+				this.page = 1;
+				this.load();
+			},
+			changePage(page) {
+				this.page = page;
+				this.load();
+			},
 			async loadPending() {
-				try { this.pending = await pendingPatrols(); }
+				const userId = getUser()?.id;
+				try {
+					const pending = await pendingPatrols();
+					if (getUser()?.id === userId && this.accountId === userId) this.pending = pending;
+				}
 				catch (error) { toast(error.message || '本地记录读取失败'); }
 			},
 			async syncPending() {
@@ -183,19 +213,28 @@
 			},
 			load() {
 				this.loadPending();
+				const version = ++this.loadVersion;
+				const userId = getUser()?.id;
 				this.loading = true;
-				this.loadError = false;
-				return loadPatrolRecords()
+				this.loadError = '';
+				this.records = [];
+				this.cached = false;
+				return loadPatrolRecords({ page: this.page, status: this.filter })
 					.then((result) => {
+						if (version !== this.loadVersion || getUser()?.id !== userId) return;
 						this.records = result.items;
+						this.counts = result.counts;
+						this.page = result.page;
+						this.pages = result.pages;
 						this.cached = !!result.cached;
 					})
-					.catch(() => {
-						this.loadError = true;
-						toast('加载失败，请检查网络', { icon: 'none' });
+					.catch((error) => {
+						if (version !== this.loadVersion || getUser()?.id !== userId) return;
+						this.loadError = error.message || '加载失败，请检查网络';
+						toast(this.loadError, { icon: 'none' });
 					})
 					.finally(() => {
-						this.loading = false;
+						if (version === this.loadVersion) this.loading = false;
 					});
 			},
 			dayLabel(day) {

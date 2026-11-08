@@ -12,7 +12,7 @@ export async function runPatrolDistanceTests() {
 		activated() {},
 		mounted() {},
 		beforeUnmount() {},
-		data() { return { ...RecordsPage.data(), records: [record], pending: [pending] }; },
+		data() { return { ...RecordsPage.data(), records: [record], pending: [pending], counts: { all: 1, ok: 1, bad: 0 } }; },
 	};
 	const app = createApp({ render: () => h(page) });
 	try {
